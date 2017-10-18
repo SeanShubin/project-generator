@@ -1,0 +1,17 @@
+{
+  reportDir target/detangled
+  searchPaths
+  [
+    ./console/target/project-generator-console-0.1-SNAPSHOT.jar
+  ]
+  level 2
+  startsWith
+  {
+    include [[com seanshubin project generator]]
+    exclude []
+    drop [[com seanshubin project generator]]
+  }
+  ignoreFiles []
+  canFailBuild true
+  allowedInCycle []
+}

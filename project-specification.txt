@@ -1,9 +1,3 @@
-# Project Generator
-- Convert minimal project specifications to project structures required by specific tools
-
-## Example
-- devon specification to maven scala console application
-```
 {
   pattern scala-console-application
   name [developers value notation]
@@ -25,4 +19,3 @@
     string { dependencies [] }
   }
 }
-```

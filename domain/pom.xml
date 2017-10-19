@@ -9,7 +9,12 @@
     <artifactId>project-generator-domain</artifactId>
     <!--<version>...</version>-->
     <!--<packaging>...</packaging>-->
-    <!--<dependencies>...</dependencies>-->
+    <dependencies>
+        <dependency>
+            <groupId>com.seanshubin.devon</groupId>
+            <artifactId>devon-domain</artifactId>
+        </dependency>
+    </dependencies>
     <parent>
         <groupId>com.seanshubin.project.generator</groupId>
         <artifactId>project-generator-parent</artifactId>

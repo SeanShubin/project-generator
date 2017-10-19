@@ -1,5 +1,7 @@
 package com.seanshubin.project.generator.console
 
 object EntryPoint extends App {
-  new DependencyInjection{}.runner.run()
+  new CommandLineArgumentsDependencyInjection {
+    override def commandLineArguments: Array[String] = args
+  }.runner.run()
 }

@@ -1,5 +1,7 @@
 package com.seanshubin.project.generator.domain
 
-class ReporterImpl extends Reporter {
-  override def reportResult(result: Result): Unit = ???
+class ReporterImpl(emitLine: String => Unit) extends Reporter {
+  override def reportResult(result: Result): Unit = {
+    result.toLines.foreach(emitLine)
+  }
 }

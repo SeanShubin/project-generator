@@ -3,6 +3,9 @@
 
 ## Example
 - devon specification to maven scala console application
+- command line arguments
+    - project-specification.txt ../../generated-projects
+
 ```
 {
   pattern scala-console-application

@@ -5,7 +5,7 @@ object Specification {
   case class Project(pattern: String,
                      name: Seq[String],
                      description: String,
-                     groupPrefix: Seq[String],
+                     namespace: Seq[String],
                      version: String,
                      dependencies: Map[String, Dependency],
                      modules: Map[String, Module])

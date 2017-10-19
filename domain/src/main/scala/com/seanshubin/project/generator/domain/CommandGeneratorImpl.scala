@@ -7,9 +7,10 @@ import com.seanshubin.project.generator.domain.Specification.Project
 
 class CommandGeneratorImpl(specification: Project, destinationDirectory: Path) extends CommandGenerator {
   override def generate(): Iterable[Command] = {
+    val projectDirectory = destinationDirectory.resolve(specification.name.mkString("-"))
     Seq(
-      EnsureDirectoryExists(destinationDirectory),
-      CreateParentPom(destinationDirectory, specification.groupPrefix, specification.name, specification.description)
+      EnsureDirectoryExists(projectDirectory),
+      CreateParentPom(projectDirectory, specification.namespace, specification.name, specification.description)
     )
   }
 }

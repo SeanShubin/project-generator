@@ -1,21 +1,23 @@
 {
   pattern scala-console-application
-  name [developers value notation]
-  description 'A simple, language neutral notation for representing structured values'
-  groupPrefix [com seanshubin]
+  name [sample project]
+  description 'Sample for testing project generator'
+  namespace [com seanshubin]
   version 1.1.1
   dependencies {
     scala-reflect {
       group org.scala-lang
       artifact scala-relfect
     }
+    jsoup {
+      group org.jsoup
+      artifact jsoup
+    }
   }
   modules {
-    domain { dependencies [tokenizer reflection] }
-    tokenizer { dependencies [rules] }
-    rules { dependencies [parser] }
-    parser { dependencies [string] }
-    reflection { dependencies [scala-reflect] }
-    string { dependencies [] }
+    module-a { dependencies [module-b module-c scala-reflect] }
+    module-b { dependencies [module-d jsoup] }
+    module-c { dependencies [module-d] }
+    module-d { dependencies [jsoup] }
   }
 }

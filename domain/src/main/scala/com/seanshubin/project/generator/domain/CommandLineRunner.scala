@@ -11,6 +11,7 @@ class CommandLineRunner(commandLineArguments: Array[String],
     val configurationFileName = commandLineArguments(0)
     val destinationDirectory = Paths.get(commandLineArguments(1))
     val projectSpecification = specificationLoader.load(configurationFileName)
-    val runner = createSpecificationRunner(projectSpecification, destinationDirectory).run()
+    val runner = createSpecificationRunner(projectSpecification, destinationDirectory)
+    runner.run()
   }
 }

@@ -8,7 +8,9 @@ object Specification {
                      namespace: Seq[String],
                      version: String,
                      dependencies: Map[String, Dependency],
-                     modules: Map[String, Module])
+                     modules: Map[String, Module]) {
+    def baseDirectoryName: String = name.mkString("-")
+  }
 
   case class Dependency(group: String, artifact: String)
 

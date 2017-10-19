@@ -6,11 +6,11 @@ import java.nio.file.Path
 import com.seanshubin.project.generator.domain._
 
 trait SpecificationDependencyInjection {
-  def projectSpecification: Specification.Project
+  def specification: Specification.Project
 
   def destinationDirectory: Path
 
-  val commandGenerator: CommandGenerator = new CommandGeneratorImpl(projectSpecification, destinationDirectory)
+  val commandGenerator: CommandGenerator = new CommandGeneratorImpl(specification, destinationDirectory)
   val files: FilesContract = FilesDelegate
   val classLoader: ClassLoaderContract = new ClassLoaderDelegate(this.getClass.getClassLoader)
   val charset: Charset = StandardCharsets.UTF_8

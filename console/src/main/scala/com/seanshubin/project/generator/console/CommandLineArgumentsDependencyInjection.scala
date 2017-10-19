@@ -15,7 +15,7 @@ trait CommandLineArgumentsDependencyInjection {
   val notifications: Notifications = new LineEmittingNotifications(emit)
   val specificationLoader: SpecificationLoader = new SpecificationLoaderImpl(files, charset, notifications.effectiveSpecification _)
   val createSpecificationRunner: (Project, Path) => Runnable = (theProjectSpecification, theDestinationDirectory) => new SpecificationDependencyInjection {
-    override def projectSpecification: Project = theProjectSpecification
+    override def specification: Project = theProjectSpecification
 
     override def destinationDirectory: Path = theDestinationDirectory
   }.runner

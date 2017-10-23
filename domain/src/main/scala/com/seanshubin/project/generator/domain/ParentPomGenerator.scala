@@ -2,9 +2,13 @@ package com.seanshubin.project.generator.domain
 
 case class ParentPomGenerator(prefix: Seq[String],
                               name: Seq[String],
+                              description: String,
                               versionString: String,
                               dependencyMap: Map[String, Dependency],
-                              modules: Seq[String]) {
+                              modules: Seq[String],
+                              developerName: String,
+                              developerOrganization: String,
+                              developerUrl: String) {
   def generate(): Seq[String] = {
     val depth = 0
     val lines = project(depth)
@@ -24,7 +28,8 @@ case class ParentPomGenerator(prefix: Seq[String],
         modules(depth) ++
         properties(depth) ++
         build(depth) ++
-        name(depth)
+        name(depth) ++
+        description(depth)
     wrap(depth, "project", projectContents)
   }
 
@@ -227,6 +232,10 @@ case class ParentPomGenerator(prefix: Seq[String],
     wrap(depth, "name", "${project.groupId}:${project.artifactId}")
   }
 
+  def description(depth: Int): Seq[String] = {
+    wrap(depth, "description", description)
+  }
+
   def wrap(depth: Int, elementName: String, contents: String): Seq[String] = {
     Seq(s"<$elementName>$contents</$elementName>")
   }
@@ -248,6 +257,7 @@ object ParentPomGenerator extends App {
 
   val prefix: Seq[String] = Seq("com", "seanshubin")
   val name: Seq[String] = Seq("devon")
+  val description: String = "A simple, language neutral notation for representing structured values"
   val versionString: String = "1.1.1"
   val dependencyMap: Map[String, Dependency] = Map(
     "scala-lang" -> Dependency("org.scala-lang", "scala-library", "2.12.14"),
@@ -261,8 +271,23 @@ object ParentPomGenerator extends App {
     "parser",
     "reflection",
     "string")
+  val versionControlPrefix: String = "https://github.com/SeanShubin/"
 
-  val generator = new ParentPomGenerator(prefix, name, versionString, dependencyMap, modules)
+  val developerName = "Sean Shubin"
+  val developerOrganization = "Sean Shubin"
+  val developerUrl = "http://seanshubin.com/"
+
+  val generator = new ParentPomGenerator(
+    prefix,
+    name,
+    description,
+    versionString,
+    dependencyMap,
+    modules,
+    developerName,
+    developerOrganization,
+    developerUrl,
+  )
   val lines = generator.generate()
   lines.foreach(println)
 }
@@ -273,18 +298,13 @@ object ParentPomGenerator extends App {
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                       http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- More Project Information -->
-    <name>${project.groupId}:${project.artifactId}</name>
-    <description>A simple, language neutral notation for representing structured values</description>
     <url>https://github.com/SeanShubin/developers-value-notation</url>
-    <!--<inceptionYear>...</inceptionYear>-->
     <licenses>
         <license>
             <name>Unlicense</name>
             <url>http://unlicense.org/</url>
         </license>
     </licenses>
-    <!--<organization>...</organization>-->
     <developers>
         <developer>
             <name>Sean Shubin</name>
@@ -292,20 +312,11 @@ object ParentPomGenerator extends App {
             <organizationUrl>http://seanshubin.com/</organizationUrl>
         </developer>
     </developers>
-    <!--<contributors>...</contributors>-->
-
-    <!-- Environment Settings -->
-    <!--<issueManagement>...</issueManagement>-->
-    <!--<ciManagement>...</ciManagement>-->
-    <!--<mailingLists>...</mailingLists>-->
     <scm>
-        <connection>scm:git:git@github.com:SeanShubin/developers-value-notation.git</connection>
+                 <connection>scm:git:git@github.com:SeanShubin/developers-value-notation.git</connection>
         <developerConnection>scm:git:git@github.com:SeanShubin/developers-value-notation.git</developerConnection>
         <url>https://github.com/SeanShubin/developers-value-notation</url>
     </scm>
-    <!--<prerequisites>...</prerequisites>-->
-    <!--<repositories>...</repositories>-->
-    <!--<pluginRepositories>...</pluginRepositories>-->
     <distributionManagement>
         <repository>
             <id>maven-staging</id>

@@ -163,13 +163,36 @@ case class ParentPomGenerator(prefix: Seq[String],
     wrap(depth, "plugin", mavenSourcePluginInner(depth + 1))
   }
 
-  def mavenSourcePluginInner(depth: Int): Seq[String] = Seq()
+  def mavenSourcePluginInner(depth: Int): Seq[String] = {
+    wrap(depth, "groupId", "org.apache.maven.plugins") ++
+      wrap(depth, "artifactId", "maven-source-plugin") ++
+      wrap(depth, "version", "3.0.1") ++
+      wrap(depth, "executions", mavenSourcePluginExecution(depth + 1))
+  }
 
+  def mavenSourcePluginExecution(depth: Int): Seq[String] = {
+    val goalsContent =
+      wrap(depth + 2, "goal", "jar-no-fork") ++
+        wrap(depth + 2, "goal", "test-jar-no-fork")
+    val executionContent =
+      wrap(depth + 1, "id", "attach-sources") ++
+        wrap(depth + 1, "phase", "verify") ++
+        wrap(depth + 1, "goals", goalsContent)
+    wrap(depth, "execution", executionContent)
+  }
   def disableSurefirePlugin(depth: Int): Seq[String] = {
     wrap(depth, "plugin", disableSurefirePluginInner(depth + 1))
   }
 
-  def disableSurefirePluginInner(depth: Int): Seq[String] = Seq()
+  def disableSurefirePluginInner(depth: Int): Seq[String] = {
+    val configurationContent =
+      Seq("<!--disable surefire-->") ++
+        wrap(depth + 1, "skipTests", "true")
+    wrap(depth, "groupId", "org.apache.maven.plugins") ++
+      wrap(depth, "artifactId", "maven-surefire-plugin") ++
+      wrap(depth, "version", "2.20") ++
+      wrap(depth, "configuration", configurationContent)
+  }
 
   def wrap(depth: Int, elementName: String, contents: String): Seq[String] = {
     Seq(s"<$elementName>$contents</$elementName>")
@@ -217,109 +240,8 @@ object ParentPomGenerator extends App {
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                       http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- The Basics -->
-    <groupId>com.seanshubin.devon</groupId>
-    <artifactId>devon-parent</artifactId>
-    <version>1.1.1</version>
-    <packaging>pom</packaging>
-    <dependencies>
-        <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-library</artifactId>
-            <version>2.12.4</version>
-        </dependency>
-        <dependency>
-            <groupId>org.scalatest</groupId>
-            <artifactId>scalatest_2.12</artifactId>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
-    <!--<parent>...</parent>-->
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.scala-lang</groupId>
-                <artifactId>scala-library</artifactId>
-                <version>2.12.4</version>
-            </dependency>
-            <dependency>
-                <groupId>org.scala-lang</groupId>
-                <artifactId>scala-reflect</artifactId>
-                <version>2.12.3</version>
-            </dependency>
-            <dependency>
-                <groupId>org.scalatest</groupId>
-                <artifactId>scalatest_2.12</artifactId>
-                <version>3.0.4</version>
-                <scope>test</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-    <modules>
-        <module>domain</module>
-        <module>tokenizer</module>
-        <module>rules</module>
-        <module>parser</module>
-        <module>reflection</module>
-        <module>string</module>
-    </modules>
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
-
     <!-- Build Settings -->
     <build>
-        <plugins>
-            <plugin>
-                <groupId>net.alchim31.maven</groupId>
-                <artifactId>scala-maven-plugin</artifactId>
-                <version>3.2.2</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>compile</goal>
-                            <goal>testCompile</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <sourceDir>src/main/java</sourceDir>
-                    <jvmArgs>
-                        <jvmArg>-Xms64m</jvmArg>
-                        <jvmArg>-Xmx1024m</jvmArg>
-                    </jvmArgs>
-                    <args>
-                        <arg>-unchecked</arg>
-                        <arg>-deprecation</arg>
-                        <arg>-feature</arg>
-                    </args>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>3.0.1</version>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>jar-no-fork</goal>
-                            <goal>test-jar-no-fork</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <!-- disable surefire -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.20</version>
-                <configuration>
-                    <skipTests>true</skipTests>
-                </configuration>
-            </plugin>
-        </plugins>
         <pluginManagement>
             <plugins>
                 <!-- enable scalatest -->

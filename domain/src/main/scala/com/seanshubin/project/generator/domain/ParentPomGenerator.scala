@@ -3,7 +3,8 @@ package com.seanshubin.project.generator.domain
 case class ParentPomGenerator(prefix: Seq[String],
                               name: Seq[String],
                               versionString: String,
-                              dependencyMap: Map[String, Dependency]) {
+                              dependencyMap: Map[String, Dependency],
+                              modules: Seq[String]) {
   def generate(): Seq[String] = {
     val depth = 0
     val lines = project(depth)
@@ -19,7 +20,9 @@ case class ParentPomGenerator(prefix: Seq[String],
         version(depth) ++
         packaging(depth) ++
         dependencies(depth) ++
-        dependencyManagement(depth)
+        dependencyManagement(depth) ++
+        modules(depth) ++
+        properties(depth)
     wrap(depth, "project", projectContents)
   }
 
@@ -89,6 +92,23 @@ case class ParentPomGenerator(prefix: Seq[String],
     wrap(depth, "dependency", dependencyContents)
   }
 
+  def modules(depth:Int):Seq[String] = {
+    val moduleContents = modules.flatMap(module(depth+1, _:String))
+    wrap(depth, "modules", moduleContents)
+  }
+
+  def module(depth:Int, name:String):Seq[String] = {
+    wrap(depth, "module", name)
+  }
+
+  def properties(depth:Int):Seq[String] = {
+    wrap(depth, "properties", propertyUtf8(depth+1))
+  }
+
+  def propertyUtf8(depth:Int):Seq[String] = {
+    wrap(depth, "project.build.sourceEncoding", "UTF-8")
+  }
+
   def wrap(depth: Int, elementName: String, contents: String): Seq[String] = {
     Seq(s"<$elementName>$contents</$elementName>")
   }
@@ -116,8 +136,15 @@ object ParentPomGenerator extends App {
     "scala-reflect" -> Dependency("org.scala-lang", "scala-reflect", "2.12.3"),
     "scala-test" -> Dependency("org.scalatest", "scalatest_2.12", "3.0.4", Some("test")),
   )
+  val modules: Seq[String] = Seq(
+    "domain",
+    "tokenizer",
+    "rules",
+    "parser",
+    "reflection",
+    "string")
 
-  val generator = new ParentPomGenerator(prefix, name, versionString, dependencyMap)
+  val generator = new ParentPomGenerator(prefix, name, versionString, dependencyMap, modules)
   val lines = generator.generate()
   lines.foreach(println)
 }

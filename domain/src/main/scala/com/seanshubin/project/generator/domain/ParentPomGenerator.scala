@@ -6,6 +6,7 @@ case class ParentPomGenerator(prefix: Seq[String],
                               versionString: String,
                               dependencyMap: Map[String, Dependency],
                               modules: Seq[String],
+                              versionControlPrefix: String,
                               developerName: String,
                               developerOrganization: String,
                               developerUrl: String) {
@@ -29,7 +30,8 @@ case class ParentPomGenerator(prefix: Seq[String],
         properties(depth) ++
         build(depth) ++
         name(depth) ++
-        description(depth)
+        description(depth) ++
+        url(depth)
     wrap(depth, "project", projectContents)
   }
 
@@ -236,6 +238,10 @@ case class ParentPomGenerator(prefix: Seq[String],
     wrap(depth, "description", description)
   }
 
+  def url(depth: Int): Seq[String] = {
+    wrap(depth, "url", versionControlPrefix + name.mkString("-"))
+  }
+
   def wrap(depth: Int, elementName: String, contents: String): Seq[String] = {
     Seq(s"<$elementName>$contents</$elementName>")
   }
@@ -284,6 +290,7 @@ object ParentPomGenerator extends App {
     versionString,
     dependencyMap,
     modules,
+    versionControlPrefix,
     developerName,
     developerOrganization,
     developerUrl,
@@ -298,7 +305,6 @@ object ParentPomGenerator extends App {
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                       http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <url>https://github.com/SeanShubin/developers-value-notation</url>
     <licenses>
         <license>
             <name>Unlicense</name>

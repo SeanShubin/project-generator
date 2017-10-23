@@ -23,7 +23,8 @@ case class ParentPomGenerator(prefix: Seq[String],
         dependencyManagement(depth) ++
         modules(depth) ++
         properties(depth) ++
-        build(depth)
+        build(depth) ++
+        name(depth)
     wrap(depth, "project", projectContents)
   }
 
@@ -111,7 +112,9 @@ case class ParentPomGenerator(prefix: Seq[String],
   }
 
   def build(depth: Int): Seq[String] = {
-    val buildContents = plugins(depth + 1)
+    val buildContents =
+      plugins(depth + 1) ++
+        pluginManagement(depth + 1)
     wrap(depth, "build", buildContents)
   }
 
@@ -122,6 +125,31 @@ case class ParentPomGenerator(prefix: Seq[String],
         mavenSourcePlugin(depth) ++
         disableSurefirePlugin(depth)
     wrap(depth, "plugins", pluginContents)
+  }
+
+  def pluginManagement(depth: Int): Seq[String] = {
+    val pluginsContents = wrap(depth + 2, "plugin", scalaTestMavenPlugin(depth + 3))
+    val pluginManagementContents = wrap(depth + 1, "plugins", pluginsContents)
+    wrap(depth, "pluginManagement", pluginManagementContents)
+  }
+
+  def scalaTestMavenPlugin(depth: Int): Seq[String] = {
+    val configurationContent =
+      wrap(depth + 1, "reportsDirectory", "${project.build.directory}/surefire-reports") ++
+        wrap(depth + 1, "junitxml", ".") ++
+        wrap(depth + 1, "filereports", "WDF TestSuite.txt")
+    val goalsContent =
+      wrap(depth + 3, "goal", "test")
+    val executionContent =
+      wrap(depth + 2, "id", "test") ++
+        wrap(depth + 2, "goals", goalsContent)
+    val executionsContent =
+      wrap(depth + 1, "execution", executionContent)
+    wrap(depth, "groupId", "org.scalatest") ++
+      wrap(depth, "artifactId", "scalatest-maven-plugin") ++
+      wrap(depth, "version", "1.0") ++
+      wrap(depth, "configuration", configurationContent) ++
+      wrap(depth, "executions", executionsContent)
   }
 
   def scalaMavenPlugin(depth: Int): Seq[String] = {
@@ -180,6 +208,7 @@ case class ParentPomGenerator(prefix: Seq[String],
         wrap(depth + 1, "goals", goalsContent)
     wrap(depth, "execution", executionContent)
   }
+
   def disableSurefirePlugin(depth: Int): Seq[String] = {
     wrap(depth, "plugin", disableSurefirePluginInner(depth + 1))
   }
@@ -192,6 +221,10 @@ case class ParentPomGenerator(prefix: Seq[String],
       wrap(depth, "artifactId", "maven-surefire-plugin") ++
       wrap(depth, "version", "2.20") ++
       wrap(depth, "configuration", configurationContent)
+  }
+
+  def name(depth: Int): Seq[String] = {
+    wrap(depth, "name", "${project.groupId}:${project.artifactId}")
   }
 
   def wrap(depth: Int, elementName: String, contents: String): Seq[String] = {
@@ -239,34 +272,6 @@ object ParentPomGenerator extends App {
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                       http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
-    <!-- Build Settings -->
-    <build>
-        <pluginManagement>
-            <plugins>
-                <!-- enable scalatest -->
-                <plugin>
-                    <groupId>org.scalatest</groupId>
-                    <artifactId>scalatest-maven-plugin</artifactId>
-                    <version>1.0</version>
-                    <configuration>
-                        <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
-                        <junitxml>.</junitxml>
-                        <filereports>WDF TestSuite.txt</filereports>
-                    </configuration>
-                    <executions>
-                        <execution>
-                            <id>test</id>
-                            <goals>
-                                <goal>test</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-    </build>
-    <!--<reporting>...</reporting>-->
 
     <!-- More Project Information -->
     <name>${project.groupId}:${project.artifactId}</name>

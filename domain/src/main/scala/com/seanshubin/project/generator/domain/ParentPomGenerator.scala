@@ -22,7 +22,8 @@ case class ParentPomGenerator(prefix: Seq[String],
         dependencies(depth) ++
         dependencyManagement(depth) ++
         modules(depth) ++
-        properties(depth)
+        properties(depth) ++
+        build(depth)
     wrap(depth, "project", projectContents)
   }
 
@@ -92,22 +93,83 @@ case class ParentPomGenerator(prefix: Seq[String],
     wrap(depth, "dependency", dependencyContents)
   }
 
-  def modules(depth:Int):Seq[String] = {
-    val moduleContents = modules.flatMap(module(depth+1, _:String))
+  def modules(depth: Int): Seq[String] = {
+    val moduleContents = modules.flatMap(module(depth + 1, _: String))
     wrap(depth, "modules", moduleContents)
   }
 
-  def module(depth:Int, name:String):Seq[String] = {
+  def module(depth: Int, name: String): Seq[String] = {
     wrap(depth, "module", name)
   }
 
-  def properties(depth:Int):Seq[String] = {
-    wrap(depth, "properties", propertyUtf8(depth+1))
+  def properties(depth: Int): Seq[String] = {
+    wrap(depth, "properties", propertyUtf8(depth + 1))
   }
 
-  def propertyUtf8(depth:Int):Seq[String] = {
+  def propertyUtf8(depth: Int): Seq[String] = {
     wrap(depth, "project.build.sourceEncoding", "UTF-8")
   }
+
+  def build(depth: Int): Seq[String] = {
+    val buildContents = plugins(depth + 1)
+    wrap(depth, "build", buildContents)
+  }
+
+  def plugins(outerDepth: Int): Seq[String] = {
+    val depth = outerDepth + 1
+    val pluginContents =
+      scalaMavenPlugin(depth) ++
+        mavenSourcePlugin(depth) ++
+        disableSurefirePlugin(depth)
+    wrap(depth, "plugins", pluginContents)
+  }
+
+  def scalaMavenPlugin(depth: Int): Seq[String] = {
+    wrap(depth, "plugin", scalaMavenPluginInner(depth + 1))
+  }
+
+  def scalaMavenPluginInner(depth: Int): Seq[String] = {
+    wrap(depth, "groupId", "net.alchim31.maven") ++
+      wrap(depth, "artifactId", "scala-maven-plugin") ++
+      wrap(depth, "version", "3.2.2") ++
+      wrap(depth, "executions", scalaMavenPluginExecutions(depth + 1)) ++
+      wrap(depth, "configuration", scalaMavenPluginConfiguration(depth + 1))
+  }
+
+  def scalaMavenPluginExecutions(depth: Int): Seq[String] = {
+    val goalsContent =
+      wrap(depth + 2, "goal", "compile") ++
+        wrap(depth + 2, "goal", "testCompile")
+    val executionContent = wrap(depth + 1, "goals", goalsContent)
+    wrap(depth, "execution", executionContent)
+  }
+
+  def scalaMavenPluginConfiguration(depth: Int): Seq[String] = {
+    val jvmArgsContent =
+      wrap(depth + 2, "jvmArg", "-Xms64m") ++
+        wrap(depth + 2, "jvmArg", "-Xmx1024m")
+    val argsContent =
+      wrap(depth + 2, "arg", "-unchecked") ++
+        wrap(depth + 2, "arg", "-deprecation") ++
+        wrap(depth + 2, "arg", "-feature")
+    val configurationContent =
+      wrap(depth + 1, "sourceDir", "src/main/java") ++
+        wrap(depth + 1, "jvmArgs", jvmArgsContent) ++
+        wrap(depth + 1, "args", argsContent)
+    wrap(depth, "configuration", configurationContent)
+  }
+
+  def mavenSourcePlugin(depth: Int): Seq[String] = {
+    wrap(depth, "plugin", mavenSourcePluginInner(depth + 1))
+  }
+
+  def mavenSourcePluginInner(depth: Int): Seq[String] = Seq()
+
+  def disableSurefirePlugin(depth: Int): Seq[String] = {
+    wrap(depth, "plugin", disableSurefirePluginInner(depth + 1))
+  }
+
+  def disableSurefirePluginInner(depth: Int): Seq[String] = Seq()
 
   def wrap(depth: Int, elementName: String, contents: String): Seq[String] = {
     Seq(s"<$elementName>$contents</$elementName>")

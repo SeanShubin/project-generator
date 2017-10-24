@@ -16,27 +16,34 @@ case class ParentPomGenerator(prefix: Seq[String],
     lines
   }
 
-  def project(projectDepth: Int): Seq[String] = {
-    val depth = projectDepth + 1
-    val projectContents =
-      model(depth) ++
-        group(depth) ++
-        artifact(depth) ++
-        version(depth) ++
-        packaging(depth) ++
-        dependencies(depth) ++
-        dependencyManagement(depth) ++
-        modules(depth) ++
-        properties(depth) ++
-        build(depth) ++
-        name(depth) ++
-        description(depth) ++
-        url(depth) ++
-        licenses(depth) ++
-        developers(depth) ++
-        scm(depth) ++
-        distributionManagement(depth)
-    wrap(depth, "project", projectContents)
+  def project(depth: Int): Seq[String] = {
+    Seq(
+      """<?xml version="1.0" encoding="UTF-8" standalone="no"?>""",
+      """<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"""",
+      """xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">""") ++
+      projectInner(depth + 1) ++
+      Seq("</project>")
+  }
+
+  def projectInner(depth: Int): Seq[String] = {
+    model(depth) ++
+      group(depth) ++
+      artifact(depth) ++
+      version(depth) ++
+      packaging(depth) ++
+      dependencies(depth) ++
+      dependencyManagement(depth) ++
+      modules(depth) ++
+      properties(depth) ++
+      build(depth) ++
+      name(depth) ++
+      description(depth) ++
+      url(depth) ++
+      licenses(depth) ++
+      developers(depth) ++
+      scm(depth) ++
+      distributionManagement(depth) ++
+      profiles(depth)
   }
 
   def model(depth: Int): Seq[String] = {
@@ -279,6 +286,53 @@ case class ParentPomGenerator(prefix: Seq[String],
     wrap(depth, "distributionManagement", distributionManagementContent)
   }
 
+  def profiles(depth: Int): Seq[String] = {
+    val profilesContent = stagingProfile(depth + 1)
+    wrap(depth, "profiles", profilesContent)
+  }
+
+  def stagingProfile(depth: Int): Seq[String] = {
+    val pluginsContents =
+      wrap(depth + 3, "plugin", mavenGpgPlugin(depth)) ++
+        wrap(depth + 3, "plugin", mavenJavadocPlugin(depth))
+    val buildContents =
+      wrap(depth + 2, "plugins", pluginsContents)
+    val profileContents =
+      wrap(depth + 1, "id", "stage") ++
+        wrap(depth + 1, "build", buildContents)
+    wrap(depth, "profile", profileContents)
+  }
+
+  def mavenGpgPlugin(depth: Int): Seq[String] = {
+    val goalsContent =
+      wrap(depth + 3, "goal", "sign")
+    val executionContent =
+      wrap(depth + 2, "id", "sign-artifacts") ++
+        wrap(depth + 2, "phase", "verify") ++
+        wrap(depth + 2, "goals", goalsContent)
+    val executionsContent =
+      wrap(depth + 1, "execution", executionContent)
+    wrap(depth, "groupId", "org.apache.maven.plugins") ++
+      wrap(depth, "artifactId", "maven-gpg-plugin") ++
+      wrap(depth, "version", "1.6") ++
+      wrap(depth, "executions", executionsContent)
+  }
+
+  def mavenJavadocPlugin(depth: Int): Seq[String] = {
+    val goalsContent =
+      wrap(depth + 3, "goal", "jar")
+    val executionContent =
+      wrap(depth + 2, "id", "generate-dummy-javadoc-per-maven-central-requirements") ++
+        wrap(depth + 2, "phase", "package") ++
+        wrap(depth + 2, "goals", goalsContent)
+    val executionsContent =
+      wrap(depth + 1, "execution", executionContent)
+    wrap(depth, "groupId", "org.apache.maven.plugins") ++
+      wrap(depth, "artifactId", "maven-javadoc-plugin") ++
+      wrap(depth, "version", "2.10.4") ++
+      wrap(depth, "executions", executionsContent)
+  }
+
   def wrap(depth: Int, elementName: String, contents: String): Seq[String] = {
     Seq(s"<$elementName>$contents</$elementName>")
   }
@@ -287,6 +341,15 @@ case class ParentPomGenerator(prefix: Seq[String],
     Seq(s"<$elementName>") ++
       contents.map(indent(depth + 1, _: String)) ++
       Seq(s"</$elementName>")
+  }
+
+  def wrap(depth: Int, elementNames: Seq[String], contents: Seq[String]): Seq[String] = {
+    if (elementNames.isEmpty) {
+      contents
+    } else {
+      val elementName = elementNames.head
+      wrap(depth, elementName, wrap(depth + 1, elementNames.tail, contents))
+    }
   }
 
   def indent(depth: Int, s: String): String = {
@@ -341,49 +404,5 @@ object ParentPomGenerator extends App {
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                       http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
-    <distributionManagement>
-        <repository>
-            <id>maven-staging</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
-        </repository>
-    </distributionManagement>
-    <profiles>
-        <profile>
-            <id>stage</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <version>1.6</version>
-                        <executions>
-                            <execution>
-                                <id>sign-artifacts</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>sign</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>2.10.4</version>
-                        <executions>
-                            <execution>
-                                <id>generate-dummy-javadoc-per-maven-central-requirements</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>jar</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 </project>
  */

@@ -11,349 +11,342 @@ case class ParentPomGenerator(prefix: Seq[String],
                               developerOrganization: String,
                               developerUrl: String) {
   def generate(): Seq[String] = {
-    val depth = 0
-    val lines = project(depth)
-    lines
-  }
-
-  def project(depth: Int): Seq[String] = {
     Seq(
       """<?xml version="1.0" encoding="UTF-8" standalone="no"?>""",
       """<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"""",
-      """xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">""") ++
-      projectInner(depth + 1) ++
+      """         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">""") ++
+      projectLines() ++
       Seq("</project>")
   }
 
-  def projectInner(depth: Int): Seq[String] = {
-    model(depth) ++
-      group(depth) ++
-      artifact(depth) ++
-      version(depth) ++
-      packaging(depth) ++
-      dependencies(depth) ++
-      dependencyManagement(depth) ++
-      modules(depth) ++
-      properties(depth) ++
-      build(depth) ++
-      name(depth) ++
-      description(depth) ++
-      url(depth) ++
-      licenses(depth) ++
-      developers(depth) ++
-      scm(depth) ++
-      distributionManagement(depth) ++
-      profiles(depth)
+  def projectLines(): Seq[String] = {
+    model() ++
+      group() ++
+      artifact() ++
+      version() ++
+      packaging() ++
+      dependencies() ++
+      dependencyManagement() ++
+      generateModules() ++
+      properties() ++
+      build() ++
+      generateName() ++
+      generateDescription() ++
+      url() ++
+      licenses() ++
+      developers() ++
+      scm() ++
+      distributionManagement() ++
+      profiles()
   }
 
-  def model(depth: Int): Seq[String] = {
-    wrap(depth, "modelVersion", "4.0.0")
+  def model(): Seq[String] = {
+    wrap("modelVersion", "4.0.0")
   }
 
-  def group(depth: Int): Seq[String] = {
+  def group(): Seq[String] = {
     val groupContents = (prefix ++ name).mkString(".")
-    group(depth, groupContents)
+    group(groupContents)
   }
 
-  def group(depth: Int, contents: String): Seq[String] = {
-    wrap(depth, "groupId", contents)
+  def group(contents: String): Seq[String] = {
+    wrap("groupId", contents)
   }
 
-  def artifact(depth: Int): Seq[String] = {
+  def artifact(): Seq[String] = {
     val artifactContents = (name ++ Seq("parent")).mkString("-")
-    artifact(depth, artifactContents)
+    artifact(artifactContents)
   }
 
-  def artifact(depth: Int, contents: String): Seq[String] = {
-    wrap(depth, "artifactId", contents)
+  def artifact(contents: String): Seq[String] = {
+    wrap("artifactId", contents)
   }
 
-  def version(depth: Int): Seq[String] = {
-    version(depth, versionString)
+  def version(): Seq[String] = {
+    version(versionString)
   }
 
-  def version(depth: Int, contents: String): Seq[String] = {
-    wrap(depth, "version", contents)
+  def version(contents: String): Seq[String] = {
+    wrap("version", contents)
   }
 
-  def packaging(depth: Int): Seq[String] = {
-    wrap(depth, "packaging", "pom")
+  def packaging(): Seq[String] = {
+    wrap("packaging", "pom")
   }
 
-  def dependencies(depth: Int): Seq[String] = {
+  def dependencies(): Seq[String] = {
     val scalaLang = Dependency("org.scala-lang", "scala-library", "2.12.4")
     val scalaTest = Dependency("org.scalatest", "scalatest_2.12", "3.0.4", Some("test"))
-    val contents = Seq(scalaLang, scalaTest).flatMap(dependencyValue(depth + 1, _: Dependency))
-    wrap(depth, "dependencies", contents)
+    val contents = Seq(scalaLang, scalaTest).flatMap(dependencyValue(_: Dependency))
+    wrap("dependencies", contents)
   }
 
-  def dependencyManagement(depth: Int): Seq[String] = {
-    val contents = dependencyMap.keys.toSeq.sorted.flatMap(dependency(depth + 1, _: String))
-    wrap(depth, "dependencyManagement", contents)
+  def dependencyManagement(): Seq[String] = {
+    val contents = dependencyMap.keys.toSeq.sorted.flatMap(dependency(_: String))
+    wrap("dependencyManagement", contents)
   }
 
-  def dependency(depth: Int, name: String): Seq[String] = {
+  def dependency(name: String): Seq[String] = {
     val dependencyValue = dependencyMap(name)
 
     def dependencyContents =
-      group(depth, dependencyValue.group) ++
-        artifact(depth, dependencyValue.artifact) ++
-        version(depth, dependencyValue.version)
+      group(dependencyValue.group) ++
+        artifact(dependencyValue.artifact) ++
+        version(dependencyValue.version)
 
-    wrap(depth, "dependency", dependencyContents)
+    wrap("dependency", dependencyContents)
   }
 
-  def dependencyValue(depth: Int, dependencyValue: Dependency): Seq[String] = {
+  def dependencyValue(dependencyValue: Dependency): Seq[String] = {
     def dependencyContents =
-      group(depth, dependencyValue.group) ++
-        artifact(depth, dependencyValue.artifact) ++
-        version(depth, dependencyValue.version)
+      group(dependencyValue.group) ++
+        artifact(dependencyValue.artifact) ++
+        version(dependencyValue.version)
 
-    wrap(depth, "dependency", dependencyContents)
+    wrap("dependency", dependencyContents)
   }
 
-  def modules(depth: Int): Seq[String] = {
-    val moduleContents = modules.flatMap(module(depth + 1, _: String))
-    wrap(depth, "modules", moduleContents)
+  def generateModules(): Seq[String] = {
+    val moduleContents = modules.flatMap(module(_: String))
+    wrap("modules", moduleContents)
   }
 
-  def module(depth: Int, name: String): Seq[String] = {
-    wrap(depth, "module", name)
+  def module(name: String): Seq[String] = {
+    wrap("module", name)
   }
 
-  def properties(depth: Int): Seq[String] = {
-    wrap(depth, "properties", propertyUtf8(depth + 1))
+  def properties(): Seq[String] = {
+    wrap("properties", propertyUtf8())
   }
 
-  def propertyUtf8(depth: Int): Seq[String] = {
-    wrap(depth, "project.build.sourceEncoding", "UTF-8")
+  def propertyUtf8(): Seq[String] = {
+    wrap("project.build.sourceEncoding", "UTF-8")
   }
 
-  def build(depth: Int): Seq[String] = {
+  def build(): Seq[String] = {
     val buildContents =
-      plugins(depth + 1) ++
-        pluginManagement(depth + 1)
-    wrap(depth, "build", buildContents)
+      plugins() ++
+        pluginManagement()
+    wrap("build", buildContents)
   }
 
-  def plugins(outerDepth: Int): Seq[String] = {
-    val depth = outerDepth + 1
+  def plugins(): Seq[String] = {
     val pluginContents =
-      scalaMavenPlugin(depth) ++
-        mavenSourcePlugin(depth) ++
-        disableSurefirePlugin(depth)
-    wrap(depth, "plugins", pluginContents)
+      scalaMavenPlugin() ++
+        mavenSourcePlugin() ++
+        disableSurefirePlugin()
+    wrap("plugins", pluginContents)
   }
 
-  def pluginManagement(depth: Int): Seq[String] = {
-    val pluginsContents = wrap(depth + 2, "plugin", scalaTestMavenPlugin(depth + 3))
-    val pluginManagementContents = wrap(depth + 1, "plugins", pluginsContents)
-    wrap(depth, "pluginManagement", pluginManagementContents)
+  def pluginManagement(): Seq[String] = {
+    val pluginsContents = wrap("plugin", scalaTestMavenPlugin())
+    val pluginManagementContents = wrap("plugins", pluginsContents)
+    wrap("pluginManagement", pluginManagementContents)
   }
 
-  def scalaTestMavenPlugin(depth: Int): Seq[String] = {
+  def scalaTestMavenPlugin(): Seq[String] = {
     val configurationContent =
-      wrap(depth + 1, "reportsDirectory", "${project.build.directory}/surefire-reports") ++
-        wrap(depth + 1, "junitxml", ".") ++
-        wrap(depth + 1, "filereports", "WDF TestSuite.txt")
+      wrap("reportsDirectory", "${project.build.directory}/surefire-reports") ++
+        wrap("junitxml", ".") ++
+        wrap("filereports", "WDF TestSuite.txt")
     val goalsContent =
-      wrap(depth + 3, "goal", "test")
+      wrap("goal", "test")
     val executionContent =
-      wrap(depth + 2, "id", "test") ++
-        wrap(depth + 2, "goals", goalsContent)
+      wrap("id", "test") ++
+        wrap("goals", goalsContent)
     val executionsContent =
-      wrap(depth + 1, "execution", executionContent)
-    wrap(depth, "groupId", "org.scalatest") ++
-      wrap(depth, "artifactId", "scalatest-maven-plugin") ++
-      wrap(depth, "version", "1.0") ++
-      wrap(depth, "configuration", configurationContent) ++
-      wrap(depth, "executions", executionsContent)
+      wrap("execution", executionContent)
+    wrap("groupId", "org.scalatest") ++
+      wrap("artifactId", "scalatest-maven-plugin") ++
+      wrap("version", "1.0") ++
+      wrap("configuration", configurationContent) ++
+      wrap("executions", executionsContent)
   }
 
-  def scalaMavenPlugin(depth: Int): Seq[String] = {
-    wrap(depth, "plugin", scalaMavenPluginInner(depth + 1))
+  def scalaMavenPlugin(): Seq[String] = {
+    wrap("plugin", scalaMavenPluginInner())
   }
 
-  def scalaMavenPluginInner(depth: Int): Seq[String] = {
-    wrap(depth, "groupId", "net.alchim31.maven") ++
-      wrap(depth, "artifactId", "scala-maven-plugin") ++
-      wrap(depth, "version", "3.2.2") ++
-      wrap(depth, "executions", scalaMavenPluginExecutions(depth + 1)) ++
-      wrap(depth, "configuration", scalaMavenPluginConfiguration(depth + 1))
+  def scalaMavenPluginInner(): Seq[String] = {
+    wrap("groupId", "net.alchim31.maven") ++
+      wrap("artifactId", "scala-maven-plugin") ++
+      wrap("version", "3.2.2") ++
+      wrap("executions", scalaMavenPluginExecutions()) ++
+      wrap("configuration", scalaMavenPluginConfiguration())
   }
 
-  def scalaMavenPluginExecutions(depth: Int): Seq[String] = {
+  def scalaMavenPluginExecutions(): Seq[String] = {
     val goalsContent =
-      wrap(depth + 2, "goal", "compile") ++
-        wrap(depth + 2, "goal", "testCompile")
-    val executionContent = wrap(depth + 1, "goals", goalsContent)
-    wrap(depth, "execution", executionContent)
+      wrap("goal", "compile") ++
+        wrap("goal", "testCompile")
+    val executionContent = wrap("goals", goalsContent)
+    wrap("execution", executionContent)
   }
 
-  def scalaMavenPluginConfiguration(depth: Int): Seq[String] = {
+  def scalaMavenPluginConfiguration(): Seq[String] = {
     val jvmArgsContent =
-      wrap(depth + 2, "jvmArg", "-Xms64m") ++
-        wrap(depth + 2, "jvmArg", "-Xmx1024m")
+      wrap("jvmArg", "-Xms64m") ++
+        wrap("jvmArg", "-Xmx1024m")
     val argsContent =
-      wrap(depth + 2, "arg", "-unchecked") ++
-        wrap(depth + 2, "arg", "-deprecation") ++
-        wrap(depth + 2, "arg", "-feature")
+      wrap("arg", "-unchecked") ++
+        wrap("arg", "-deprecation") ++
+        wrap("arg", "-feature")
     val configurationContent =
-      wrap(depth + 1, "sourceDir", "src/main/java") ++
-        wrap(depth + 1, "jvmArgs", jvmArgsContent) ++
-        wrap(depth + 1, "args", argsContent)
-    wrap(depth, "configuration", configurationContent)
+      wrap("sourceDir", "src/main/java") ++
+        wrap("jvmArgs", jvmArgsContent) ++
+        wrap("args", argsContent)
+    wrap("configuration", configurationContent)
   }
 
-  def mavenSourcePlugin(depth: Int): Seq[String] = {
-    wrap(depth, "plugin", mavenSourcePluginInner(depth + 1))
+  def mavenSourcePlugin(): Seq[String] = {
+    wrap("plugin", mavenSourcePluginInner())
   }
 
-  def mavenSourcePluginInner(depth: Int): Seq[String] = {
-    wrap(depth, "groupId", "org.apache.maven.plugins") ++
-      wrap(depth, "artifactId", "maven-source-plugin") ++
-      wrap(depth, "version", "3.0.1") ++
-      wrap(depth, "executions", mavenSourcePluginExecution(depth + 1))
+  def mavenSourcePluginInner(): Seq[String] = {
+    wrap("groupId", "org.apache.maven.plugins") ++
+      wrap("artifactId", "maven-source-plugin") ++
+      wrap("version", "3.0.1") ++
+      wrap("executions", mavenSourcePluginExecution())
   }
 
-  def mavenSourcePluginExecution(depth: Int): Seq[String] = {
+  def mavenSourcePluginExecution(): Seq[String] = {
     val goalsContent =
-      wrap(depth + 2, "goal", "jar-no-fork") ++
-        wrap(depth + 2, "goal", "test-jar-no-fork")
+      wrap("goal", "jar-no-fork") ++
+        wrap("goal", "test-jar-no-fork")
     val executionContent =
-      wrap(depth + 1, "id", "attach-sources") ++
-        wrap(depth + 1, "phase", "verify") ++
-        wrap(depth + 1, "goals", goalsContent)
-    wrap(depth, "execution", executionContent)
+      wrap("id", "attach-sources") ++
+        wrap("phase", "verify") ++
+        wrap("goals", goalsContent)
+    wrap("execution", executionContent)
   }
 
-  def disableSurefirePlugin(depth: Int): Seq[String] = {
-    wrap(depth, "plugin", disableSurefirePluginInner(depth + 1))
+  def disableSurefirePlugin(): Seq[String] = {
+    wrap("plugin", disableSurefirePluginInner())
   }
 
-  def disableSurefirePluginInner(depth: Int): Seq[String] = {
+  def disableSurefirePluginInner(): Seq[String] = {
     val configurationContent =
-      Seq("<!--disable surefire-->") ++
-        wrap(depth + 1, "skipTests", "true")
-    wrap(depth, "groupId", "org.apache.maven.plugins") ++
-      wrap(depth, "artifactId", "maven-surefire-plugin") ++
-      wrap(depth, "version", "2.20") ++
-      wrap(depth, "configuration", configurationContent)
+      Seq(indent("<!--disable surefire-->")) ++
+        wrap("skipTests", "true")
+    wrap("groupId", "org.apache.maven.plugins") ++
+      wrap("artifactId", "maven-surefire-plugin") ++
+      wrap("version", "2.20") ++
+      wrap("configuration", configurationContent)
   }
 
-  def name(depth: Int): Seq[String] = {
-    wrap(depth, "name", "${project.groupId}:${project.artifactId}")
+  def generateName(): Seq[String] = {
+    wrap("name", "${project.groupId}:${project.artifactId}")
   }
 
-  def description(depth: Int): Seq[String] = {
-    wrap(depth, "description", description)
+  def generateDescription(): Seq[String] = {
+    wrap("description", description)
   }
 
-  def url(depth: Int): Seq[String] = {
-    wrap(depth, "url", s"https://github.com/$githubName/${name.mkString("-")}")
+  def url(): Seq[String] = {
+    wrap("url", s"https://github.com/$githubName/${name.mkString("-")}")
   }
 
-  def licenses(depth: Int): Seq[String] = {
+  def licenses(): Seq[String] = {
     val licenseContent =
-      wrap(depth + 2, "name", "Unlicense") ++
-        wrap(depth + 2, "url", "http://unlicense.org/")
-    val licensesContent = wrap(depth + 1, "license", licenseContent)
-    wrap(depth, "licenses", licensesContent)
+      wrap("name", "Unlicense") ++
+        wrap("url", "http://unlicense.org/")
+    val licensesContent = wrap("license", licenseContent)
+    wrap("licenses", licensesContent)
   }
 
-  def developers(depth: Int): Seq[String] = {
+  def developers(): Seq[String] = {
     val developerContent =
-      wrap(depth + 2, "name", developerName) ++
-        wrap(depth + 2, "organization", developerOrganization) ++
-        wrap(depth + 2, "organizationUrl", developerUrl)
-    val developersContent = wrap(depth + 1, "developer", developerContent)
-    wrap(depth, "developers", developersContent)
+      wrap("name", developerName) ++
+        wrap("organization", developerOrganization) ++
+        wrap("organizationUrl", developerUrl)
+    val developersContent = wrap("developer", developerContent)
+    wrap("developers", developersContent)
   }
 
-  def scm(depth: Int): Seq[String] = {
+  def scm(): Seq[String] = {
     val scmContent =
-      wrap(depth + 1, "connection", s"scm:git:git@github.com:$githubName/${name.mkString("-")}.git") ++
-        wrap(depth + 1, "developerConnection", s"scm:git:git@github.com:$githubName/${name.mkString("-")}.git") ++
-        wrap(depth + 1, "url", s"https://github.com/$githubName/${name.mkString("-")}.git")
-    wrap(depth, "scm", scmContent)
+      wrap("connection", s"scm:git:git@github.com:$githubName/${name.mkString("-")}.git") ++
+        wrap("developerConnection", s"scm:git:git@github.com:$githubName/${name.mkString("-")}.git") ++
+        wrap("url", s"https://github.com/$githubName/${name.mkString("-")}.git")
+    wrap("scm", scmContent)
   }
 
-  def distributionManagement(depth: Int): Seq[String] = {
+  def distributionManagement(): Seq[String] = {
     val repositoryContent =
-      wrap(depth + 2, "id", "maven-staging") ++
-        wrap(depth + 2, "url", "https://oss.sonatype.org/service/local/staging/deploy/maven2")
-    val distributionManagementContent = wrap(depth + 1, "repository", repositoryContent)
-    wrap(depth, "distributionManagement", distributionManagementContent)
+      wrap("id", "maven-staging") ++
+        wrap("url", "https://oss.sonatype.org/service/local/staging/deploy/maven2")
+    val distributionManagementContent = wrap("repository", repositoryContent)
+    wrap("distributionManagement", distributionManagementContent)
   }
 
-  def profiles(depth: Int): Seq[String] = {
-    val profilesContent = stagingProfile(depth + 1)
-    wrap(depth, "profiles", profilesContent)
+  def profiles(): Seq[String] = {
+    val profilesContent = stagingProfile()
+    wrap("profiles", profilesContent)
   }
 
-  def stagingProfile(depth: Int): Seq[String] = {
+  def stagingProfile(): Seq[String] = {
     val pluginsContents =
-      wrap(depth + 3, "plugin", mavenGpgPlugin(depth)) ++
-        wrap(depth + 3, "plugin", mavenJavadocPlugin(depth))
+      wrap("plugin", mavenGpgPlugin()) ++
+        wrap("plugin", mavenJavadocPlugin())
     val buildContents =
-      wrap(depth + 2, "plugins", pluginsContents)
+      wrap("plugins", pluginsContents)
     val profileContents =
-      wrap(depth + 1, "id", "stage") ++
-        wrap(depth + 1, "build", buildContents)
-    wrap(depth, "profile", profileContents)
+      wrap("id", "stage") ++
+        wrap("build", buildContents)
+    wrap("profile", profileContents)
   }
 
-  def mavenGpgPlugin(depth: Int): Seq[String] = {
+  def mavenGpgPlugin(): Seq[String] = {
     val goalsContent =
-      wrap(depth + 3, "goal", "sign")
+      wrap("goal", "sign")
     val executionContent =
-      wrap(depth + 2, "id", "sign-artifacts") ++
-        wrap(depth + 2, "phase", "verify") ++
-        wrap(depth + 2, "goals", goalsContent)
+      wrap("id", "sign-artifacts") ++
+        wrap("phase", "verify") ++
+        wrap("goals", goalsContent)
     val executionsContent =
-      wrap(depth + 1, "execution", executionContent)
-    wrap(depth, "groupId", "org.apache.maven.plugins") ++
-      wrap(depth, "artifactId", "maven-gpg-plugin") ++
-      wrap(depth, "version", "1.6") ++
-      wrap(depth, "executions", executionsContent)
+      wrap("execution", executionContent)
+    wrap("groupId", "org.apache.maven.plugins") ++
+      wrap("artifactId", "maven-gpg-plugin") ++
+      wrap("version", "1.6") ++
+      wrap("executions", executionsContent)
   }
 
-  def mavenJavadocPlugin(depth: Int): Seq[String] = {
+  def mavenJavadocPlugin(): Seq[String] = {
     val goalsContent =
-      wrap(depth + 3, "goal", "jar")
+      wrap("goal", "jar")
     val executionContent =
-      wrap(depth + 2, "id", "generate-dummy-javadoc-per-maven-central-requirements") ++
-        wrap(depth + 2, "phase", "package") ++
-        wrap(depth + 2, "goals", goalsContent)
+      wrap("id", "generate-dummy-javadoc-per-maven-central-requirements") ++
+        wrap("phase", "package") ++
+        wrap("goals", goalsContent)
     val executionsContent =
-      wrap(depth + 1, "execution", executionContent)
-    wrap(depth, "groupId", "org.apache.maven.plugins") ++
-      wrap(depth, "artifactId", "maven-javadoc-plugin") ++
-      wrap(depth, "version", "2.10.4") ++
-      wrap(depth, "executions", executionsContent)
+      wrap("execution", executionContent)
+    wrap("groupId", "org.apache.maven.plugins") ++
+      wrap("artifactId", "maven-javadoc-plugin") ++
+      wrap("version", "2.10.4") ++
+      wrap("executions", executionsContent)
   }
 
-  def wrap(depth: Int, elementName: String, contents: String): Seq[String] = {
-    Seq(s"<$elementName>$contents</$elementName>")
+  def wrap(elementName: String, contents: String): Seq[String] = {
+    Seq(indent(s"<$elementName>$contents</$elementName>"))
   }
 
-  def wrap(depth: Int, elementName: String, contents: Seq[String]): Seq[String] = {
-    Seq(s"<$elementName>") ++
-      contents.map(indent(depth + 1, _: String)) ++
-      Seq(s"</$elementName>")
+  def wrap(elementName: String, contents: Seq[String]): Seq[String] = {
+    Seq(indent(s"<$elementName>")) ++
+      contents.map(indent(_: String)) ++
+      Seq(indent(s"</$elementName>"))
   }
 
-  def wrap(depth: Int, elementNames: Seq[String], contents: Seq[String]): Seq[String] = {
+  def wrap(elementNames: Seq[String], contents: Seq[String]): Seq[String] = {
     if (elementNames.isEmpty) {
       contents
     } else {
       val elementName = elementNames.head
-      wrap(depth, elementName, wrap(depth + 1, elementNames.tail, contents))
+      wrap(elementName, wrap(elementNames.tail, contents))
     }
   }
 
-  def indent(depth: Int, s: String): String = {
-    " " * 2 + s
+  def indent(s: String): String = {
+    "  " + s
   }
 }
 
@@ -398,11 +391,3 @@ object ParentPomGenerator extends App {
   val lines = generator.generate()
   lines.foreach(println)
 }
-
-/*
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                       http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-</project>
- */

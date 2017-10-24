@@ -6,7 +6,7 @@ case class ParentPomGenerator(prefix: Seq[String],
                               versionString: String,
                               dependencyMap: Map[String, Dependency],
                               modules: Seq[String],
-                              versionControlPrefix: String,
+                              githubName: String,
                               developerName: String,
                               developerOrganization: String,
                               developerUrl: String) {
@@ -31,7 +31,11 @@ case class ParentPomGenerator(prefix: Seq[String],
         build(depth) ++
         name(depth) ++
         description(depth) ++
-        url(depth)
+        url(depth) ++
+        licenses(depth) ++
+        developers(depth) ++
+        scm(depth) ++
+        distributionManagement(depth)
     wrap(depth, "project", projectContents)
   }
 
@@ -239,7 +243,40 @@ case class ParentPomGenerator(prefix: Seq[String],
   }
 
   def url(depth: Int): Seq[String] = {
-    wrap(depth, "url", versionControlPrefix + name.mkString("-"))
+    wrap(depth, "url", s"https://github.com/$githubName/${name.mkString("-")}")
+  }
+
+  def licenses(depth: Int): Seq[String] = {
+    val licenseContent =
+      wrap(depth + 2, "name", "Unlicense") ++
+        wrap(depth + 2, "url", "http://unlicense.org/")
+    val licensesContent = wrap(depth + 1, "license", licenseContent)
+    wrap(depth, "licenses", licensesContent)
+  }
+
+  def developers(depth: Int): Seq[String] = {
+    val developerContent =
+      wrap(depth + 2, "name", developerName) ++
+        wrap(depth + 2, "organization", developerOrganization) ++
+        wrap(depth + 2, "organizationUrl", developerUrl)
+    val developersContent = wrap(depth + 1, "developer", developerContent)
+    wrap(depth, "developers", developersContent)
+  }
+
+  def scm(depth: Int): Seq[String] = {
+    val scmContent =
+      wrap(depth + 1, "connection", s"scm:git:git@github.com:$githubName/${name.mkString("-")}.git") ++
+        wrap(depth + 1, "developerConnection", s"scm:git:git@github.com:$githubName/${name.mkString("-")}.git") ++
+        wrap(depth + 1, "url", s"https://github.com/$githubName/${name.mkString("-")}.git")
+    wrap(depth, "scm", scmContent)
+  }
+
+  def distributionManagement(depth: Int): Seq[String] = {
+    val repositoryContent =
+      wrap(depth + 2, "id", "maven-staging") ++
+        wrap(depth + 2, "url", "https://oss.sonatype.org/service/local/staging/deploy/maven2")
+    val distributionManagementContent = wrap(depth + 1, "repository", repositoryContent)
+    wrap(depth, "distributionManagement", distributionManagementContent)
   }
 
   def wrap(depth: Int, elementName: String, contents: String): Seq[String] = {
@@ -277,7 +314,7 @@ object ParentPomGenerator extends App {
     "parser",
     "reflection",
     "string")
-  val versionControlPrefix: String = "https://github.com/SeanShubin/"
+  val githubName: String = "SeanShubin"
 
   val developerName = "Sean Shubin"
   val developerOrganization = "Sean Shubin"
@@ -290,7 +327,7 @@ object ParentPomGenerator extends App {
     versionString,
     dependencyMap,
     modules,
-    versionControlPrefix,
+    githubName,
     developerName,
     developerOrganization,
     developerUrl,
@@ -305,24 +342,6 @@ object ParentPomGenerator extends App {
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                       http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <licenses>
-        <license>
-            <name>Unlicense</name>
-            <url>http://unlicense.org/</url>
-        </license>
-    </licenses>
-    <developers>
-        <developer>
-            <name>Sean Shubin</name>
-            <organization>Sean Shubin</organization>
-            <organizationUrl>http://seanshubin.com/</organizationUrl>
-        </developer>
-    </developers>
-    <scm>
-                 <connection>scm:git:git@github.com:SeanShubin/developers-value-notation.git</connection>
-        <developerConnection>scm:git:git@github.com:SeanShubin/developers-value-notation.git</developerConnection>
-        <url>https://github.com/SeanShubin/developers-value-notation</url>
-    </scm>
     <distributionManagement>
         <repository>
             <id>maven-staging</id>

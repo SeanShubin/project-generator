@@ -41,20 +41,24 @@ object Command {
     }
   }
 
-  case class CreateModulePom(destinationDirectory: Path, groupPrefix: Seq[String], name: Seq[String], description: String) extends Command {
+  case class CreateModulePom(destinationDirectory: Path,
+                             groupPrefix: Seq[String],
+                             projectName: Seq[String],
+                             moduleName:String,
+                             description: String) extends Command {
     override def execute(commandEnvironment: CommandEnvironment): Result = {
       val files = commandEnvironment.files
       val charset = commandEnvironment.charset
       val classLoader = commandEnvironment.classLoader
       val pomFile = destinationDirectory.resolve("pom.xml")
-      val groupId = (groupPrefix ++ name).mkString(".")
-      val artifactId = name.mkString("-")
+      val groupId = (groupPrefix ++ projectName).mkString(".")
+      val artifactId = (projectName :+ moduleName).mkString("-")
       val templateStream = ClassLoaderUtil.getResourceAsStream(classLoader, "module-template.xml")
       val template = IoUtil.inputStreamToString(templateStream, charset)
       val pomText = PomBuilder(
         groupId = groupId,
         artifactId = artifactId,
-        name = name.mkString("-"),
+        name = moduleName,
         description = description).applyTemplate(template)
       files.write(pomFile, pomText.getBytes(charset))
       Success(s"generated module pom $pomFile")

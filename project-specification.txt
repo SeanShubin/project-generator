@@ -7,7 +7,7 @@
   dependencies {
     scala-reflect {
       group org.scala-lang
-      artifact scala-relfect
+      artifact scala-reflect
     }
     jsoup {
       group org.jsoup

@@ -6,20 +6,10 @@
 
     <!-- The Basics -->
     <!--<groupId>...</groupId>-->
-    <artifactId>project-generator-domain</artifactId>
+    <artifactId>project-generator-xml</artifactId>
     <!--<version>...</version>-->
     <!--<packaging>...</packaging>-->
-    <dependencies>
-        <dependency>
-            <groupId>com.seanshubin.devon</groupId>
-            <artifactId>devon-domain</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.seanshubin.project.generator</groupId>
-            <artifactId>project-generator-xml</artifactId>
-            <version>${pom.parent.version}</version>
-        </dependency>
-    </dependencies>
+    <!--<dependencies>...</dependencies>-->
     <parent>
         <groupId>com.seanshubin.project.generator</groupId>
         <artifactId>project-generator-parent</artifactId>

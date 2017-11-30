@@ -28,21 +28,22 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       project.developer.githubName,
       project.developer.name,
       project.developer.organization,
-      project.developer.url
+      project.developer.url,
+      moduleName
     )
     pomGenerator.generate().mkString(newline)
   }
 
-  class PomGenerator(prefix: Seq[String],
-                     name: Seq[String],
-                     description: String,
-                     versionString: String,
-                     dependencyMap: Map[String, Specification.Dependency],
-                     modules: Map[String, Seq[String]],
-                     githubName: String,
-                     developerName: String,
-                     developerOrganization: String,
-                     developerUrl: String) {
+  abstract class PomGenerator(prefix: Seq[String],
+                              name: Seq[String],
+                              description: String,
+                              versionString: String,
+                              dependencyMap: Map[String, Specification.Dependency],
+                              modules: Map[String, Seq[String]],
+                              githubName: String,
+                              developerName: String,
+                              developerOrganization: String,
+                              developerUrl: String) {
     def generate(): Seq[String] = {
       Seq(
         """<?xml version="1.0" encoding="UTF-8" standalone="no"?>""",
@@ -86,10 +87,17 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       wrap("groupId", contents)
     }
 
-    def artifact(): Seq[String] = {
+    def parentArtifact(): Seq[String] = {
       val artifactContents = (name ++ Seq("parent")).mkString("-")
       artifact(artifactContents)
     }
+
+    def moduleArtifact(moduleName: String): Seq[String] = {
+      val artifactContents = (name ++ Seq(moduleName)).mkString("-")
+      artifact(artifactContents)
+    }
+
+    def artifact(): Seq[String]
 
     def artifact(contents: String): Seq[String] = {
       wrap("artifactId", contents)
@@ -402,7 +410,9 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
     githubName,
     developerName,
     developerOrganization,
-    developerUrl)
+    developerUrl) {
+    override def artifact(): Seq[String] = parentArtifact()
+  }
 
   case class ModulePomGenerator(prefix: Seq[String],
                                 name: Seq[String],
@@ -413,7 +423,8 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
                                 githubName: String,
                                 developerName: String,
                                 developerOrganization: String,
-                                developerUrl: String) extends PomGenerator(
+                                developerUrl: String,
+                                moduleName: String) extends PomGenerator(
     prefix,
     name,
     description,
@@ -423,5 +434,7 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
     githubName,
     developerName,
     developerOrganization,
-    developerUrl)
+    developerUrl) {
+    override def artifact(): Seq[String] = moduleArtifact(moduleName)
+  }
 }

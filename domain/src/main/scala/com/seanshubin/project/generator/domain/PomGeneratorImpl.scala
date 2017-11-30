@@ -2,7 +2,7 @@ package com.seanshubin.project.generator.domain
 
 class PomGeneratorImpl(newline: String) extends PomGenerator {
   override def generateParent(project: Specification.Project): String = {
-    val pomGenerator = new PomGenerator(
+    val pomGenerator = new ParentPomGenerator(
       project.prefix,
       project.name,
       project.description,
@@ -18,19 +18,31 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
   }
 
   override def generateModule(project: Specification.Project, moduleName: String): String = {
-    ???
+    val pomGenerator = ModulePomGenerator(
+      project.prefix,
+      project.name,
+      project.description,
+      project.version,
+      project.dependencies,
+      project.modules,
+      project.developer.githubName,
+      project.developer.name,
+      project.developer.organization,
+      project.developer.url
+    )
+    pomGenerator.generate().mkString(newline)
   }
 
-  case class PomGenerator(prefix: Seq[String],
-                          name: Seq[String],
-                          description: String,
-                          versionString: String,
-                          dependencyMap: Map[String, Specification.Dependency],
-                          modules: Map[String, Seq[String]],
-                          githubName: String,
-                          developerName: String,
-                          developerOrganization: String,
-                          developerUrl: String) {
+  class PomGenerator(prefix: Seq[String],
+                     name: Seq[String],
+                     description: String,
+                     versionString: String,
+                     dependencyMap: Map[String, Specification.Dependency],
+                     modules: Map[String, Seq[String]],
+                     githubName: String,
+                     developerName: String,
+                     developerOrganization: String,
+                     developerUrl: String) {
     def generate(): Seq[String] = {
       Seq(
         """<?xml version="1.0" encoding="UTF-8" standalone="no"?>""",
@@ -104,7 +116,7 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
 
     def dependencyManagement(): Seq[String] = {
       val contents = dependencyMap.keys.toSeq.sorted.flatMap(dependency(_: String))
-      wrap("dependencyManagement", contents)
+      wrap(Seq("dependencyManagement", "dependencies"), contents)
     }
 
     def dependency(name: String): Seq[String] = {
@@ -216,7 +228,7 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
         wrap("sourceDir", "src/main/java") ++
           wrap("jvmArgs", jvmArgsContent) ++
           wrap("args", argsContent)
-      wrap("configuration", configurationContent)
+      configurationContent
     }
 
     def mavenSourcePlugin(): Seq[String] = {
@@ -371,4 +383,45 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
     }
   }
 
+  class ParentPomGenerator(prefix: Seq[String],
+                           name: Seq[String],
+                           description: String,
+                           versionString: String,
+                           dependencyMap: Map[String, Specification.Dependency],
+                           modules: Map[String, Seq[String]],
+                           githubName: String,
+                           developerName: String,
+                           developerOrganization: String,
+                           developerUrl: String) extends PomGenerator(
+    prefix,
+    name,
+    description,
+    versionString,
+    dependencyMap,
+    modules,
+    githubName,
+    developerName,
+    developerOrganization,
+    developerUrl)
+
+  case class ModulePomGenerator(prefix: Seq[String],
+                                name: Seq[String],
+                                description: String,
+                                versionString: String,
+                                dependencyMap: Map[String, Specification.Dependency],
+                                modules: Map[String, Seq[String]],
+                                githubName: String,
+                                developerName: String,
+                                developerOrganization: String,
+                                developerUrl: String) extends PomGenerator(
+    prefix,
+    name,
+    description,
+    versionString,
+    dependencyMap,
+    modules,
+    githubName,
+    developerName,
+    developerOrganization,
+    developerUrl)
 }

@@ -60,6 +60,7 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
         version() ++
         packaging() ++
         dependencies() ++
+        parent() ++
         dependencyManagement() ++
         generateModules() ++
         properties() ++
@@ -121,6 +122,8 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       val contents = Seq(scalaLang, scalaTest).flatMap(dependencyValue(_: Dependency))
       wrap("dependencies", contents)
     }
+
+    def parent(): Seq[String]
 
     def dependencyManagement(): Seq[String] = {
       val contents = dependencyMap.keys.toSeq.sorted.flatMap(dependency(_: String))
@@ -412,6 +415,8 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
     developerOrganization,
     developerUrl) {
     override def artifact(): Seq[String] = parentArtifact()
+
+    override def parent(): Seq[String] = Seq()
   }
 
   case class ModulePomGenerator(prefix: Seq[String],
@@ -436,5 +441,10 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
     developerOrganization,
     developerUrl) {
     override def artifact(): Seq[String] = moduleArtifact(moduleName)
+
+    override def parent(): Seq[String] = {
+      val contents = group() ++ parentArtifact() ++ version()
+      wrap("parent", contents)
+    }
   }
 }

@@ -29,3 +29,5 @@
   }
 }
 ```
+## To Do
+- remove need to specify versions, use latest instead

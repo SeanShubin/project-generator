@@ -21,45 +21,27 @@ object Command {
     }
   }
 
-  case class CreateParentPom(destinationDirectory: Path, groupPrefix: Seq[String], name: Seq[String], description: String) extends Command {
+  case class CreateParentPom(destinationDirectory: Path, project: Specification.Project) extends Command {
     override def execute(commandEnvironment: CommandEnvironment): Result = {
+      val pomGenerator = commandEnvironment.pomGenerator
       val files = commandEnvironment.files
       val charset = commandEnvironment.charset
-      val classLoader = commandEnvironment.classLoader
       val pomFile = destinationDirectory.resolve("pom.xml")
-      val groupId = (groupPrefix ++ name).mkString(".")
-      val artifactId = (name ++ "parent").mkString("-")
-      val templateStream = ClassLoaderUtil.getResourceAsStream(classLoader, "pom-template.xml")
-      val template = IoUtil.inputStreamToString(templateStream, charset)
-      val pomText = PomBuilder(
-        groupId = groupId,
-        artifactId = artifactId,
-        name = name.mkString("-"),
-        description = description).applyTemplate(template)
+      val pomText = pomGenerator.generateParent(project)
       files.write(pomFile, pomText.getBytes(charset))
       Success(s"generated parent pom $pomFile")
     }
   }
 
   case class CreateModulePom(destinationDirectory: Path,
-                             groupPrefix: Seq[String],
-                             projectName: Seq[String],
-                             moduleName:String,
-                             description: String) extends Command {
+                             project: Specification.Project,
+                             moduleName: String) extends Command {
     override def execute(commandEnvironment: CommandEnvironment): Result = {
+      val pomGenerator = commandEnvironment.pomGenerator
       val files = commandEnvironment.files
       val charset = commandEnvironment.charset
-      val classLoader = commandEnvironment.classLoader
       val pomFile = destinationDirectory.resolve("pom.xml")
-      val groupId = (groupPrefix ++ projectName).mkString(".")
-      val artifactId = (projectName :+ moduleName).mkString("-")
-      val templateStream = ClassLoaderUtil.getResourceAsStream(classLoader, "module-template.xml")
-      val template = IoUtil.inputStreamToString(templateStream, charset)
-      val pomText = PomBuilder(
-        groupId = groupId,
-        artifactId = artifactId,
-        name = moduleName,
-        description = description).applyTemplate(template)
+      val pomText = pomGenerator.generateModule(project, moduleName)
       files.write(pomFile, pomText.getBytes(charset))
       Success(s"generated module pom $pomFile")
     }

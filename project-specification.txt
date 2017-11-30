@@ -1,23 +1,42 @@
 {
-  pattern scala-console-application
+  prefix [com seanshubin]
   name [sample project]
   description 'Sample for testing project generator'
   namespace [com seanshubin]
   version 1.1.1
+  developer {
+    name 'Sean Shubin'
+    githubName SeanShubin
+    organization 'Sean Shubin'
+    url http://seanshubin.com/
+  }
   dependencies {
+    scala-lang {
+     group org.scala-lang
+     artifact scala-library
+     version 2.12.14
+    }
+    scala-test {
+      group org.scalatest
+      artifact scalatest_2.12
+      version 3.0.4
+      scope test
+    }
     scala-reflect {
       group org.scala-lang
       artifact scala-reflect
+      version 1.2.3
     }
     jsoup {
       group org.jsoup
       artifact jsoup
+      version 1.3.5
     }
   }
   modules {
-    module-a { dependencies [module-b module-c scala-reflect] }
-    module-b { dependencies [module-d jsoup] }
-    module-c { dependencies [module-d] }
-    module-d { dependencies [jsoup] }
+    module-a [module-b module-c scala-reflect]
+    module-b [module-d jsoup]
+    module-c [module-d]
+    module-d [jsoup]
   }
 }

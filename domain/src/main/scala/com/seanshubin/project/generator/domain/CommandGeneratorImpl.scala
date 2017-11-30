@@ -11,7 +11,7 @@ class CommandGeneratorImpl(project: Project, destinationDirectory: Path) extends
     val moduleCommands = project.modules.keys.flatMap(generateModuleCommands)
     Seq(
       EnsureDirectoryExists(projectDirectory),
-      CreateParentPom(projectDirectory, project.namespace, project.name, project.description)
+      CreateParentPom(projectDirectory, project)
     ) ++ moduleCommands
   }
 
@@ -23,7 +23,7 @@ class CommandGeneratorImpl(project: Project, destinationDirectory: Path) extends
     Seq(
       EnsureDirectoryExists(scalaSourceDir),
       EnsureDirectoryExists(scalaTestDir),
-      CreateModulePom(moduleDirectory, project.namespace, project.name, moduleName, project.description)
+      CreateModulePom(moduleDirectory, project, moduleName)
     )
   }
 }

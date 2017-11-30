@@ -1,15 +1,15 @@
 package com.seanshubin.project.generator.domain
 
-case class ParentPomGenerator(prefix: Seq[String],
-                              name: Seq[String],
-                              description: String,
-                              versionString: String,
-                              dependencyMap: Map[String, Dependency],
-                              modules: Seq[String],
-                              githubName: String,
-                              developerName: String,
-                              developerOrganization: String,
-                              developerUrl: String) {
+case class PomGeneratorPrototype(prefix: Seq[String],
+                                 name: Seq[String],
+                                 description: String,
+                                 versionString: String,
+                                 dependencyMap: Map[String, Dependency],
+                                 modules: Seq[String],
+                                 githubName: String,
+                                 developerName: String,
+                                 developerOrganization: String,
+                                 developerUrl: String) {
   def generate(): Seq[String] = {
     Seq(
       """<?xml version="1.0" encoding="UTF-8" standalone="no"?>""",
@@ -350,7 +350,7 @@ case class ParentPomGenerator(prefix: Seq[String],
   }
 }
 
-object ParentPomGenerator extends App {
+object PomGeneratorPrototype extends App {
   val scalaLang = Dependency("org.scala-lang", "scala-library", "2.12.14")
   val scalaTest = Dependency("org.scalatest", "scalatest_2.12", "3.0.4", Some("test"))
 
@@ -376,7 +376,7 @@ object ParentPomGenerator extends App {
   val developerOrganization = "Sean Shubin"
   val developerUrl = "http://seanshubin.com/"
 
-  val generator = new ParentPomGenerator(
+  val generator = new PomGeneratorPrototype(
     prefix,
     name,
     description,

@@ -14,7 +14,9 @@ trait SpecificationDependencyInjection {
   val files: FilesContract = FilesDelegate
   val classLoader: ClassLoaderContract = new ClassLoaderDelegate(this.getClass.getClassLoader)
   val charset: Charset = StandardCharsets.UTF_8
-  val commandEnvironment: CommandEnvironment = CommandEnvironment(files, classLoader, charset)
+  val newline: String = "\n"
+  val pomGenerator: PomGenerator = new PomGeneratorImpl(newline)
+  val commandEnvironment: CommandEnvironment = new CommandEnvironment(pomGenerator, files, classLoader, charset)
   val commandExecutor: CommandExecutor = new CommandExecutorImpl(commandEnvironment)
   val emitLine: String => Unit = println
   val reporter: Reporter = new ReporterImpl(emitLine)

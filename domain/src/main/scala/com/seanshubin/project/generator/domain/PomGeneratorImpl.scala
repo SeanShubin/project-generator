@@ -111,6 +111,13 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       wrap("version", contents)
     }
 
+    def scope(maybeContents: Option[String]): Seq[String] = {
+      maybeContents match {
+        case Some(contents) => wrap("scope", contents)
+        case None => Seq()
+      }
+    }
+
     def packaging(): Seq[String] = {
       wrap("packaging", "pom")
     }
@@ -144,7 +151,8 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       def dependencyContents =
         group(dependencyValue.group) ++
           artifact(dependencyValue.artifact) ++
-          version(dependencyValue.version)
+          version(dependencyValue.version) ++
+          scope(dependencyValue.scope)
 
       wrap("dependency", dependencyContents)
     }

@@ -24,6 +24,7 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       project.description,
       project.version,
       project.dependencies,
+      project.modules,
       project.developer.githubName,
       project.developer.name,
       project.developer.organization,
@@ -122,18 +123,33 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       wrap("packaging", "pom")
     }
 
-    def dependencies(): Seq[String] = {
+    def dependencies(): Seq[String]
+
+    def parentDependencies(): Seq[String] = {
       val scalaLang = Dependency("org.scala-lang", "scala-library", "2.12.4")
       val scalaTest = Dependency("org.scalatest", "scalatest_2.12", "3.0.4", Some("test"))
-      val contents = Seq(scalaLang, scalaTest).flatMap(dependencyValue(_: Dependency))
+      val contents = Seq(scalaLang, scalaTest).flatMap(parentDependencyValue(_: Dependency))
+      wrap("dependencies", contents)
+    }
+
+    def childDependencies(): Seq[String] = {
+      val scalaLang = Dependency("org.scala-lang", "scala-library", "2.12.4")
+      val scalaTest = Dependency("org.scalatest", "scalatest_2.12", "3.0.4", Some("test"))
+      val contents = Seq(scalaLang, scalaTest).flatMap(childDependencyValue(_: Dependency))
       wrap("dependencies", contents)
     }
 
     def parent(): Seq[String]
 
-    def dependencyManagement(): Seq[String] = {
+    def dependencyManagement(): Seq[String]
+
+    def parentDependencyManagement(): Seq[String] = {
       val contents = dependencyMap.keys.toSeq.sorted.flatMap(dependency(_: String))
       wrap(Seq("dependencyManagement", "dependencies"), contents)
+    }
+
+    def childDependencyManagement(): Seq[String] = {
+      Seq()
     }
 
     def dependency(name: String): Seq[String] = {
@@ -147,7 +163,7 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       wrap("dependency", dependencyContents)
     }
 
-    def dependencyValue(dependencyValue: Dependency): Seq[String] = {
+    def parentDependencyValue(dependencyValue: Dependency): Seq[String] = {
       def dependencyContents =
         group(dependencyValue.group) ++
           artifact(dependencyValue.artifact) ++
@@ -157,9 +173,25 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       wrap("dependency", dependencyContents)
     }
 
-    def generateModules(): Seq[String] = {
+    def childDependencyValue(dependencyValue: Dependency): Seq[String] = {
+      def dependencyContents =
+        group(dependencyValue.group) ++
+          artifact(dependencyValue.artifact) ++
+          version(dependencyValue.version) ++
+          scope(dependencyValue.scope)
+
+      wrap("dependency", dependencyContents)
+    }
+
+    def generateModules(): Seq[String]
+
+    def parentModules(): Seq[String] = {
       val moduleContents = modules.keys.toSeq.sorted.flatMap(module(_: String))
       wrap("modules", moduleContents)
+    }
+
+    def childModules(): Seq[String] = {
+      Seq()
     }
 
     def module(name: String): Seq[String] = {
@@ -424,6 +456,12 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
     override def artifact(): Seq[String] = parentArtifact()
 
     override def parent(): Seq[String] = Seq()
+
+    override def dependencies(): Seq[String] = parentDependencies()
+
+    override def dependencyManagement(): Seq[String] = parentDependencyManagement()
+
+    override def generateModules(): Seq[String] = parentModules()
   }
 
   case class ModulePomGenerator(prefix: Seq[String],
@@ -431,6 +469,7 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
                                 description: String,
                                 versionString: String,
                                 dependencyMap: Map[String, Specification.Dependency],
+                                modules: Map[String, Seq[String]],
                                 githubName: String,
                                 developerName: String,
                                 developerOrganization: String,
@@ -441,7 +480,7 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
     description,
     versionString,
     dependencyMap,
-    Map(),
+    modules,
     githubName,
     developerName,
     developerOrganization,
@@ -452,5 +491,12 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       val contents = group() ++ parentArtifact() ++ version()
       wrap("parent", contents)
     }
+
+    override def dependencies(): Seq[String] = childDependencies()
+
+    override def dependencyManagement(): Seq[String] = childDependencyManagement()
+
+    override def generateModules(): Seq[String] = childModules()
   }
+
 }

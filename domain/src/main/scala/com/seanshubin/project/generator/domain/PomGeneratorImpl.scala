@@ -79,9 +79,15 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       wrap("modelVersion", "4.0.0")
     }
 
-    def group(): Seq[String] = {
+    def group(): Seq[String]
+
+    def parentGroup(): Seq[String] = {
       val groupContents = (prefix ++ name).mkString(".")
       group(groupContents)
+    }
+
+    def childGroup(): Seq[String] = {
+      Seq()
     }
 
     def group(contents: String): Seq[String] = {
@@ -104,8 +110,14 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       wrap("artifactId", contents)
     }
 
-    def version(): Seq[String] = {
+    def version(): Seq[String]
+
+    def parentVersion(): Seq[String] = {
       version(versionString)
+    }
+
+    def childVersion(): Seq[String] = {
+      Seq()
     }
 
     def version(contents: String): Seq[String] = {
@@ -119,24 +131,32 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       }
     }
 
-    def packaging(): Seq[String] = {
+    def packaging(): Seq[String]
+
+    def parentPackaging(): Seq[String] = {
       wrap("packaging", "pom")
+    }
+
+    def childPackaging(): Seq[String] = {
+      Seq()
     }
 
     def dependencies(): Seq[String]
 
-    def parentDependencies(): Seq[String] = {
+
+    def dependenciesUsingFunction(dependencyFunction: Dependency => Seq[String]): Seq[String] = {
       val scalaLang = Dependency("org.scala-lang", "scala-library", "2.12.4")
       val scalaTest = Dependency("org.scalatest", "scalatest_2.12", "3.0.4", Some("test"))
-      val contents = Seq(scalaLang, scalaTest).flatMap(parentDependencyValue(_: Dependency))
+      val contents = Seq(scalaLang, scalaTest).flatMap(dependencyFunction)
       wrap("dependencies", contents)
     }
 
+    def parentDependencies(): Seq[String] = {
+      dependenciesUsingFunction(parentDependencyValue)
+    }
+
     def childDependencies(): Seq[String] = {
-      val scalaLang = Dependency("org.scala-lang", "scala-library", "2.12.4")
-      val scalaTest = Dependency("org.scalatest", "scalatest_2.12", "3.0.4", Some("test"))
-      val contents = Seq(scalaLang, scalaTest).flatMap(childDependencyValue(_: Dependency))
-      wrap("dependencies", contents)
+      dependenciesUsingFunction(childDependencyValue)
     }
 
     def parent(): Seq[String]
@@ -176,9 +196,7 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
     def childDependencyValue(dependencyValue: Dependency): Seq[String] = {
       def dependencyContents =
         group(dependencyValue.group) ++
-          artifact(dependencyValue.artifact) ++
-          version(dependencyValue.version) ++
-          scope(dependencyValue.scope)
+          artifact(dependencyValue.artifact)
 
       wrap("dependency", dependencyContents)
     }
@@ -198,8 +216,14 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       wrap("module", name)
     }
 
-    def properties(): Seq[String] = {
+    def properties(): Seq[String]
+
+    def parentProperties(): Seq[String] = {
       wrap("properties", propertyUtf8())
+    }
+
+    def childProperties(): Seq[String] = {
+      Seq()
     }
 
     def propertyUtf8(): Seq[String] = {
@@ -462,6 +486,14 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
     override def dependencyManagement(): Seq[String] = parentDependencyManagement()
 
     override def generateModules(): Seq[String] = parentModules()
+
+    override def group(): Seq[String] = parentGroup()
+
+    override def version(): Seq[String] = parentVersion()
+
+    override def packaging(): Seq[String] = parentPackaging()
+
+    override def properties(): Seq[String] = parentProperties()
   }
 
   case class ModulePomGenerator(prefix: Seq[String],
@@ -488,7 +520,7 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
     override def artifact(): Seq[String] = moduleArtifact(moduleName)
 
     override def parent(): Seq[String] = {
-      val contents = group() ++ parentArtifact() ++ version()
+      val contents = parentGroup() ++ parentArtifact() ++ parentVersion()
       wrap("parent", contents)
     }
 
@@ -497,6 +529,14 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
     override def dependencyManagement(): Seq[String] = childDependencyManagement()
 
     override def generateModules(): Seq[String] = childModules()
+
+    override def group(): Seq[String] = childGroup()
+
+    override def version(): Seq[String] = childVersion()
+
+    override def packaging(): Seq[String] = childPackaging()
+
+    override def properties(): Seq[String] = childProperties()
   }
 
 }

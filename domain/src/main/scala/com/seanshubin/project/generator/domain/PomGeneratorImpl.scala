@@ -230,14 +230,41 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       wrap("project.build.sourceEncoding", "UTF-8")
     }
 
-    def build(): Seq[String] = {
+    def build(): Seq[String]
+
+    def parentBuild(): Seq[String] = {
       val buildContents =
         plugins() ++
           pluginManagement()
       wrap("build", buildContents)
     }
 
-    def plugins(): Seq[String] = {
+    def childBuild(): Seq[String] = {
+      val buildContents =
+        sourceDir() ++
+          testDir() ++
+        plugins() ++
+          pluginManagement()
+      wrap("build", buildContents)
+    }
+
+    def sourceDir(): Seq[String] = {
+      wrap("sourceDirectory", "src/main/scala")
+    }
+
+    def testDir(): Seq[String] = {
+      wrap("testSourceDirectory", "src/test/scala")
+    }
+
+    def plugins(): Seq[String]
+
+    def childPlugins(): Seq[String] = {
+      val pluginContents =
+        scalaTestMavenPlugin()
+      wrap("plugins", pluginContents)
+    }
+
+    def parentPlugins(): Seq[String] = {
       val pluginContents =
         scalaMavenPlugin() ++
           mavenSourcePlugin() ++
@@ -245,13 +272,20 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       wrap("plugins", pluginContents)
     }
 
-    def pluginManagement(): Seq[String] = {
-      val pluginsContents = wrap("plugin", scalaTestMavenPlugin())
-      val pluginManagementContents = wrap("plugins", pluginsContents)
+    def pluginManagement(): Seq[String]
+
+    def childPluginManagement(): Seq[String] = {
+      Seq()
+    }
+
+    def parentPluginManagement(): Seq[String] = {
+      val pluginManagementContents = wrap("plugins", scalaTestMavenPlugin())
       wrap("pluginManagement", pluginManagementContents)
     }
 
-    def scalaTestMavenPlugin(): Seq[String] = {
+    def scalaTestMavenPluginInner(): Seq[String]
+
+    def parentScalaTestMavenPluginInner(): Seq[String] = {
       val configurationContent =
         wrap("reportsDirectory", "${project.build.directory}/surefire-reports") ++
           wrap("junitxml", ".") ++
@@ -268,6 +302,15 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
         wrap("version", "1.0") ++
         wrap("configuration", configurationContent) ++
         wrap("executions", executionsContent)
+    }
+
+    def childScalaTestMavenPluginInner(): Seq[String] = {
+      wrap("groupId", "org.scalatest") ++
+        wrap("artifactId", "scalatest-maven-plugin")
+    }
+
+    def scalaTestMavenPlugin(): Seq[String] = {
+      wrap("plugin", scalaTestMavenPluginInner())
     }
 
     def scalaMavenPlugin(): Seq[String] = {
@@ -494,6 +537,14 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
     override def packaging(): Seq[String] = parentPackaging()
 
     override def properties(): Seq[String] = parentProperties()
+
+    override def build(): Seq[String] = parentBuild()
+
+    override def plugins(): Seq[String] = parentPlugins()
+
+    override def scalaTestMavenPluginInner(): Seq[String] = parentScalaTestMavenPluginInner()
+
+    override def pluginManagement(): Seq[String] = parentPluginManagement()
   }
 
   case class ModulePomGenerator(prefix: Seq[String],
@@ -537,6 +588,14 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
     override def packaging(): Seq[String] = childPackaging()
 
     override def properties(): Seq[String] = childProperties()
+
+    override def build(): Seq[String] = childBuild()
+
+    override def plugins(): Seq[String] = childPlugins()
+
+    override def scalaTestMavenPluginInner(): Seq[String] = childScalaTestMavenPluginInner()
+
+    override def pluginManagement(): Seq[String] = childPluginManagement()
   }
 
 }

@@ -143,7 +143,6 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
 
     def dependencies(): Seq[String]
 
-
     def dependenciesUsingFunction(dependencyFunction: Dependency => Seq[String]): Seq[String] = {
       val scalaLang = Dependency("org.scala-lang", "scala-library", "2.12.4")
       val scalaTest = Dependency("org.scalatest", "scalatest_2.12", "3.0.4", Some("test"))
@@ -388,51 +387,19 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       wrap("name", "${project.groupId}:${project.artifactId}")
     }
 
-    def generateDescription(): Seq[String] = {
-      wrap("description", description)
-    }
+    def generateDescription(): Seq[String] = Seq()
 
-    def url(): Seq[String] = {
-      wrap("url", s"https://github.com/$githubName/${name.mkString("-")}")
-    }
+    def url(): Seq[String] = Seq()
 
-    def licenses(): Seq[String] = {
-      val licenseContent =
-        wrap("name", "Unlicense") ++
-          wrap("url", "http://unlicense.org/")
-      val licensesContent = wrap("license", licenseContent)
-      wrap("licenses", licensesContent)
-    }
+    def licenses(): Seq[String] = Seq()
 
-    def developers(): Seq[String] = {
-      val developerContent =
-        wrap("name", developerName) ++
-          wrap("organization", developerOrganization) ++
-          wrap("organizationUrl", developerUrl)
-      val developersContent = wrap("developer", developerContent)
-      wrap("developers", developersContent)
-    }
+    def developers(): Seq[String] = Seq()
 
-    def scm(): Seq[String] = {
-      val scmContent =
-        wrap("connection", s"scm:git:git@github.com:$githubName/${name.mkString("-")}.git") ++
-          wrap("developerConnection", s"scm:git:git@github.com:$githubName/${name.mkString("-")}.git") ++
-          wrap("url", s"https://github.com/$githubName/${name.mkString("-")}.git")
-      wrap("scm", scmContent)
-    }
+    def scm(): Seq[String] = Seq()
 
-    def distributionManagement(): Seq[String] = {
-      val repositoryContent =
-        wrap("id", "maven-staging") ++
-          wrap("url", "https://oss.sonatype.org/service/local/staging/deploy/maven2")
-      val distributionManagementContent = wrap("repository", repositoryContent)
-      wrap("distributionManagement", distributionManagementContent)
-    }
+    def distributionManagement(): Seq[String] = Seq()
 
-    def profiles(): Seq[String] = {
-      val profilesContent = stagingProfile()
-      wrap("profiles", profilesContent)
-    }
+    def profiles(): Seq[String] = Seq()
 
     def stagingProfile(): Seq[String] = {
       val pluginsContents =
@@ -545,6 +512,52 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
     override def scalaTestMavenPluginInner(): Seq[String] = parentScalaTestMavenPluginInner()
 
     override def pluginManagement(): Seq[String] = parentPluginManagement()
+
+    override def generateDescription(): Seq[String] = {
+      wrap("description", description)
+    }
+
+    override def url(): Seq[String] = {
+      wrap("url", s"https://github.com/$githubName/${name.mkString("-")}")
+    }
+
+    override def licenses(): Seq[String] = {
+      val licenseContent =
+        wrap("name", "Unlicense") ++
+          wrap("url", "http://unlicense.org/")
+      val licensesContent = wrap("license", licenseContent)
+      wrap("licenses", licensesContent)
+    }
+
+    override def developers(): Seq[String] = {
+      val developerContent =
+        wrap("name", developerName) ++
+          wrap("organization", developerOrganization) ++
+          wrap("organizationUrl", developerUrl)
+      val developersContent = wrap("developer", developerContent)
+      wrap("developers", developersContent)
+    }
+
+    override def scm(): Seq[String] = {
+      val scmContent =
+        wrap("connection", s"scm:git:git@github.com:$githubName/${name.mkString("-")}.git") ++
+          wrap("developerConnection", s"scm:git:git@github.com:$githubName/${name.mkString("-")}.git") ++
+          wrap("url", s"https://github.com/$githubName/${name.mkString("-")}.git")
+      wrap("scm", scmContent)
+    }
+
+    override def distributionManagement(): Seq[String] = {
+      val repositoryContent =
+        wrap("id", "maven-staging") ++
+          wrap("url", "https://oss.sonatype.org/service/local/staging/deploy/maven2")
+      val distributionManagementContent = wrap("repository", repositoryContent)
+      wrap("distributionManagement", distributionManagementContent)
+    }
+
+    override def profiles(): Seq[String] = {
+      val profilesContent = stagingProfile()
+      wrap("profiles", profilesContent)
+    }
   }
 
   case class ModulePomGenerator(prefix: Seq[String],

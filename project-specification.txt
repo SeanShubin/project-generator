@@ -2,7 +2,6 @@
   prefix [com seanshubin]
   name [sample project]
   description 'Sample for testing project generator'
-  namespace [com seanshubin]
   version 1.1.1
   developer {
     name 'Sean Shubin'

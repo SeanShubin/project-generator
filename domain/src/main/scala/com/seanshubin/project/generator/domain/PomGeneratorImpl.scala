@@ -79,15 +79,11 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       wrap("modelVersion", "4.0.0")
     }
 
-    def group(): Seq[String]
+    def group(): Seq[String] = comment("group")
 
-    def parentGroup(): Seq[String] = {
+    def fullGroup(): Seq[String] = {
       val groupContents = (prefix ++ name).mkString(".")
       group(groupContents)
-    }
-
-    def childGroup(): Seq[String] = {
-      Seq()
     }
 
     def group(contents: String): Seq[String] = {
@@ -110,14 +106,10 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       wrap("artifactId", contents)
     }
 
-    def version(): Seq[String]
+    def version(): Seq[String] = comment("version")
 
-    def parentVersion(): Seq[String] = {
+    def fullVersion(): Seq[String] = {
       version(versionString)
-    }
-
-    def childVersion(): Seq[String] = {
-      Seq()
     }
 
     def version(contents: String): Seq[String] = {
@@ -131,14 +123,10 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       }
     }
 
-    def packaging(): Seq[String]
+    def packaging(): Seq[String] = comment("packaging")
 
-    def parentPackaging(): Seq[String] = {
+    def pomPackaging(): Seq[String] = {
       wrap("packaging", "pom")
-    }
-
-    def childPackaging(): Seq[String] = {
-      Seq()
     }
 
     def dependencies(): Seq[String]
@@ -158,17 +146,13 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       dependenciesUsingFunction(childDependencyValue)
     }
 
-    def parent(): Seq[String]
+    def parent(): Seq[String] = comment("parent")
 
-    def dependencyManagement(): Seq[String]
+    def dependencyManagement(): Seq[String] = comment("dependencyManagement")
 
-    def parentDependencyManagement(): Seq[String] = {
+    def fullDependencyManagement(): Seq[String] = {
       val contents = dependencyMap.keys.toSeq.sorted.flatMap(dependency(_: String))
       wrap(Seq("dependencyManagement", "dependencies"), contents)
-    }
-
-    def childDependencyManagement(): Seq[String] = {
-      Seq()
     }
 
     def dependency(name: String): Seq[String] = {
@@ -200,29 +184,21 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       wrap("dependency", dependencyContents)
     }
 
-    def generateModules(): Seq[String]
+    def generateModules(): Seq[String] = comment("modules")
 
-    def parentModules(): Seq[String] = {
+    def fullModules(): Seq[String] = {
       val moduleContents = modules.keys.toSeq.sorted.flatMap(module(_: String))
       wrap("modules", moduleContents)
-    }
-
-    def childModules(): Seq[String] = {
-      Seq()
     }
 
     def module(name: String): Seq[String] = {
       wrap("module", name)
     }
 
-    def properties(): Seq[String]
+    def properties(): Seq[String] = comment("properties")
 
-    def parentProperties(): Seq[String] = {
+    def fullProperties(): Seq[String] = {
       wrap("properties", propertyUtf8())
-    }
-
-    def childProperties(): Seq[String] = {
-      Seq()
     }
 
     def propertyUtf8(): Seq[String] = {
@@ -271,13 +247,9 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       wrap("plugins", pluginContents)
     }
 
-    def pluginManagement(): Seq[String]
+    def pluginManagement(): Seq[String] = comment("pluginManagement")
 
-    def childPluginManagement(): Seq[String] = {
-      Seq()
-    }
-
-    def parentPluginManagement(): Seq[String] = {
+    def fullPluginManagement(): Seq[String] = {
       val pluginManagementContents = wrap("plugins", scalaTestMavenPlugin())
       wrap("pluginManagement", pluginManagementContents)
     }
@@ -387,19 +359,19 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       wrap("name", "${project.groupId}:${project.artifactId}")
     }
 
-    def generateDescription(): Seq[String] = Seq()
+    def generateDescription(): Seq[String] = comment("description")
 
-    def url(): Seq[String] = Seq()
+    def url(): Seq[String] = comment("url")
 
-    def licenses(): Seq[String] = Seq()
+    def licenses(): Seq[String] = comment("licenses")
 
-    def developers(): Seq[String] = Seq()
+    def developers(): Seq[String] = comment("developlers")
 
-    def scm(): Seq[String] = Seq()
+    def scm(): Seq[String] = comment("scm")
 
-    def distributionManagement(): Seq[String] = Seq()
+    def distributionManagement(): Seq[String] = comment("distributionManagement")
 
-    def profiles(): Seq[String] = Seq()
+    def profiles(): Seq[String] = comment("profiles")
 
     def stagingProfile(): Seq[String] = {
       val pluginsContents =
@@ -441,6 +413,10 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
         wrap("artifactId", "maven-javadoc-plugin") ++
         wrap("version", "2.10.4") ++
         wrap("executions", executionsContent)
+    }
+
+    def comment(elementName: String): Seq[String] = {
+      Seq(s"<!--<$elementName>...</$elementName>-->").map(indent)
     }
 
     def wrap(elementName: String, contents: String): Seq[String] = {
@@ -489,21 +465,19 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
     developerUrl) {
     override def artifact(): Seq[String] = parentArtifact()
 
-    override def parent(): Seq[String] = Seq()
-
     override def dependencies(): Seq[String] = parentDependencies()
 
-    override def dependencyManagement(): Seq[String] = parentDependencyManagement()
+    override def dependencyManagement(): Seq[String] = fullDependencyManagement()
 
-    override def generateModules(): Seq[String] = parentModules()
+    override def generateModules(): Seq[String] = fullModules()
 
-    override def group(): Seq[String] = parentGroup()
+    override def group(): Seq[String] = fullGroup()
 
-    override def version(): Seq[String] = parentVersion()
+    override def version(): Seq[String] = fullVersion()
 
-    override def packaging(): Seq[String] = parentPackaging()
+    override def packaging(): Seq[String] = pomPackaging()
 
-    override def properties(): Seq[String] = parentProperties()
+    override def properties(): Seq[String] = fullProperties()
 
     override def build(): Seq[String] = parentBuild()
 
@@ -511,7 +485,7 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
 
     override def scalaTestMavenPluginInner(): Seq[String] = parentScalaTestMavenPluginInner()
 
-    override def pluginManagement(): Seq[String] = parentPluginManagement()
+    override def pluginManagement(): Seq[String] = fullPluginManagement()
 
     override def generateDescription(): Seq[String] = {
       wrap("description", description)
@@ -584,31 +558,17 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
     override def artifact(): Seq[String] = moduleArtifact(moduleName)
 
     override def parent(): Seq[String] = {
-      val contents = parentGroup() ++ parentArtifact() ++ parentVersion()
+      val contents = fullGroup() ++ parentArtifact() ++ fullVersion()
       wrap("parent", contents)
     }
 
     override def dependencies(): Seq[String] = childDependencies()
-
-    override def dependencyManagement(): Seq[String] = childDependencyManagement()
-
-    override def generateModules(): Seq[String] = childModules()
-
-    override def group(): Seq[String] = childGroup()
-
-    override def version(): Seq[String] = childVersion()
-
-    override def packaging(): Seq[String] = childPackaging()
-
-    override def properties(): Seq[String] = childProperties()
 
     override def build(): Seq[String] = childBuild()
 
     override def plugins(): Seq[String] = childPlugins()
 
     override def scalaTestMavenPluginInner(): Seq[String] = childScalaTestMavenPluginInner()
-
-    override def pluginManagement(): Seq[String] = childPluginManagement()
   }
 
 }

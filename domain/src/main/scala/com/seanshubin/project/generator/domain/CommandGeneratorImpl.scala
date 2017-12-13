@@ -7,18 +7,17 @@ import com.seanshubin.project.generator.domain.Specification.Project
 
 class CommandGeneratorImpl(project: Project, destinationDirectory: Path) extends CommandGenerator {
   override def generate(): Iterable[Command] = {
-    val projectDirectory = destinationDirectory.resolve(project.baseDirectoryName)
     val moduleCommands = project.modules.keys.toSeq.sorted.flatMap(generateModuleCommands)
     val commands = Seq(
-      EnsureDirectoryExists(projectDirectory),
-      CreateParentPom(projectDirectory, project)
+      EnsureDirectoryExists(destinationDirectory),
+      CreateParentPom(destinationDirectory, project)
     ) ++ moduleCommands
     commands
   }
 
 
   private def generateModuleCommands(moduleName:String): Seq[Command] = {
-    val moduleDirectory = destinationDirectory.resolve(project.baseDirectoryName).resolve(moduleName)
+    val moduleDirectory = destinationDirectory.resolve(moduleName)
     val scalaSourceDir = moduleDirectory.resolve("src").resolve("main").resolve("scala")
     val scalaTestDir = moduleDirectory.resolve("src").resolve("test").resolve("scala")
     val commands = Seq(

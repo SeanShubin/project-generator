@@ -8,9 +8,9 @@ class CommandLineRunner(commandLineArguments: Array[String],
                         specificationLoader: SpecificationLoader,
                         createSpecificationRunner: (Project, Path) => Runnable) extends Runnable {
   override def run(): Unit = {
-    val configurationFileName = commandLineArguments(0)
-    val destinationDirectory = Paths.get(commandLineArguments(1))
-    val projectSpecification = specificationLoader.load(configurationFileName)
+    val configurationFilePath = Paths.get(commandLineArguments(0))
+    val destinationDirectory = configurationFilePath.getParent
+    val projectSpecification = specificationLoader.load(configurationFilePath)
     val runner = createSpecificationRunner(projectSpecification, destinationDirectory)
     runner.run()
   }

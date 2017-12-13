@@ -1,7 +1,7 @@
 package com.seanshubin.project.generator.domain
 
 class PomGeneratorImpl(newline: String) extends PomGenerator {
-  override def generateParent(project: Specification.Project): String = {
+  override def generateParent(project: Specification.Project): Seq[String] = {
     val pomGenerator = new ParentPomGenerator(
       project.prefix,
       project.name,
@@ -14,10 +14,10 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       project.developer.organization,
       project.developer.url
     )
-    pomGenerator.generate().mkString(newline)
+    pomGenerator.generate()
   }
 
-  override def generateModule(project: Specification.Project, moduleName: String): String = {
+  override def generateModule(project: Specification.Project, moduleName: String): Seq[String] = {
     val pomGenerator = ModulePomGenerator(
       project.prefix,
       project.name,
@@ -31,7 +31,7 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       project.developer.url,
       moduleName
     )
-    pomGenerator.generate().mkString(newline)
+    pomGenerator.generate()
   }
 
   abstract class PomGenerator(prefix: Seq[String],
@@ -460,7 +460,7 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
     }
 
     def indent(s: String): String = {
-      "  " + s
+      "    " + s
     }
   }
 

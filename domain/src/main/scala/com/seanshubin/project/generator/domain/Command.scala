@@ -4,11 +4,14 @@ import java.nio.file.Path
 
 import com.seanshubin.project.generator.domain.Result.Success
 
+import scala.collection.JavaConverters._
+
 sealed trait Command {
   def execute(commandEnvironment: CommandEnvironment): Result
 }
 
 object Command {
+
   case class EnsureDirectoryExists(destinationDirectory: Path) extends Command {
     override def execute(commandEnvironment: CommandEnvironment): Result = {
       val files = commandEnvironment.files
@@ -27,8 +30,8 @@ object Command {
       val files = commandEnvironment.files
       val charset = commandEnvironment.charset
       val pomFile = destinationDirectory.resolve("pom.xml")
-      val pomText = pomGenerator.generateParent(project)
-      files.write(pomFile, pomText.getBytes(charset))
+      val pomLines = pomGenerator.generateParent(project)
+      files.write(pomFile, pomLines.asJava, charset)
       Success(s"generated parent pom $pomFile")
     }
   }
@@ -41,8 +44,8 @@ object Command {
       val files = commandEnvironment.files
       val charset = commandEnvironment.charset
       val pomFile = destinationDirectory.resolve("pom.xml")
-      val pomText = pomGenerator.generateModule(project, moduleName)
-      files.write(pomFile, pomText.getBytes(charset))
+      val pomLines = pomGenerator.generateModule(project, moduleName)
+      files.write(pomFile, pomLines.asJava, charset)
       Success(s"generated module pom $pomFile")
     }
   }

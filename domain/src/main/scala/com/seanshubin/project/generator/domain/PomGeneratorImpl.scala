@@ -65,12 +65,22 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
         modules() ++
         properties() ++
         build() ++
+        reporting() ++
         generateName() ++
         generateDescription() ++
         url() ++
+        inceptionYear() ++
         licenses() ++
+        organization() ++
         developers() ++
+        contributors() ++
+        issueManagement() ++
+        ciManagement() ++
+        mailingLists() ++
         scm() ++
+        prerequisites() ++
+        repositories() ++
+        pluginRepositories() ++
         distributionManagement() ++
         profiles()
     }
@@ -131,19 +141,21 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
 
     def dependencies(): Seq[String]
 
-    def dependenciesUsingFunction(dependencyFunction: Dependency => Seq[String]): Seq[String] = {
-      val scalaLang = Dependency("org.scala-lang", "scala-library", "2.12.4")
-      val scalaTest = Dependency("org.scalatest", "scalatest_2.12", "3.0.4", Some("test"))
-      val contents = Seq(scalaLang, scalaTest).flatMap(dependencyFunction)
+    def dependenciesUsingFunction(dependencies: Map[String, Specification.Dependency], dependencyFunction: (String, Specification.Dependency) => Seq[String]): Seq[String] = {
+      val contents = dependencies.flatMap(dependencyFunction.tupled).toSeq
       wrap("dependencies", contents)
     }
 
     def parentDependencies(): Seq[String] = {
-      dependenciesUsingFunction(parentDependencyValue)
+      val dependencyNamesToInclude = Seq("scala-library", "scala-test")
+      val dependenciesInParent = dependencyMap.filterKeys(dependencyNamesToInclude.contains)
+      dependenciesUsingFunction(dependenciesInParent, partialDependencyValue)
     }
 
-    def childDependencies(): Seq[String] = {
-      dependenciesUsingFunction(childDependencyValue)
+    def childDependencies(moduleName: String): Seq[String] = {
+      val dependencyNamesToInclude = Seq("scala-library", "scala-test") ++ moduleMap(moduleName)
+      val dependenciesInChild = dependencyMap.filterKeys(dependencyNamesToInclude.contains)
+      dependenciesUsingFunction(dependenciesInChild, partialDependencyValue)
     }
 
     def parent(): Seq[String] = comment("parent")
@@ -151,22 +163,11 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
     def dependencyManagement(): Seq[String] = comment("dependencyManagement")
 
     def fullDependencyManagement(): Seq[String] = {
-      val contents = dependencyMap.keys.toSeq.sorted.flatMap(dependency(_: String))
-      wrap(Seq("dependencyManagement", "dependencies"), contents)
+      val contents = dependenciesUsingFunction(dependencyMap, fullDependencyValue)
+      wrap("dependencyManagement", contents)
     }
 
-    def dependency(name: String): Seq[String] = {
-      val dependencyValue = dependencyMap(name)
-
-      def dependencyContents =
-        group(dependencyValue.group) ++
-          artifact(dependencyValue.artifact) ++
-          version(dependencyValue.version)
-
-      wrap("dependency", dependencyContents)
-    }
-
-    def parentDependencyValue(dependencyValue: Dependency): Seq[String] = {
+    def fullDependencyValue(name: String, dependencyValue: Specification.Dependency): Seq[String] = {
       def dependencyContents =
         group(dependencyValue.group) ++
           artifact(dependencyValue.artifact) ++
@@ -176,7 +177,7 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       wrap("dependency", dependencyContents)
     }
 
-    def childDependencyValue(dependencyValue: Dependency): Seq[String] = {
+    def partialDependencyValue(name: String, dependencyValue: Specification.Dependency): Seq[String] = {
       def dependencyContents =
         group(dependencyValue.group) ++
           artifact(dependencyValue.artifact)
@@ -218,7 +219,7 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       val buildContents =
         sourceDir() ++
           testDir() ++
-        plugins() ++
+          plugins() ++
           pluginManagement()
       wrap("build", buildContents)
     }
@@ -281,6 +282,7 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
     }
 
     def scalaTestMavenPlugin(): Seq[String] = {
+      Seq(indent("<!-- enable scalatest -->")) ++
       wrap("plugin", scalaTestMavenPluginInner())
     }
 
@@ -291,7 +293,7 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
     def scalaMavenPluginInner(): Seq[String] = {
       wrap("groupId", "net.alchim31.maven") ++
         wrap("artifactId", "scala-maven-plugin") ++
-        wrap("version", "3.2.2") ++
+        wrap("version", "3.3.1") ++
         wrap("executions", scalaMavenPluginExecutions()) ++
         wrap("configuration", scalaMavenPluginConfiguration())
     }
@@ -342,18 +344,19 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
     }
 
     def disableSurefirePlugin(): Seq[String] = {
+      Seq(indent("<!-- disable surefire -->")) ++
       wrap("plugin", disableSurefirePluginInner())
     }
 
     def disableSurefirePluginInner(): Seq[String] = {
-      val configurationContent =
-        Seq(indent("<!--disable surefire-->")) ++
-          wrap("skipTests", "true")
+      val configurationContent = wrap("skipTests", "true")
       wrap("groupId", "org.apache.maven.plugins") ++
         wrap("artifactId", "maven-surefire-plugin") ++
         wrap("version", "2.20") ++
         wrap("configuration", configurationContent)
     }
+
+    def reporting(): Seq[String] = comment("reporting")
 
     def generateName(): Seq[String] = {
       wrap("name", "${project.groupId}:${project.artifactId}")
@@ -363,11 +366,29 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
 
     def url(): Seq[String] = comment("url")
 
+    def inceptionYear(): Seq[String] = comment("inceptionYear")
+
     def licenses(): Seq[String] = comment("licenses")
+
+    def organization(): Seq[String] = comment("organization")
 
     def developers(): Seq[String] = comment("developlers")
 
+    def contributors(): Seq[String] = comment("contributors")
+
+    def issueManagement(): Seq[String] = comment("issueManagement")
+
+    def ciManagement(): Seq[String] = comment("ciManagement")
+
+    def mailingLists(): Seq[String] = comment("mailingLists")
+
     def scm(): Seq[String] = comment("scm")
+
+    def prerequisites(): Seq[String] = comment("prerequisites")
+
+    def repositories(): Seq[String] = comment("repositories")
+
+    def pluginRepositories(): Seq[String] = comment("pluginRepositories")
 
     def distributionManagement(): Seq[String] = comment("distributionManagement")
 
@@ -514,9 +535,9 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
 
     override def scm(): Seq[String] = {
       val scmContent =
-        wrap("connection", s"scm:git:git@github.com:$githubName/${name.mkString("-")}.git") ++
-          wrap("developerConnection", s"scm:git:git@github.com:$githubName/${name.mkString("-")}.git") ++
-          wrap("url", s"https://github.com/$githubName/${name.mkString("-")}.git")
+        wrap("connection", s"git@github.com:$githubName/${name.mkString("-")}.git") ++
+          wrap("developerConnection", s"git@github.com:$githubName/${name.mkString("-")}.git") ++
+          wrap("url", s"https://github.com/$githubName/${name.mkString("-")}")
       wrap("scm", scmContent)
     }
 
@@ -562,7 +583,7 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       wrap("parent", contents)
     }
 
-    override def dependencies(): Seq[String] = childDependencies()
+    override def dependencies(): Seq[String] = childDependencies(moduleName)
 
     override def build(): Seq[String] = childBuild()
 

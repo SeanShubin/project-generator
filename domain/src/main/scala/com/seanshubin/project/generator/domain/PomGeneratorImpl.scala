@@ -39,7 +39,7 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
                               description: String,
                               versionString: String,
                               dependencyMap: Map[String, Specification.Dependency],
-                              modules: Map[String, Seq[String]],
+                              moduleMap: Map[String, Seq[String]],
                               githubName: String,
                               developerName: String,
                               developerOrganization: String,
@@ -62,7 +62,7 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
         dependencies() ++
         parent() ++
         dependencyManagement() ++
-        generateModules() ++
+        modules() ++
         properties() ++
         build() ++
         generateName() ++
@@ -184,14 +184,14 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       wrap("dependency", dependencyContents)
     }
 
-    def generateModules(): Seq[String] = comment("modules")
+    def modules(): Seq[String] = comment("modules")
 
     def fullModules(): Seq[String] = {
-      val moduleContents = modules.keys.toSeq.sorted.flatMap(module(_: String))
+      val moduleContents = moduleMap.flatMap((module _).tupled).toSeq
       wrap("modules", moduleContents)
     }
 
-    def module(name: String): Seq[String] = {
+    def module(name: String, dependencyNames: Seq[String]): Seq[String] = {
       wrap("module", name)
     }
 
@@ -448,7 +448,7 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
                            description: String,
                            versionString: String,
                            dependencyMap: Map[String, Specification.Dependency],
-                           modules: Map[String, Seq[String]],
+                           moduleMap: Map[String, Seq[String]],
                            githubName: String,
                            developerName: String,
                            developerOrganization: String,
@@ -458,7 +458,7 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
     description,
     versionString,
     dependencyMap,
-    modules,
+    moduleMap,
     githubName,
     developerName,
     developerOrganization,
@@ -469,7 +469,7 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
 
     override def dependencyManagement(): Seq[String] = fullDependencyManagement()
 
-    override def generateModules(): Seq[String] = fullModules()
+    override def modules(): Seq[String] = fullModules()
 
     override def group(): Seq[String] = fullGroup()
 
@@ -539,7 +539,7 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
                                 description: String,
                                 versionString: String,
                                 dependencyMap: Map[String, Specification.Dependency],
-                                modules: Map[String, Seq[String]],
+                                moduleMap: Map[String, Seq[String]],
                                 githubName: String,
                                 developerName: String,
                                 developerOrganization: String,
@@ -550,7 +550,7 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
     description,
     versionString,
     dependencyMap,
-    modules,
+    moduleMap,
     githubName,
     developerName,
     developerOrganization,

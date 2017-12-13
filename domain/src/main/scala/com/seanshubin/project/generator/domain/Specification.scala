@@ -1,5 +1,7 @@
 package com.seanshubin.project.generator.domain
 
+import scala.collection.immutable.ListMap
+
 object Specification {
 
   case class Project(prefix: Seq[String],
@@ -7,8 +9,8 @@ object Specification {
                      description: String,
                      version: String,
                      developer: Developer,
-                     dependencies: Map[String, Dependency],
-                     modules: Map[String, Seq[String]]) {
+                     dependencies: ListMap[String, Dependency],
+                     modules: ListMap[String, Seq[String]]) {
     def baseDirectoryName: String = name.mkString("-")
   }
 

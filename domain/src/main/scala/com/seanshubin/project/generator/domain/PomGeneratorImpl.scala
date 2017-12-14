@@ -155,7 +155,9 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
     def childDependencies(moduleName: String): Seq[String] = {
       val moduleDependenciesContent = buildModuleDependenciesContent(moduleName)
       val thirdPartyDependenciesContent = buildThirdPartyDependenciesContent(moduleName)
-      wrap("dependencies", moduleDependenciesContent ++ thirdPartyDependenciesContent)
+      val allContent = moduleDependenciesContent ++ thirdPartyDependenciesContent
+      if (allContent.isEmpty) Seq()
+      else wrap("dependencies", allContent)
     }
 
     def buildModuleDependenciesContent(moduleName: String): Seq[String] = {
@@ -258,8 +260,7 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
     def plugins(): Seq[String]
 
     def childPlugins(): Seq[String] = {
-      val pluginContents =
-        scalaTestMavenPlugin()
+      val pluginContents = scalaTestMavenPlugin()
       wrap("plugins", pluginContents)
     }
 
@@ -274,7 +275,8 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
     def pluginManagement(): Seq[String] = comment("pluginManagement")
 
     def fullPluginManagement(): Seq[String] = {
-      val pluginManagementContents = wrap("plugins", scalaTestMavenPlugin())
+      val pluginManagementContents = wrap("plugins",
+        Seq(indent("<!-- enable scalatest -->")) ++ scalaTestMavenPlugin())
       wrap("pluginManagement", pluginManagementContents)
     }
 
@@ -305,8 +307,7 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
     }
 
     def scalaTestMavenPlugin(): Seq[String] = {
-      Seq(indent("<!-- enable scalatest -->")) ++
-        wrap("plugin", scalaTestMavenPluginInner())
+      wrap("plugin", scalaTestMavenPluginInner())
     }
 
     def scalaMavenPlugin(): Seq[String] = {

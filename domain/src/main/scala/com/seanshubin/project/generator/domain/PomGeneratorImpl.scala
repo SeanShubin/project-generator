@@ -89,7 +89,7 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       wrap("modelVersion", "4.0.0")
     }
 
-    def group(): Seq[String] = comment("group")
+    def group(): Seq[String] = comment("groupId")
 
     def fullGroup(): Seq[String] = {
       val groupContents = (prefix ++ name).mkString(".")
@@ -153,9 +153,32 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
     }
 
     def childDependencies(moduleName: String): Seq[String] = {
-      val dependencyNamesToInclude = Seq("scala-library", "scala-test") ++ moduleMap(moduleName)
-      val dependenciesInChild = dependencyMap.filterKeys(dependencyNamesToInclude.contains)
-      dependenciesUsingFunction(dependenciesInChild, partialDependencyValue)
+      val moduleDependenciesContent = buildModuleDependenciesContent(moduleName)
+      val thirdPartyDependenciesContent = buildThirdPartyDependenciesContent(moduleName)
+      wrap("dependencies", moduleDependenciesContent ++ thirdPartyDependenciesContent)
+    }
+
+    def buildModuleDependenciesContent(moduleName: String): Seq[String] = {
+      val moduleNames = moduleMap(moduleName).filter(name => !dependencyMap.contains(name)).toSeq
+      moduleNames.flatMap(buildModuleDependency)
+    }
+
+    def buildModuleDependency(name: String): Seq[String] = {
+      val content = fullGroup() ++
+        moduleArtifact(name) ++
+        version("${project.version}")
+      wrap("dependency", content)
+    }
+
+    def buildThirdPartyDependency(name: String): Seq[String] = {
+      val content = group(dependencyMap(name).group) ++
+        artifact(dependencyMap(name).artifact)
+      wrap("dependency", content)
+    }
+
+    def buildThirdPartyDependenciesContent(moduleName: String): Seq[String] = {
+      val thirdPartyDependencyNames = moduleMap(moduleName).filter(name => dependencyMap.contains(name))
+      thirdPartyDependencyNames.flatMap(buildThirdPartyDependency).toSeq
     }
 
     def parent(): Seq[String] = comment("parent")
@@ -283,7 +306,7 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
 
     def scalaTestMavenPlugin(): Seq[String] = {
       Seq(indent("<!-- enable scalatest -->")) ++
-      wrap("plugin", scalaTestMavenPluginInner())
+        wrap("plugin", scalaTestMavenPluginInner())
     }
 
     def scalaMavenPlugin(): Seq[String] = {
@@ -345,7 +368,7 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
 
     def disableSurefirePlugin(): Seq[String] = {
       Seq(indent("<!-- disable surefire -->")) ++
-      wrap("plugin", disableSurefirePluginInner())
+        wrap("plugin", disableSurefirePluginInner())
     }
 
     def disableSurefirePluginInner(): Seq[String] = {
@@ -372,7 +395,7 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
 
     def organization(): Seq[String] = comment("organization")
 
-    def developers(): Seq[String] = comment("developlers")
+    def developers(): Seq[String] = comment("developers")
 
     def contributors(): Seq[String] = comment("contributors")
 

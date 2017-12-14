@@ -14,11 +14,6 @@
             <groupId>com.seanshubin.devon</groupId>
             <artifactId>devon-domain</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.seanshubin.project.generator</groupId>
-            <artifactId>project-generator-xml</artifactId>
-            <version>${pom.parent.version}</version>
-        </dependency>
     </dependencies>
     <parent>
         <groupId>com.seanshubin.project.generator</groupId>

@@ -156,7 +156,7 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       val moduleDependenciesContent = buildModuleDependenciesContent(moduleName)
       val thirdPartyDependenciesContent = buildThirdPartyDependenciesContent(moduleName)
       val allContent = moduleDependenciesContent ++ thirdPartyDependenciesContent
-      if (allContent.isEmpty) Seq()
+      if (allContent.isEmpty) comment("dependencies")
       else wrap("dependencies", allContent)
     }
 
@@ -272,7 +272,7 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       wrap("plugins", pluginContents)
     }
 
-    def pluginManagement(): Seq[String] = comment("pluginManagement")
+    def pluginManagement(): Seq[String] = Seq()
 
     def fullPluginManagement(): Seq[String] = {
       val pluginManagementContents = wrap("plugins",

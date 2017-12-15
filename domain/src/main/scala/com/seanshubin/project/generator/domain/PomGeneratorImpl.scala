@@ -29,7 +29,8 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       project.developer.name,
       project.developer.organization,
       project.developer.url,
-      moduleName
+      moduleName,
+      project.primaryModule
     )
     pomGenerator.generate()
   }
@@ -260,7 +261,12 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
     def plugins(): Seq[String]
 
     def childPlugins(): Seq[String] = {
-      val pluginContents = scalaTestMavenPlugin()
+      val pluginContents = if (isPrimaryModule) {
+        scalaTestMavenPlugin() ++ detanglerPlugin()
+      } else {
+        scalaTestMavenPlugin()
+
+      }
       wrap("plugins", pluginContents)
     }
 
@@ -460,6 +466,26 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
         wrap("executions", executionsContent)
     }
 
+    def detanglerPluginContents(): Seq[String] = {
+      val configFile = wrap("detanglerConfig", "detangler.txt")
+      val goalsContents = wrap("goal", "report")
+      val executionContents = wrap("phase", "verify") ++ wrap("goals", goalsContents)
+      val executionsContents = wrap("execution", executionContents)
+      val executions = wrap("executions", executionsContents)
+      val configuration = wrap("configuration", configFile)
+      group("com.seanshubin.detangler") ++
+        artifact("detangler-maven-plugin") ++
+        version("0.9.1") ++
+        executions ++
+        configuration
+    }
+
+    def detanglerPlugin(): Seq[String] = {
+      wrap("plugin", detanglerPluginContents())
+    }
+
+    def isPrimaryModule: Boolean = false
+
     def comment(elementName: String): Seq[String] = {
       Seq(s"<!--<$elementName>...</$elementName>-->").map(indent)
     }
@@ -589,7 +615,8 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
                                 developerName: String,
                                 developerOrganization: String,
                                 developerUrl: String,
-                                moduleName: String) extends PomGenerator(
+                                moduleName: String,
+                                maybePrimaryModule: Option[String]) extends PomGenerator(
     prefix,
     name,
     description,
@@ -614,6 +641,11 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
     override def plugins(): Seq[String] = childPlugins()
 
     override def scalaTestMavenPluginInner(): Seq[String] = childScalaTestMavenPluginInner()
+
+    override def isPrimaryModule: Boolean = maybePrimaryModule match {
+      case Some(primaryModule) => moduleName == primaryModule
+      case None => false
+    }
   }
 
 }

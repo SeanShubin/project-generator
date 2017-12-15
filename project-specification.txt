@@ -1,4 +1,5 @@
 {
+  type hierarchical-library
   prefix [com seanshubin]
   name [sample project]
   description 'Sample for testing project generator'

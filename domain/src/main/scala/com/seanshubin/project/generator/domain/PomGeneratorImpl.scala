@@ -31,7 +31,8 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       project.developer.url,
       moduleName,
       project.detangler,
-      project.consoleEntryPoint
+      project.consoleEntryPoint,
+      project.mavenPlugin
     )
     pomGenerator.generate()
   }
@@ -263,7 +264,7 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
     def plugins(): Seq[String]
 
     def childPlugins(): Seq[String] = {
-      val pluginContents = scalaTestMavenPlugin() ++ detanglerPlugin() ++ executableJarPlugin()
+      val pluginContents = scalaTestMavenPlugin() ++ detanglerPlugin() ++ executableJarPlugin() ++ maybeMavenPluginPlugin()
       wrap("plugins", pluginContents)
     }
 
@@ -511,6 +512,34 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       wrap("plugin", contents)
     }
 
+    def shouldHaveMavenPluginPlugin(): Boolean = false
+
+    def mavenPluginPlugin(): Seq[String] = {
+      val defaultDescriptorContents =
+        wrap("id", "default-descriptor") ++
+          wrap(Seq("goals", "goal"), "descriptor") ++
+          wrap("phase", "process-classes")
+      val helpDescriptorContents =
+        wrap("id", "help-descriptor") ++
+          wrap(Seq("goals", "goal"), "helpmojo") ++
+          wrap("phase", "process-classes")
+      val defaultDescriptor = wrap("execution", defaultDescriptorContents)
+      val helpDescriptor = wrap("execution", helpDescriptorContents)
+      val executionsContents = defaultDescriptor ++ helpDescriptor
+      val contents =
+        wrap("groupId", "org.apache.maven.plugins") ++
+          wrap("artifactId", "maven-plugin-plugin") ++
+          wrap("version", "3.5") ++
+          wrap("executions", executionsContents)
+      wrap("plugin", contents)
+    }
+
+    def maybeMavenPluginPlugin(): Seq[String] = if (shouldHaveMavenPluginPlugin()) {
+      mavenPluginPlugin()
+    } else {
+      Seq()
+    }
+
     def executableJarPlugin(): Seq[String] = Seq()
 
     def comment(elementName: String): Seq[String] = {
@@ -528,12 +557,16 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
     }
 
     def wrap(elementNames: Seq[String], contents: Seq[String]): Seq[String] = {
-      if (elementNames.isEmpty) {
-        contents
-      } else {
-        val elementName = elementNames.head
-        wrap(elementName, wrap(elementNames.tail, contents))
+      (elementNames, contents) match {
+        case (Seq(), _) => contents
+        case (Seq(elementName), Seq(content)) => wrap(elementName, content)
+        case (Seq(elementName), _) => wrap(elementName, contents)
+        case (head :: tail, Seq(content)) => wrap(head, wrap(tail, contents))
       }
+    }
+
+    def wrap(elementNames: Seq[String], contents: String): Seq[String] = {
+      wrap(elementNames, Seq(contents))
     }
 
     def indent(s: String): String = {
@@ -644,7 +677,8 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
                                 developerUrl: String,
                                 moduleName: String,
                                 detangler: Seq[String],
-                                entryPoint: Map[String, String]) extends PomGenerator(
+                                entryPoint: Map[String, String],
+                                mavenPlugin: Seq[String]) extends PomGenerator(
     prefix,
     name,
     description,
@@ -677,6 +711,10 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
         case Some(className) => executableJarPlugin(name.mkString("-"), className)
         case None => Seq()
       }
+    }
+
+    override def shouldHaveMavenPluginPlugin(): Boolean = {
+      mavenPlugin.contains(moduleName)
     }
   }
 }

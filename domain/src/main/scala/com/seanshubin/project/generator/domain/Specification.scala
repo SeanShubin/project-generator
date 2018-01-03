@@ -12,7 +12,8 @@ object Specification {
                      dependencies: ListMap[String, Dependency],
                      modules: ListMap[String, Seq[String]],
                      detangler: Seq[String],
-                     consoleEntryPoint: Map[String, String]) {
+                     consoleEntryPoint: Map[String, String],
+                     mavenPlugin: Seq[String]) {
     def baseDirectoryName: String = name.mkString("-")
   }
 

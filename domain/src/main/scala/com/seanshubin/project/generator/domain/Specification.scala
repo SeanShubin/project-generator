@@ -4,15 +4,15 @@ import scala.collection.immutable.ListMap
 
 object Specification {
 
-  case class Project(`type`: ProjectType,
-                     prefix: Seq[String],
+  case class Project(prefix: Seq[String],
                      name: Seq[String],
                      description: String,
                      version: String,
                      developer: Developer,
                      dependencies: ListMap[String, Dependency],
                      modules: ListMap[String, Seq[String]],
-                     primaryModule: Option[String]) {
+                     detangler: Seq[String],
+                     consoleEntryPoint: Map[String, String]) {
     def baseDirectoryName: String = name.mkString("-")
   }
 

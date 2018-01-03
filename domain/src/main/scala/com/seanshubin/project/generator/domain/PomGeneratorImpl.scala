@@ -30,7 +30,8 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       project.developer.organization,
       project.developer.url,
       moduleName,
-      project.primaryModule
+      project.detangler,
+      project.consoleEntryPoint
     )
     pomGenerator.generate()
   }
@@ -48,7 +49,8 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
     def generate(): Seq[String] = {
       Seq(
         """<?xml version="1.0" encoding="UTF-8" standalone="no"?>""",
-        """<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"""",
+        """<project xmlns="http://maven.apache.org/POM/4.0.0"
+          |         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"""".stripMargin,
         """         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">""") ++
         projectLines() ++
         Seq("</project>")
@@ -261,12 +263,7 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
     def plugins(): Seq[String]
 
     def childPlugins(): Seq[String] = {
-      val pluginContents = if (isPrimaryModule) {
-        scalaTestMavenPlugin() ++ detanglerPlugin()
-      } else {
-        scalaTestMavenPlugin()
-
-      }
+      val pluginContents = scalaTestMavenPlugin() ++ detanglerPlugin() ++ executableJarPlugin()
       wrap("plugins", pluginContents)
     }
 
@@ -382,7 +379,7 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       val configurationContent = wrap("skipTests", "true")
       wrap("groupId", "org.apache.maven.plugins") ++
         wrap("artifactId", "maven-surefire-plugin") ++
-        wrap("version", "2.20") ++
+        wrap("version", "2.20.1") ++
         wrap("configuration", configurationContent)
     }
 
@@ -480,11 +477,41 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
         configuration
     }
 
+    def shouldHaveDetanglerPlugin(): Boolean = false
+
     def detanglerPlugin(): Seq[String] = {
-      wrap("plugin", detanglerPluginContents())
+      if (shouldHaveDetanglerPlugin()) {
+        wrap("plugin", detanglerPluginContents())
+      } else {
+        Seq()
+      }
     }
 
-    def isPrimaryModule: Boolean = false
+    def executableJarPlugin(finalName: String, mainClass: String): Seq[String] = {
+      val manifest = wrap("mainClass", mainClass)
+      val descriptorRefs = wrap("descriptorRef", "jar-with-dependencies")
+      val archive = wrap("manifest", manifest)
+      val configuration =
+        wrap("finalName", finalName) ++
+          wrap("appendAssemblyId", "false") ++
+          wrap("descriptorRefs", descriptorRefs) ++
+          wrap("archive", archive)
+      val goals = wrap("goal", "single")
+      val execution =
+        wrap("id", "make-assembly") ++
+          wrap("phase", "package") ++
+          wrap("goals", goals)
+      val executions = wrap("execution", execution)
+      val contents =
+        wrap("artifactId", "maven-assembly-plugin") ++
+          wrap("version", "3.1.0") ++
+          wrap("configuration", configuration) ++
+          wrap("executions", executions)
+
+      wrap("plugin", contents)
+    }
+
+    def executableJarPlugin(): Seq[String] = Seq()
 
     def comment(elementName: String): Seq[String] = {
       Seq(s"<!--<$elementName>...</$elementName>-->").map(indent)
@@ -616,7 +643,8 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
                                 developerOrganization: String,
                                 developerUrl: String,
                                 moduleName: String,
-                                maybePrimaryModule: Option[String]) extends PomGenerator(
+                                detangler: Seq[String],
+                                entryPoint: Map[String, String]) extends PomGenerator(
     prefix,
     name,
     description,
@@ -642,10 +670,13 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
 
     override def scalaTestMavenPluginInner(): Seq[String] = childScalaTestMavenPluginInner()
 
-    override def isPrimaryModule: Boolean = maybePrimaryModule match {
-      case Some(primaryModule) => moduleName == primaryModule
-      case None => false
+    override def shouldHaveDetanglerPlugin(): Boolean = detangler.contains(moduleName)
+
+    override def executableJarPlugin(): Seq[String] = {
+      entryPoint.get(moduleName) match {
+        case Some(className) => executableJarPlugin(name.mkString("-"), className)
+        case None => Seq()
+      }
     }
   }
-
 }

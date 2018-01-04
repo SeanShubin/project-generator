@@ -1,6 +1,6 @@
 package com.seanshubin.project.generator.domain
 
-import com.seanshubin.project.generator.domain.GlobalDevonMarshaller.devonMarshaller
+import com.seanshubin.project.generator.domain.GlobalConstants.devonMarshaller
 
 class LineEmittingNotifications(emit: String => Unit) extends Notifications {
   override def effectiveSpecification(specification: Specification.Project): Unit = {

@@ -717,4 +717,5 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       mavenPlugin.contains(moduleName)
     }
   }
+
 }

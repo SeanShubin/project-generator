@@ -26,4 +26,5 @@ object Specification {
   case class Dependency(group: String, artifact: String, version: String, scope: Option[String])
 
   case class Developer(name: String, githubName: String, organization: String, url: String)
+
 }

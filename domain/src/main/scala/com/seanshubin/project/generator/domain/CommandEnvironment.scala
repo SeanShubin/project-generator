@@ -1,8 +1,8 @@
 package com.seanshubin.project.generator.domain
 
-import java.nio.charset.Charset
+import java.nio.file.Path
 
-class CommandEnvironment(val pomGenerator: PomGenerator,
+class CommandEnvironment(val baseDirectory: Path,
+                         val pomGenerator: PomGenerator,
                          val files: FilesContract,
-                         val classLoader: ClassLoaderContract,
-                         val charset: Charset)
+                         val classLoader: ClassLoaderContract)

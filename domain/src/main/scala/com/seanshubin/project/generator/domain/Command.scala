@@ -193,7 +193,20 @@ object Command {
 
   // src/main/scala/.../javadoc/JavaDocStub.java
   case class CreateJavadocStub(project: Specification.Project, moduleName: String) extends Command {
-    override def execute(commandEnvironment: CommandEnvironment): Result = ???
+    override def execute(commandEnvironment: CommandEnvironment): Result = {
+      val javadocPackage = (project.prefix ++ project.name ++ Seq(moduleName, "javadoc")).mkString(".")
+      val text =
+        s"""|package $javadocPackage;
+            |
+           |public class JavaDocStub {
+            |}
+            |""".stripMargin
+      val relativePathParts = Seq(moduleName, "src", "main", "scala") ++ project.prefix ++ project.name ++ Seq(moduleName, "javadoc", "JavaDocStub.java")
+      val relativePath = Paths.get(relativePathParts.head, relativePathParts.tail: _*)
+      val path = commandEnvironment.baseDirectory.resolve(relativePath)
+      writeText(commandEnvironment, path, text)
+      Success(s"created javadoc stub at $path for module $moduleName")
+    }
   }
 
   def writeText(commandEnvironment: CommandEnvironment, path: Path, text: String): Unit = {

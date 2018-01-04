@@ -27,7 +27,8 @@ class CommandGeneratorImpl(project: Project, destinationDirectory: Path) extends
       EnsureDirectoryExists(scalaSourceDir),
       EnsureDirectoryExists(scalaTestDir),
       CreateModulePom(moduleDirectory, project, moduleName),
-      CreateJavadocOverview(project, moduleName)
+      CreateJavadocOverview(project, moduleName),
+      CreateJavadocStub(project, moduleName)
     )
     commands
   }

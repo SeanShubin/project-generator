@@ -1,8 +1,9 @@
 package com.seanshubin.project.generator.domain
 
-import java.nio.file.Path
+import java.nio.file.{Path, Paths}
 
-import com.seanshubin.project.generator.domain.GlobalConstants.charset
+import com.seanshubin.project.generator.domain.DetanglerConfig.StartsWithConfiguration
+import com.seanshubin.project.generator.domain.GlobalConstants.{charset, devonMarshaller}
 import com.seanshubin.project.generator.domain.Result.Success
 
 import scala.collection.JavaConverters._
@@ -113,9 +114,33 @@ object Command {
     }
   }
 
-  // detangler.txt
   case class CreateDetanglerConfig(project: Specification.Project) extends Command {
-    override def execute(commandEnvironment: CommandEnvironment): Result = ???
+    override def execute(commandEnvironment: CommandEnvironment): Result = {
+      def createSearchPath(moduleName: String): Path = {
+        val artifactNameParts =
+          project.name ++
+            Seq(moduleName) ++
+            Seq(project.version + ".jar")
+        val artifactName = artifactNameParts.mkString("-")
+        Paths.get(".", moduleName, "target", artifactName)
+      }
+
+      val reportDir = Paths.get("target", "detangled")
+      val searchPaths = project.detangler.map(createSearchPath)
+      val level = Some(2)
+      val include = Seq(project.prefix ++ project.name)
+      val exclude = Seq()
+      val drop = include
+      val startsWith = StartsWithConfiguration(include, exclude, drop)
+      val ignoreFiles = Seq()
+      val canFailBuild = Some(true)
+      val allowedInCycle = Seq()
+      val detanglerConfig = DetanglerConfig.Configuration(reportDir, searchPaths, level, startsWith, ignoreFiles, canFailBuild, allowedInCycle)
+      val lines = devonMarshaller.valueToPretty(detanglerConfig)
+      val path = commandEnvironment.baseDirectory.resolve("detangler.txt")
+      writeLines(commandEnvironment, path, lines)
+      Success(s"generated detangler configuration file at $path")
+    }
   }
 
   // stage.sh
@@ -137,5 +162,10 @@ object Command {
     val files = commandEnvironment.files
     val bytes = text.getBytes(GlobalConstants.charset)
     files.write(path, bytes)
+  }
+
+  def writeLines(commandEnvironment: CommandEnvironment, path: Path, lines: Seq[String]): Unit = {
+    val files = commandEnvironment.files
+    files.write(path, lines.asJava, charset)
   }
 }

@@ -12,7 +12,8 @@ class CommandGeneratorImpl(project: Project, destinationDirectory: Path) extends
       EnsureDirectoryExists(destinationDirectory),
       CreateParentPom(project),
       CreateLicense,
-      CreateSettings(project.developer.mavenUserName)
+      CreateSettings(project.developer.mavenUserName),
+      CreateDetanglerConfig(project)
     ) ++ moduleCommands
     commands
   }

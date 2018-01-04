@@ -12,7 +12,7 @@ class SpecificationLoaderImpl(files: FilesContract,
   override def load(path: Path): Project = {
     val bytes = files.readAllBytes(path)
     val text = new String(bytes, charset)
-    val projectSpecification = devonMarshaller.stringToValue(text, classOf[Project])
+    val projectSpecification = devonMarshaller.stringToValue(text, classOf[Project]).nullSafe
     notifyEffectiveProjectSpecification(projectSpecification)
     projectSpecification
   }

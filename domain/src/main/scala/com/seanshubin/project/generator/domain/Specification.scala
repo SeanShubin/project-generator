@@ -15,6 +15,12 @@ object Specification {
                      consoleEntryPoint: Map[String, String],
                      mavenPlugin: Seq[String]) {
     def baseDirectoryName: String = name.mkString("-")
+
+    def nullSafe: Project = copy(
+      detangler = Option(detangler).getOrElse(Seq()),
+      consoleEntryPoint = Option(consoleEntryPoint).getOrElse(Map()),
+      mavenPlugin = Option(mavenPlugin).getOrElse(Seq()),
+    )
   }
 
   case class Dependency(group: String, artifact: String, version: String, scope: Option[String])

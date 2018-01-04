@@ -13,7 +13,8 @@ class CommandGeneratorImpl(project: Project, destinationDirectory: Path) extends
       CreateParentPom(project),
       CreateLicense,
       CreateSettings(project.developer.mavenUserName),
-      CreateDetanglerConfig(project)
+      CreateDetanglerConfig(project),
+      CreateStageScript(project)
     ) ++ moduleCommands
     commands
   }

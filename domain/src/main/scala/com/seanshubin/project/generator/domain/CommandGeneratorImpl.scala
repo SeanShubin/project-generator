@@ -2,7 +2,7 @@ package com.seanshubin.project.generator.domain
 
 import java.nio.file.Path
 
-import com.seanshubin.project.generator.domain.Command.{CreateLicense, CreateModulePom, CreateParentPom, EnsureDirectoryExists}
+import com.seanshubin.project.generator.domain.Command._
 import com.seanshubin.project.generator.domain.Specification.Project
 
 class CommandGeneratorImpl(project: Project, destinationDirectory: Path) extends CommandGenerator {
@@ -11,11 +11,11 @@ class CommandGeneratorImpl(project: Project, destinationDirectory: Path) extends
     val commands = Seq(
       EnsureDirectoryExists(destinationDirectory),
       CreateParentPom(project),
-      CreateLicense
+      CreateLicense,
+      CreateSettings(project.developer.mavenUserName)
     ) ++ moduleCommands
     commands
   }
-
 
   private def generateModuleCommands(moduleName: String): Seq[Command] = {
     val moduleDirectory = destinationDirectory.resolve(moduleName)

@@ -51,7 +51,7 @@ object Command {
 
   case object CreateLicense extends Command {
     override def execute(commandEnvironment: CommandEnvironment): Result = {
-      val unlicenseText =
+      val text =
         """This is free and unencumbered software released into the public domain.
           |
           |Anyone is free to copy, modify, publish, use, compile, sell, or
@@ -77,17 +77,40 @@ object Command {
           |
           |For more information, please refer to <http://unlicense.org/>
           |""".stripMargin
-      val files = commandEnvironment.files
       val path = commandEnvironment.baseDirectory.resolve("UNLICENSE.txt")
-      val bytes = unlicenseText.getBytes(GlobalConstants.charset)
-      files.write(path, bytes)
+      writeText(commandEnvironment, path, text)
       Success(s"generated license file at $path")
     }
   }
 
   // deploy-to-maven-central-settings.xml
   case class CreateSettings(mavenUserName: String) extends Command {
-    override def execute(commandEnvironment: CommandEnvironment): Result = ???
+    override def execute(commandEnvironment: CommandEnvironment): Result = {
+      val text =
+        s"""<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+           |          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           |          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+           |                              http://maven.apache.org/xsd/settings-1.0.0.xsd">
+           |    <servers>
+           |        <server>
+           |            <id>maven-staging</id>
+           |            <username>$mavenUserName</username>
+           |            <password>$${env.MAVEN_STAGING_PASSWORD}</password>
+           |        </server>
+           |    </servers>
+           |    <mirrors>
+           |        <mirror>
+           |            <id>maven-staging</id>
+           |            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+           |            <mirrorOf>maven-staging</mirrorOf>
+           |        </mirror>
+           |    </mirrors>
+           |</settings>
+           |""".stripMargin
+      val path = commandEnvironment.baseDirectory.resolve("deploy-to-maven-central-settings.xml")
+      writeText(commandEnvironment, path, text)
+      Success(s"generated maven settings file at $path, for deployment to maven central")
+    }
   }
 
   // detangler.txt
@@ -110,4 +133,9 @@ object Command {
     override def execute(commandEnvironment: CommandEnvironment): Result = ???
   }
 
+  def writeText(commandEnvironment: CommandEnvironment, path: Path, text: String): Unit = {
+    val files = commandEnvironment.files
+    val bytes = text.getBytes(GlobalConstants.charset)
+    files.write(path, bytes)
+  }
 }

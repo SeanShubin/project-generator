@@ -13,7 +13,6 @@ sealed trait Command {
 }
 
 object Command {
-
   case class EnsureDirectoryExists(destinationDirectory: Path) extends Command {
     override def execute(commandEnvironment: CommandEnvironment): Result = {
       val files = commandEnvironment.files
@@ -209,13 +208,23 @@ object Command {
     }
   }
 
+  def ensureDirectoryExistsForFile(commandEnvironment: CommandEnvironment, file: Path): Unit = {
+    val files = commandEnvironment.files
+    val directory = file.getParent
+    if (!files.exists(directory)) {
+      files.createDirectories(directory)
+    }
+  }
+
   def writeText(commandEnvironment: CommandEnvironment, path: Path, text: String): Unit = {
+    ensureDirectoryExistsForFile(commandEnvironment, path)
     val files = commandEnvironment.files
     val bytes = text.getBytes(GlobalConstants.charset)
     files.write(path, bytes)
   }
 
   def writeLines(commandEnvironment: CommandEnvironment, path: Path, lines: Seq[String]): Unit = {
+    ensureDirectoryExistsForFile(commandEnvironment, path)
     val files = commandEnvironment.files
     files.write(path, lines.asJava, charset)
   }

@@ -26,7 +26,8 @@ class CommandGeneratorImpl(project: Project, destinationDirectory: Path) extends
     val commands = Seq(
       EnsureDirectoryExists(scalaSourceDir),
       EnsureDirectoryExists(scalaTestDir),
-      CreateModulePom(moduleDirectory, project, moduleName)
+      CreateModulePom(moduleDirectory, project, moduleName),
+      CreateJavadocOverview(project, moduleName)
     )
     commands
   }

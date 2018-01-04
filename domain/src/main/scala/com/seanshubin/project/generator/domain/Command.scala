@@ -84,7 +84,6 @@ object Command {
     }
   }
 
-  // deploy-to-maven-central-settings.xml
   case class CreateSettings(mavenUserName: String) extends Command {
     override def execute(commandEnvironment: CommandEnvironment): Result = {
       val text =
@@ -143,7 +142,6 @@ object Command {
     }
   }
 
-  // stage.sh
   case class CreateStageScript(project: Specification.Project) extends Command {
     override def execute(commandEnvironment: CommandEnvironment): Result = {
       val localRepoRelativePath = (project.prefix ++ project.name).map(_ + "/").mkString
@@ -171,9 +169,26 @@ object Command {
     }
   }
 
-  // src/main/javadoc/overview.html
   case class CreateJavadocOverview(project: Specification.Project, moduleName: String) extends Command {
-    override def execute(commandEnvironment: CommandEnvironment): Result = ???
+    override def execute(commandEnvironment: CommandEnvironment): Result = {
+      val text =
+        """<!DOCTYPE html>
+          |<html lang="en">
+          |<head>
+          |    <meta charset="UTF-8">
+          |    <title>Javadoc Placeholder</title>
+          |</head>
+          |<body>
+          |<h1>Javadoc is not applicable to a Scala project</h1>
+          |<p>This placeholder documentation is only here to meet the requirements of maven central</p>
+          |</body>
+          |</html>
+          |""".stripMargin
+      val path = commandEnvironment.baseDirectory.resolve(moduleName).
+        resolve("src").resolve("main").resolve("javadoc").resolve("overview.html")
+      writeText(commandEnvironment, path, text)
+      Success(s"created javadoc overview at $path for module $moduleName")
+    }
   }
 
   // src/main/scala/.../javadoc/JavaDocStub.java

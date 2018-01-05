@@ -543,7 +543,8 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
     def executableJarPlugin(): Seq[String] = Seq()
 
     def comment(elementName: String): Seq[String] = {
-      Seq(s"<!--<$elementName>...</$elementName>-->").map(indent)
+      //      Seq(s"<!--<$elementName>...</$elementName>-->").map(indent)
+      Seq()
     }
 
     def wrap(elementName: String, contents: String): Seq[String] = {

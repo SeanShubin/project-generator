@@ -1,21 +1,20 @@
 {
-  type hierarchical-library
   prefix [com seanshubin]
-  name [sample project]
-  description 'Sample for testing project generator'
-  version 1.1.1
+  name [project generator]
+  description 'Generate project structure from a minimal specification'
+  version 0.1-SNAPSHOT
   developer {
     name 'Sean Shubin'
     githubName SeanShubin
-    mavenCentralName SeanShubin
+    mavenUserName SeanShubin
     organization 'Sean Shubin'
     url http://seanshubin.com/
   }
   dependencies {
-    scala-lang {
-     group org.scala-lang
-     artifact scala-library
-     version 2.12.4
+    scala-library {
+      group org.scala-lang
+      artifact scala-library
+      version 2.12.4
     }
     scala-test {
       group org.scalatest
@@ -23,21 +22,18 @@
       version 3.0.4
       scope test
     }
-    scala-reflect {
-      group org.scala-lang
-      artifact scala-reflect
-      version 2.12.4
-    }
-    jsoup {
-      group org.jsoup
-      artifact jsoup
-      version 1.11.2
+    devon {
+      group    com.seanshubin.devon
+      artifact devon-domain
+      version  1.1.2
     }
   }
   modules {
-    module-a [module-b module-c scala-reflect]
-    module-b [module-d jsoup]
-    module-c [module-d]
-    module-d [jsoup]
+    console [domain]
+    domain  [devon]
+  }
+  detangler [console]
+  consoleEntryPoint {
+    console com.seanshubin.project.generator.console.EntryPoint
   }
 }

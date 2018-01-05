@@ -1,5 +1,5 @@
 package com.seanshubin.project.generator.domain
 
-class FakeHttp(getRequestToResourceNameMap: Map[String, String]) {
+class FakeHttpClient(getRequestToResourceNameMap: Map[String, String]) extends HttpClient {
   def get(uri: String): String = getRequestToResourceNameMap(uri)
 }

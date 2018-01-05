@@ -128,7 +128,7 @@ object Command {
         Success("detangler configuration not generated because no modules require it")
       } else {
         val reportDir = Paths.get("target", "detangled")
-        val searchPaths = project.detangler.map(createSearchPath)
+        val searchPaths = project.modules.keys.toSeq.map(createSearchPath)
         val level = Some(2)
         val include = Seq(project.prefix ++ project.name)
         val exclude = Seq()

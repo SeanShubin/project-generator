@@ -3,6 +3,7 @@
   searchPaths
   [
     ./console/target/project-generator-console-0.1-SNAPSHOT.jar
+    ./domain/target/project-generator-domain-0.1-SNAPSHOT.jar
   ]
   level 2
   startsWith

@@ -20,9 +20,10 @@ class CommandGeneratorImpl(project: Project, destinationDirectory: Path) extends
 
   private def generateModuleCommands(moduleName: String): Seq[Command] = {
     val moduleDirectory = destinationDirectory.resolve(moduleName)
+    val moduleParts = moduleName.split("-")
 
-    val sourceDirParts = Seq(moduleName, "src", "main", "scala") ++ project.prefix ++ project.name ++ Seq(moduleName)
-    val testDirParts = Seq(moduleName, "src", "test", "scala") ++ project.prefix ++ project.name ++ Seq(moduleName)
+    val sourceDirParts = Seq(moduleName, "src", "main", "scala") ++ project.prefix ++ project.name ++ moduleParts
+    val testDirParts = Seq(moduleName, "src", "test", "scala") ++ project.prefix ++ project.name ++ moduleParts
 
     val scalaSourceDir = generatePath(sourceDirParts)
     val scalaTestDir = generatePath(testDirParts)

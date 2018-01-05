@@ -13,6 +13,7 @@ sealed trait Command {
 }
 
 object Command {
+
   case class EnsureDirectoryExists(destinationDirectory: Path) extends Command {
     override def execute(commandEnvironment: CommandEnvironment): Result = {
       val files = commandEnvironment.files
@@ -117,27 +118,31 @@ object Command {
       def createSearchPath(moduleName: String): Path = {
         val artifactNameParts =
           project.name ++
-            Seq(moduleName) ++
+            moduleName.split("-") ++
             Seq(project.version + ".jar")
         val artifactName = artifactNameParts.mkString("-")
         Paths.get(".", moduleName, "target", artifactName)
       }
 
-      val reportDir = Paths.get("target", "detangled")
-      val searchPaths = project.detangler.map(createSearchPath)
-      val level = Some(2)
-      val include = Seq(project.prefix ++ project.name)
-      val exclude = Seq()
-      val drop = include
-      val startsWith = StartsWithConfiguration(include, exclude, drop)
-      val ignoreFiles = Seq()
-      val canFailBuild = Some(true)
-      val allowedInCycle = Seq()
-      val detanglerConfig = DetanglerConfig.Configuration(reportDir, searchPaths, level, startsWith, ignoreFiles, canFailBuild, allowedInCycle)
-      val lines = devonMarshaller.valueToPretty(detanglerConfig)
-      val path = commandEnvironment.baseDirectory.resolve("detangler.txt")
-      writeLines(commandEnvironment, path, lines)
-      Success(s"generated detangler configuration file at $path")
+      if (project.detangler.isEmpty) {
+        Success("detangler configuration not generated because no modules require it")
+      } else {
+        val reportDir = Paths.get("target", "detangled")
+        val searchPaths = project.detangler.map(createSearchPath)
+        val level = Some(2)
+        val include = Seq(project.prefix ++ project.name)
+        val exclude = Seq()
+        val drop = include
+        val startsWith = StartsWithConfiguration(include, exclude, drop)
+        val ignoreFiles = Seq()
+        val canFailBuild = Some(true)
+        val allowedInCycle = Seq()
+        val detanglerConfig = DetanglerConfig.Configuration(reportDir, searchPaths, level, startsWith, ignoreFiles, canFailBuild, allowedInCycle)
+        val lines = devonMarshaller.valueToPretty(detanglerConfig)
+        val path = commandEnvironment.baseDirectory.resolve("detangler.txt")
+        writeLines(commandEnvironment, path, lines)
+        Success(s"generated detangler configuration file at $path")
+      }
     }
   }
 
@@ -183,8 +188,9 @@ object Command {
           |</body>
           |</html>
           |""".stripMargin
-      val path = commandEnvironment.baseDirectory.resolve(moduleName).
-        resolve("src").resolve("main").resolve("javadoc").resolve("overview.html")
+      val pathParts = Seq(moduleName, "src", "main", "javadoc", "overview.html")
+      val relativePath = Paths.get(pathParts.head, pathParts.tail: _*)
+      val path = commandEnvironment.baseDirectory.resolve(relativePath)
       writeText(commandEnvironment, path, text)
       Success(s"created javadoc overview at $path for module $moduleName")
     }
@@ -193,14 +199,14 @@ object Command {
   // src/main/scala/.../javadoc/JavaDocStub.java
   case class CreateJavadocStub(project: Specification.Project, moduleName: String) extends Command {
     override def execute(commandEnvironment: CommandEnvironment): Result = {
-      val javadocPackage = (project.prefix ++ project.name ++ Seq(moduleName, "javadoc")).mkString(".")
+      val javadocPackage = (project.prefix ++ project.name ++ moduleName.split("-") ++ Seq("javadoc")).mkString(".")
       val text =
         s"""|package $javadocPackage;
             |
            |public class JavaDocStub {
             |}
             |""".stripMargin
-      val relativePathParts = Seq(moduleName, "src", "main", "scala") ++ project.prefix ++ project.name ++ Seq(moduleName, "javadoc", "JavaDocStub.java")
+      val relativePathParts = Seq(moduleName, "src", "main", "scala") ++ project.prefix ++ project.name ++ moduleName.split("-") ++ Seq("javadoc", "JavaDocStub.java")
       val relativePath = Paths.get(relativePathParts.head, relativePathParts.tail: _*)
       val path = commandEnvironment.baseDirectory.resolve(relativePath)
       writeText(commandEnvironment, path, text)

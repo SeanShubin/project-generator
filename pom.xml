@@ -1,7 +1,8 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                       http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
-    <!-- The Basics -->
     <groupId>com.seanshubin.project.generator</groupId>
     <artifactId>project-generator-parent</artifactId>
     <version>0.1-SNAPSHOT</version>
@@ -10,12 +11,10 @@
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
-            <version>2.12.4</version>
         </dependency>
         <dependency>
             <groupId>org.scalatest</groupId>
             <artifactId>scalatest_2.12</artifactId>
-            <scope>test</scope>
         </dependency>
     </dependencies>
     <!--<parent>...</parent>-->
@@ -27,15 +26,15 @@
                 <version>2.12.4</version>
             </dependency>
             <dependency>
-                <groupId>com.seanshubin.devon</groupId>
-                <artifactId>devon-domain</artifactId>
-                <version>1.1.2</version>
-            </dependency>
-            <dependency>
                 <groupId>org.scalatest</groupId>
                 <artifactId>scalatest_2.12</artifactId>
                 <version>3.0.4</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.seanshubin.devon</groupId>
+                <artifactId>devon-domain</artifactId>
+                <version>1.1.2</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -46,23 +45,12 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-
-    <!-- Build Settings -->
     <build>
         <plugins>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.7.0</version>
-                <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
-                </configuration>
-            </plugin>
-            <plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
-                <version>3.2.2</version>
+                <version>3.3.1</version>
                 <executions>
                     <execution>
                         <goals>
@@ -103,7 +91,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.20</version>
+                <version>2.20.1</version>
                 <configuration>
                     <skipTests>true</skipTests>
                 </configuration>
@@ -134,10 +122,8 @@
         </pluginManagement>
     </build>
     <!--<reporting>...</reporting>-->
-
-    <!-- More Project Information -->
     <name>${project.groupId}:${project.artifactId}</name>
-    <description>Project generator</description>
+    <description>Generate project structure from a minimal specification</description>
     <url>https://github.com/SeanShubin/project-generator</url>
     <!--<inceptionYear>...</inceptionYear>-->
     <licenses>
@@ -155,14 +141,12 @@
         </developer>
     </developers>
     <!--<contributors>...</contributors>-->
-
-    <!-- Environment Settings -->
     <!--<issueManagement>...</issueManagement>-->
     <!--<ciManagement>...</ciManagement>-->
     <!--<mailingLists>...</mailingLists>-->
     <scm>
-        <connection>scm:git:git@github.com:SeanShubin/project-generator.git</connection>
-        <developerConnection>scm:git:git@github.com:SeanShubin/project-generator.git</developerConnection>
+        <connection>git@github.com:SeanShubin/project-generator.git</connection>
+        <developerConnection>git@github.com:SeanShubin/project-generator.git</developerConnection>
         <url>https://github.com/SeanShubin/project-generator</url>
     </scm>
     <!--<prerequisites>...</prerequisites>-->

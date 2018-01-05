@@ -7,9 +7,25 @@
   level 2
   startsWith
   {
-    include [[com seanshubin project generator]]
+    include
+    [
+      [
+        com
+        seanshubin
+        project
+        generator
+      ]
+    ]
     exclude []
-    drop [[com seanshubin project generator]]
+    drop
+    [
+      [
+        com
+        seanshubin
+        project
+        generator
+      ]
+    ]
   }
   ignoreFiles []
   canFailBuild true

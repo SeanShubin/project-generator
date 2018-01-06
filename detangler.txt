@@ -4,6 +4,7 @@
   [
     ./console/target/project-generator-console-0.1-SNAPSHOT.jar
     ./domain/target/project-generator-domain-0.1-SNAPSHOT.jar
+    ./xml/target/project-generator-xml-0.1-SNAPSHOT.jar
   ]
   level 2
   startsWith

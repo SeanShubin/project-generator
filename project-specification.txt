@@ -30,7 +30,8 @@
   }
   modules {
     console [domain]
-    domain  [devon]
+    domain  [devon xml]
+    xml     []
   }
   detangler [console]
   consoleEntryPoint {

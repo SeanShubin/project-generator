@@ -1,5 +1,7 @@
 package com.seanshubin.project.generator.domain
 
+import java.io.InputStream
+
 trait HttpClient {
-  def get(uri: String): String
+  def getInputStream(uri: String): InputStream
 }

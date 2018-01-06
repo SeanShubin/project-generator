@@ -6,6 +6,11 @@
     <artifactId>project-generator-domain</artifactId>
     <dependencies>
         <dependency>
+            <groupId>com.seanshubin.project.generator</groupId>
+            <artifactId>project-generator-xml</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.seanshubin.devon</groupId>
             <artifactId>devon-domain</artifactId>
         </dependency>

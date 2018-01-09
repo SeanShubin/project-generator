@@ -3,6 +3,7 @@ package com.seanshubin.project.generator.domain
 import com.seanshubin.project.generator.xml.Node
 
 class MavenRepository(httpClient: HttpClient) extends Repository {
+  private val latestVersionOrdering = Ordering.fromLessThan(LexicographicalCompare.lessThan).reverse
   override def latestVersionFor(group: String, artifact: String): String = {
     val groupPath = group.replace(".", "/")
     val artifactPath = artifact.replace(".", "/")
@@ -10,7 +11,8 @@ class MavenRepository(httpClient: HttpClient) extends Repository {
     val xmlInputStream = httpClient.getInputStream(uri)
     val node = Node.fromInputStream(xmlInputStream)
     val versions = node.stringSeqAt("versioning", "versions", "version")
-    versions.foreach(println)
-    ???
+    val productionVersions = versions.filter(VersionUtil.isProductionVersion)
+    val sortedVersions = productionVersions.sorted(latestVersionOrdering)
+    sortedVersions.head
   }
 }

@@ -197,10 +197,11 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
     }
 
     def fullDependencyValue(name: String, dependencyValue: Specification.Dependency): Seq[String] = {
+      val version = repository.latestVersion(dependencyValue.group, dependencyValue.artifact)
       def dependencyContents =
         groupElement(dependencyValue.group) ++
           artifactElement(dependencyValue.artifact) ++
-          versionElement(dependencyValue.version) ++
+          versionElement(version) ++
           scope(dependencyValue.scope)
 
       wrap("dependency", dependencyContents)

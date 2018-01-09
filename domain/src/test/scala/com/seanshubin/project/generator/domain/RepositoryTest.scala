@@ -13,7 +13,7 @@ class RepositoryTest extends FunSuite {
     val expectedVersion = "2.12.4"
 
     // when
-    val actualVersion = repository.latestVersionFor(group, artifact)
+    val actualVersion = repository.latestVersion(group, artifact)
 
     // then
     assert(actualVersion === expectedVersion)

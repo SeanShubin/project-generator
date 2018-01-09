@@ -27,6 +27,11 @@
       artifact devon-domain
       version  1.1.2
     }
+    google-http-client {
+      group com.google.http-client
+      artifact google-http-client
+      version 1.23.0
+    }
   }
   modules {
     console [domain]

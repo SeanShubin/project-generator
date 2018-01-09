@@ -14,6 +14,10 @@
             <groupId>com.seanshubin.devon</groupId>
             <artifactId>devon-domain</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.google.http-client</groupId>
+            <artifactId>google-http-client</artifactId>
+        </dependency>
     </dependencies>
     <parent>
         <groupId>com.seanshubin.project.generator</groupId>

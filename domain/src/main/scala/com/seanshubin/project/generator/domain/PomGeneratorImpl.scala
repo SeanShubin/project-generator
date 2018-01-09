@@ -1,6 +1,6 @@
 package com.seanshubin.project.generator.domain
 
-class PomGeneratorImpl(newline: String) extends PomGenerator {
+class PomGeneratorImpl(newline: String, repository: Repository) extends PomGenerator {
   override def generateParent(project: Specification.Project): Seq[String] = {
     val pomGenerator = new ParentPomGenerator(
       project.prefix,
@@ -59,9 +59,9 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
 
     def projectLines(): Seq[String] = {
       model() ++
-        group() ++
-        artifact() ++
-        version() ++
+        generateGroup() ++
+        generateArtifact() ++
+        generateVersion() ++
         packaging() ++
         dependencies() ++
         parent() ++
@@ -93,40 +93,40 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       wrap("modelVersion", "4.0.0")
     }
 
-    def group(): Seq[String] = comment("groupId")
+    def generateGroup(): Seq[String] = comment("groupId")
 
     def fullGroup(): Seq[String] = {
       val groupContents = (prefix ++ name).mkString(".")
-      group(groupContents)
+      groupElement(groupContents)
     }
 
-    def group(contents: String): Seq[String] = {
+    def groupElement(contents: String): Seq[String] = {
       wrap("groupId", contents)
     }
 
     def parentArtifact(): Seq[String] = {
       val artifactContents = (name ++ Seq("parent")).mkString("-")
-      artifact(artifactContents)
+      artifactElement(artifactContents)
     }
 
     def moduleArtifact(moduleName: String): Seq[String] = {
       val artifactContents = (name ++ Seq(moduleName)).mkString("-")
-      artifact(artifactContents)
+      artifactElement(artifactContents)
     }
 
-    def artifact(): Seq[String]
+    def generateArtifact(): Seq[String]
 
-    def artifact(contents: String): Seq[String] = {
+    def artifactElement(contents: String): Seq[String] = {
       wrap("artifactId", contents)
     }
 
-    def version(): Seq[String] = comment("version")
+    def generateVersion(): Seq[String] = comment("version")
 
     def fullVersion(): Seq[String] = {
-      version(versionString)
+      versionElement(versionString)
     }
 
-    def version(contents: String): Seq[String] = {
+    def versionElement(contents: String): Seq[String] = {
       wrap("version", contents)
     }
 
@@ -172,13 +172,13 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
     def buildModuleDependency(name: String): Seq[String] = {
       val content = fullGroup() ++
         moduleArtifact(name) ++
-        version("${project.version}")
+        versionElement("${project.version}")
       wrap("dependency", content)
     }
 
     def buildThirdPartyDependency(name: String): Seq[String] = {
-      val content = group(dependencyMap(name).group) ++
-        artifact(dependencyMap(name).artifact)
+      val content = groupElement(dependencyMap(name).group) ++
+        artifactElement(dependencyMap(name).artifact)
       wrap("dependency", content)
     }
 
@@ -198,9 +198,9 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
 
     def fullDependencyValue(name: String, dependencyValue: Specification.Dependency): Seq[String] = {
       def dependencyContents =
-        group(dependencyValue.group) ++
-          artifact(dependencyValue.artifact) ++
-          version(dependencyValue.version) ++
+        groupElement(dependencyValue.group) ++
+          artifactElement(dependencyValue.artifact) ++
+          versionElement(dependencyValue.version) ++
           scope(dependencyValue.scope)
 
       wrap("dependency", dependencyContents)
@@ -208,8 +208,8 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
 
     def partialDependencyValue(name: String, dependencyValue: Specification.Dependency): Seq[String] = {
       def dependencyContents =
-        group(dependencyValue.group) ++
-          artifact(dependencyValue.artifact)
+        groupElement(dependencyValue.group) ++
+          artifactElement(dependencyValue.artifact)
 
       wrap("dependency", dependencyContents)
     }
@@ -298,9 +298,12 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
           wrap("goals", goalsContent)
       val executionsContent =
         wrap("execution", executionContent)
-      wrap("groupId", "org.scalatest") ++
-        wrap("artifactId", "scalatest-maven-plugin") ++
-        wrap("version", "1.0") ++
+      val group = "org.scalatest"
+      val artifact = "scalatest-maven-plugin"
+      val version = repository.latestVersion(group, artifact)
+      wrap("groupId", group) ++
+        wrap("artifactId", artifact) ++
+        wrap("version", version) ++
         wrap("configuration", configurationContent) ++
         wrap("executions", executionsContent)
     }
@@ -319,9 +322,12 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
     }
 
     def scalaMavenPluginInner(): Seq[String] = {
-      wrap("groupId", "net.alchim31.maven") ++
-        wrap("artifactId", "scala-maven-plugin") ++
-        wrap("version", "3.3.1") ++
+      val group = "net.alchim31.maven"
+      val artifact = "scala-maven-plugin"
+      val version = repository.latestVersion(group, artifact)
+      wrap("groupId", group) ++
+        wrap("artifactId", artifact) ++
+        wrap("version", version) ++
         wrap("executions", scalaMavenPluginExecutions()) ++
         wrap("configuration", scalaMavenPluginConfiguration())
     }
@@ -354,9 +360,11 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
     }
 
     def mavenSourcePluginInner(): Seq[String] = {
-      wrap("groupId", "org.apache.maven.plugins") ++
-        wrap("artifactId", "maven-source-plugin") ++
-        wrap("version", "3.0.1") ++
+      val group = "org.apache.maven.plugins"
+      val artifact = "maven-source-plugin"
+      val version = repository.latestVersion(group, artifact)
+      wrap("artifactId", artifact) ++
+        wrap("version", version) ++
         wrap("executions", mavenSourcePluginExecution())
     }
 
@@ -378,9 +386,11 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
 
     def disableSurefirePluginInner(): Seq[String] = {
       val configurationContent = wrap("skipTests", "true")
-      wrap("groupId", "org.apache.maven.plugins") ++
-        wrap("artifactId", "maven-surefire-plugin") ++
-        wrap("version", "2.20.1") ++
+      val group = "org.apache.maven.plugins"
+      val artifact = "maven-surefire-plugin"
+      val version = repository.latestVersion(group, artifact)
+      wrap("artifactId", artifact) ++
+        wrap("version", version) ++
         wrap("configuration", configurationContent)
     }
 
@@ -443,9 +453,11 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
           wrap("goals", goalsContent)
       val executionsContent =
         wrap("execution", executionContent)
-      wrap("groupId", "org.apache.maven.plugins") ++
-        wrap("artifactId", "maven-gpg-plugin") ++
-        wrap("version", "1.6") ++
+      val group = "org.apache.maven.plugins"
+      val artifact = "maven-gpg-plugin"
+      val version = repository.latestVersion(group, artifact)
+      wrap("artifactId", artifact) ++
+        wrap("version", version) ++
         wrap("executions", executionsContent)
     }
 
@@ -458,9 +470,11 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
           wrap("goals", goalsContent)
       val executionsContent =
         wrap("execution", executionContent)
-      wrap("groupId", "org.apache.maven.plugins") ++
-        wrap("artifactId", "maven-javadoc-plugin") ++
-        wrap("version", "2.10.4") ++
+      val group = "org.apache.maven.plugins"
+      val artifact = "maven-javadoc-plugin"
+      val version = repository.latestVersion(group, artifact)
+      wrap("artifactId", artifact) ++
+        wrap("version", version) ++
         wrap("executions", executionsContent)
     }
 
@@ -471,9 +485,12 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       val executionsContents = wrap("execution", executionContents)
       val executions = wrap("executions", executionsContents)
       val configuration = wrap("configuration", configFile)
-      group("com.seanshubin.detangler") ++
-        artifact("detangler-maven-plugin") ++
-        version("0.9.1") ++
+      val group = "com.seanshubin.detangler"
+      val artifact = "detangler-maven-plugin"
+      val version = repository.latestVersion(group, artifact)
+      groupElement(group) ++
+        artifactElement(artifact) ++
+        versionElement(version) ++
         executions ++
         configuration
     }
@@ -503,9 +520,12 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
           wrap("phase", "package") ++
           wrap("goals", goals)
       val executions = wrap("execution", execution)
+      val group = "org.apache.maven.plugins"
+      val artifact = "maven-assembly-plugin"
+      val version = repository.latestVersion(group, artifact)
       val contents =
-        wrap("artifactId", "maven-assembly-plugin") ++
-          wrap("version", "3.1.0") ++
+        wrap("artifactId", artifact) ++
+          wrap("version", version) ++
           wrap("configuration", configuration) ++
           wrap("executions", executions)
 
@@ -526,10 +546,12 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
       val defaultDescriptor = wrap("execution", defaultDescriptorContents)
       val helpDescriptor = wrap("execution", helpDescriptorContents)
       val executionsContents = defaultDescriptor ++ helpDescriptor
+      val group = "org.apache.maven.plugins"
+      val artifact = "maven-plugin-plugin"
+      val version = repository.latestVersion(group, artifact)
       val contents =
-        wrap("groupId", "org.apache.maven.plugins") ++
-          wrap("artifactId", "maven-plugin-plugin") ++
-          wrap("version", "3.5") ++
+        wrap("artifactId", artifact) ++
+          wrap("version", version) ++
           wrap("executions", executionsContents)
       wrap("plugin", contents)
     }
@@ -595,7 +617,7 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
     developerName,
     developerOrganization,
     developerUrl) {
-    override def artifact(): Seq[String] = parentArtifact()
+    override def generateArtifact(): Seq[String] = parentArtifact()
 
     override def dependencies(): Seq[String] = parentDependencies()
 
@@ -603,9 +625,9 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
 
     override def modules(): Seq[String] = fullModules()
 
-    override def group(): Seq[String] = fullGroup()
+    override def generateGroup(): Seq[String] = fullGroup()
 
-    override def version(): Seq[String] = fullVersion()
+    override def generateVersion(): Seq[String] = fullVersion()
 
     override def packaging(): Seq[String] = pomPackaging()
 
@@ -690,7 +712,7 @@ class PomGeneratorImpl(newline: String) extends PomGenerator {
     developerName,
     developerOrganization,
     developerUrl) {
-    override def artifact(): Seq[String] = moduleArtifact(moduleName)
+    override def generateArtifact(): Seq[String] = moduleArtifact(moduleName)
 
     override def parent(): Seq[String] = {
       val contents = fullGroup() ++ parentArtifact() ++ fullVersion()

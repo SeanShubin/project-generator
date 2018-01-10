@@ -14,4 +14,11 @@ class VersionUtilTest extends FunSuite {
     assert(VersionUtil.isProductionVersion("2.11.0-M1") === false)
     assert(VersionUtil.isProductionVersion("2.12.0-RC1-be43eb5") === false)
   }
+  test("jetty style versions") {
+    assert(VersionUtil.isProductionVersion("9.4.0.M1") === false)
+    assert(VersionUtil.isProductionVersion("9.4.0.RC3") === false)
+    assert(VersionUtil.isProductionVersion("9.4.6.v20170531") === true)
+    assert(VersionUtil.isProductionVersion("9.4.7.RC0") === false)
+    assert(VersionUtil.isProductionVersion("9.4.8.v20171121") === true)
+  }
 }

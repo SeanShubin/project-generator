@@ -12,7 +12,6 @@ class CommandGeneratorImpl(project: Project, destinationDirectory: Path) extends
       CreateParentPom(project),
       CreateLicense,
       CreateSettings(project.developer.mavenUserName),
-      CreateDetanglerConfig(project),
       CreateStageScript(project)
     ) ++ moduleCommands
     commands
@@ -32,7 +31,8 @@ class CommandGeneratorImpl(project: Project, destinationDirectory: Path) extends
       EnsureDirectoryExists(scalaTestDir),
       CreateModulePom(moduleDirectory, project, moduleName),
       CreateJavadocOverview(project, moduleName),
-      CreateJavadocStub(project, moduleName)
+      CreateJavadocStub(project, moduleName),
+      CreateDetanglerConfig(project, moduleName)
     )
     commands
   }

@@ -10,7 +10,7 @@ object DetanglerConfig {
                            startsWith: StartsWithConfiguration,
                            ignoreFiles: Seq[Path],
                            canFailBuild: Option[Boolean],
-                           allowedInCycle: Seq[Seq[String]])
+                           allowedInCycle: Path)
 
   case class StartsWithConfiguration(include: Seq[Seq[String]],
                                      exclude: Seq[Seq[String]],

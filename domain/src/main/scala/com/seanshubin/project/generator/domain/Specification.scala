@@ -13,7 +13,8 @@ object Specification {
                      modules: ListMap[String, Seq[String]],
                      detangler: Seq[String],
                      consoleEntryPoint: Map[String, String],
-                     mavenPlugin: Seq[String]) {
+                     mavenPlugin: Seq[String],
+                     primary: Option[String]) {
     def baseDirectoryName: String = name.mkString("-")
 
     def nullSafe: Project = copy(

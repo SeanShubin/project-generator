@@ -1,10 +1,8 @@
 {
-  reportDir target/detangled
+  reportDir console/target/detangled
   searchPaths
   [
-    ./console/target/project-generator-console-0.1-SNAPSHOT.jar
-    ./domain/target/project-generator-domain-0.1-SNAPSHOT.jar
-    ./xml/target/project-generator-xml-0.1-SNAPSHOT.jar
+    ./console/target/project-generator.jar
   ]
   level 2
   startsWith
@@ -31,5 +29,5 @@
   }
   ignoreFiles []
   canFailBuild true
-  allowedInCycle []
+  allowedInCycle console/detangler-allowed-in-cycle.txt
 }

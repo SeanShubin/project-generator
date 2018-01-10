@@ -113,22 +113,44 @@ object Command {
     }
   }
 
-  case class CreateDetanglerConfig(project: Specification.Project) extends Command {
+  case class CreateDetanglerConfig(project: Specification.Project, moduleName: String) extends Command {
     override def execute(commandEnvironment: CommandEnvironment): Result = {
-      def createSearchPath(moduleName: String): Path = {
+      def createSingleModuleSearchPath(moduleName: String): Seq[Path] = {
         val artifactNameParts =
           project.name ++
             moduleName.split("-") ++
             Seq(project.version + ".jar")
         val artifactName = artifactNameParts.mkString("-")
-        Paths.get(".", moduleName, "target", artifactName)
+        val path = Paths.get(".", moduleName, "target", artifactName)
+        Seq(path)
       }
 
-      if (project.detangler.isEmpty) {
-        Success("detangler configuration not generated because no modules require it")
-      } else {
-        val reportDir = Paths.get("target", "detangled")
-        val searchPaths = project.modules.keys.toSeq.map(createSearchPath)
+      def createEntryPointSearchPath(): Seq[Path] = {
+        val artifactName = project.name.mkString("-") + ".jar"
+        val path = Paths.get(".", moduleName, "target", artifactName)
+        Seq(path)
+      }
+
+      def createPrimarySearchPath(): Seq[Path] = {
+        project.modules.keys.toSeq.flatMap(createSingleModuleSearchPath)
+      }
+
+      def createThisModuleSearchPath(): Seq[Path] = {
+        createSingleModuleSearchPath(moduleName)
+      }
+
+      if (project.detangler.contains(moduleName)) {
+        val reportDir = Paths.get(moduleName, "target", "detangled")
+        val searchPaths =
+          if (project.consoleEntryPoint.contains(moduleName)) {
+            createEntryPointSearchPath()
+          } else if (project.primary.contains(moduleName)) {
+            createPrimarySearchPath()
+            //            Seq(createSearchPath(moduleName))
+          } else {
+            createThisModuleSearchPath()
+            //            project.modules.keys.toSeq.map(createSearchPath)
+          }
         val level = Some(2)
         val include = Seq(project.prefix ++ project.name)
         val exclude = Seq()
@@ -136,12 +158,16 @@ object Command {
         val startsWith = StartsWithConfiguration(include, exclude, drop)
         val ignoreFiles = Seq()
         val canFailBuild = Some(true)
-        val allowedInCycle = Seq()
+        val allowedInCycle = Paths.get(moduleName, "detangler-allowed-in-cycle.txt")
         val detanglerConfig = DetanglerConfig.Configuration(reportDir, searchPaths, level, startsWith, ignoreFiles, canFailBuild, allowedInCycle)
         val lines = devonMarshaller.valueToPretty(detanglerConfig)
-        val path = commandEnvironment.baseDirectory.resolve("detangler.txt")
+        val path = commandEnvironment.baseDirectory.resolve(moduleName).resolve("detangler.txt")
+        val allowedInCyclePath = commandEnvironment.baseDirectory.resolve(allowedInCycle)
         writeLines(commandEnvironment, path, lines)
-        Success(s"generated detangler configuration file at $path")
+        writeLines(commandEnvironment, allowedInCyclePath, Seq())
+        Success(s"generated detangler configuration file for module $moduleName at $path")
+      } else {
+        Success(s"detangler configuration for module $moduleName not needed")
       }
     }
   }

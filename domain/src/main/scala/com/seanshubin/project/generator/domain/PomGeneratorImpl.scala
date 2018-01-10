@@ -480,7 +480,7 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
     }
 
     def detanglerPluginContents(): Seq[String] = {
-      val configFile = wrap("detanglerConfig", "detangler.txt")
+      val configFile = wrap("detanglerConfig", s"$${basedir}/detangler.txt")
       val goalsContents = wrap("goal", "report")
       val executionContents = wrap("phase", "verify") ++ wrap("goals", goalsContents)
       val executionsContents = wrap("execution", executionContents)

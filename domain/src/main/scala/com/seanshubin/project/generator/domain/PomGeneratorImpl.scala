@@ -550,9 +550,11 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
       val group = "org.apache.maven.plugins"
       val artifact = "maven-plugin-plugin"
       val version = repository.latestVersion(group, artifact)
+      val configurationContents = wrap("goalPrefix", "plugin")
       val contents =
         wrap("artifactId", artifact) ++
           wrap("version", version) ++
+          wrap("configuration", configurationContents) ++
           wrap("executions", executionsContents)
       wrap("plugin", contents)
     }
@@ -739,6 +741,14 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
 
     override def shouldHaveMavenPluginPlugin(): Boolean = {
       mavenPlugin.contains(moduleName)
+    }
+
+    override def packaging(): Seq[String] = {
+      if (shouldHaveMavenPluginPlugin()) {
+        wrap("packaging", "maven-plugin")
+      } else {
+        super.packaging()
+      }
     }
   }
 

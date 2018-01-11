@@ -10,6 +10,7 @@ object Specification {
                      version: String,
                      developer: Developer,
                      dependencies: ListMap[String, Dependency],
+                     global: Seq[String],
                      modules: ListMap[String, Seq[String]],
                      detangler: Seq[String],
                      consoleEntryPoint: Map[String, String],
@@ -18,6 +19,7 @@ object Specification {
     def baseDirectoryName: String = name.mkString("-")
 
     def nullSafe: Project = copy(
+      global = Option(global).getOrElse(Seq()),
       detangler = Option(detangler).getOrElse(Seq()),
       consoleEntryPoint = Option(consoleEntryPoint).getOrElse(Map()),
       mavenPlugin = Option(mavenPlugin).getOrElse(Seq()),

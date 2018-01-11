@@ -8,6 +8,7 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
       project.description,
       project.version,
       project.dependencies,
+      project.global,
       project.modules,
       project.developer.githubName,
       project.developer.name,
@@ -150,9 +151,8 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
       wrap("dependencies", contents)
     }
 
-    def parentDependencies(): Seq[String] = {
-      val dependencyNamesToInclude = Seq("scala-library", "scala-test")
-      val dependenciesInParent = dependencyMap.filterKeys(dependencyNamesToInclude.contains)
+    def parentDependencies(global: Seq[String]): Seq[String] = {
+      val dependenciesInParent = dependencyMap.filterKeys(global.contains)
       dependenciesUsingFunction(dependenciesInParent, partialDependencyValue)
     }
 
@@ -605,6 +605,7 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
                            description: String,
                            versionString: String,
                            dependencyMap: Map[String, Specification.Dependency],
+                           global: Seq[String],
                            moduleMap: Map[String, Seq[String]],
                            githubName: String,
                            developerName: String,
@@ -622,7 +623,7 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
     developerUrl) {
     override def generateArtifact(): Seq[String] = parentArtifact()
 
-    override def dependencies(): Seq[String] = parentDependencies()
+    override def dependencies(): Seq[String] = parentDependencies(global)
 
     override def dependencyManagement(): Seq[String] = fullDependencyManagement()
 

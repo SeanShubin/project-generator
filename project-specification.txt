@@ -29,6 +29,7 @@
       artifact google-http-client
     }
   }
+  global [scala-library scala-test]
   modules {
     console [domain]
     domain  [devon xml google-http-client]

@@ -11,6 +11,7 @@ class CommandGeneratorImpl(project: Project, destinationDirectory: Path) extends
     val commands = Seq(
       CreateParentPom(project),
       CreateLicense,
+      CreateGitIgnore,
       CreateSettings(project.developer.mavenUserName),
       CreateStageScript(project)
     ) ++ moduleCommands

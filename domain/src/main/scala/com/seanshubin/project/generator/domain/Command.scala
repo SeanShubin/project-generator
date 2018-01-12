@@ -79,8 +79,31 @@ object Command {
           |For more information, please refer to <http://unlicense.org/>
           |""".stripMargin
       val path = commandEnvironment.baseDirectory.resolve("UNLICENSE.txt")
-      writeText(commandEnvironment, path, text)
+      writeText(commandEnvironment, path, text, overwrite = true)
       Success(s"generated license file at $path")
+    }
+  }
+
+  case object CreateGitIgnore extends Command {
+    override def execute(commandEnvironment: CommandEnvironment): Result = {
+      val text =
+        """**/.idea
+          |**/out
+          |**/*.iml
+          |**/*.ipr
+          |**/*.iws
+          |**/target
+          |generated
+          |local-config
+          |*~
+          |*#
+          |.#*
+          |.DS_Store
+          |dependency-reduced-pom.xml
+          |""".stripMargin
+      val path = commandEnvironment.baseDirectory.resolve(".gitignore")
+      writeText(commandEnvironment, path, text, overwrite = true)
+      Success(s"generated git ignore file at $path")
     }
   }
 
@@ -108,7 +131,7 @@ object Command {
            |</settings>
            |""".stripMargin
       val path = commandEnvironment.baseDirectory.resolve("deploy-to-maven-central-settings.xml")
-      writeText(commandEnvironment, path, text)
+      writeText(commandEnvironment, path, text, overwrite = true)
       Success(s"generated maven settings file at $path, for deployment to maven central")
     }
   }
@@ -163,8 +186,8 @@ object Command {
         val lines = devonMarshaller.valueToPretty(detanglerConfig)
         val path = commandEnvironment.baseDirectory.resolve(moduleName).resolve("detangler.txt")
         val allowedInCyclePath = commandEnvironment.baseDirectory.resolve(allowedInCycle)
-        writeLines(commandEnvironment, path, lines)
-        writeLines(commandEnvironment, allowedInCyclePath, Seq())
+        writeLines(commandEnvironment, path, lines, overwrite = true)
+        writeLines(commandEnvironment, allowedInCyclePath, Seq(), overwrite = false)
         Success(s"generated detangler configuration file for module $moduleName at $path")
       } else {
         Success(s"detangler configuration for module $moduleName not needed")
@@ -194,7 +217,7 @@ object Command {
            |echo artifacts staged, see https://oss.sonatype.org/#stagingRepositories
            |""".stripMargin
       val path = commandEnvironment.baseDirectory.resolve("stage.sh")
-      writeText(commandEnvironment, path, text)
+      writeText(commandEnvironment, path, text, overwrite = true)
       Success(s"created stage script at $path")
     }
   }
@@ -217,7 +240,7 @@ object Command {
       val pathParts = Seq(moduleName, "src", "main", "javadoc", "overview.html")
       val relativePath = Paths.get(pathParts.head, pathParts.tail: _*)
       val path = commandEnvironment.baseDirectory.resolve(relativePath)
-      writeText(commandEnvironment, path, text)
+      writeText(commandEnvironment, path, text, overwrite = true)
       Success(s"created javadoc overview at $path for module $moduleName")
     }
   }
@@ -235,7 +258,7 @@ object Command {
       val relativePathParts = Seq(moduleName, "src", "main", "scala") ++ project.prefix ++ project.name ++ moduleName.split("-") ++ Seq("javadoc", "JavaDocStub.java")
       val relativePath = Paths.get(relativePathParts.head, relativePathParts.tail: _*)
       val path = commandEnvironment.baseDirectory.resolve(relativePath)
-      writeText(commandEnvironment, path, text)
+      writeText(commandEnvironment, path, text, overwrite = true)
       Success(s"created javadoc stub at $path for module $moduleName")
     }
   }
@@ -248,16 +271,20 @@ object Command {
     }
   }
 
-  def writeText(commandEnvironment: CommandEnvironment, path: Path, text: String): Unit = {
+  def writeText(commandEnvironment: CommandEnvironment, path: Path, text: String, overwrite: Boolean): Unit = {
     ensureDirectoryExistsForFile(commandEnvironment, path)
     val files = commandEnvironment.files
     val bytes = text.getBytes(GlobalConstants.charset)
-    files.write(path, bytes)
+    if (!files.exists(path) || overwrite) {
+      files.write(path, bytes)
+    }
   }
 
-  def writeLines(commandEnvironment: CommandEnvironment, path: Path, lines: Seq[String]): Unit = {
+  def writeLines(commandEnvironment: CommandEnvironment, path: Path, lines: Seq[String], overwrite: Boolean): Unit = {
     ensureDirectoryExistsForFile(commandEnvironment, path)
     val files = commandEnvironment.files
-    files.write(path, lines.asJava, charset)
+    if (!files.exists(path) || overwrite) {
+      files.write(path, lines.asJava, charset)
+    }
   }
 }

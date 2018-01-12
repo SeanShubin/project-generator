@@ -196,15 +196,21 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
       wrap("dependencyManagement", contents)
     }
 
-    def fullDependencyValue(name: String, dependencyValue: Specification.Dependency): Seq[String] = {
-      val version = repository.latestVersion(dependencyValue.group, dependencyValue.artifact)
+    def fullDependencyValue(name: String, dependency: Specification.Dependency): Seq[String] = {
+      val version = chooseVersion(dependency)
       def dependencyContents =
-        groupElement(dependencyValue.group) ++
-          artifactElement(dependencyValue.artifact) ++
+        groupElement(dependency.group) ++
+          artifactElement(dependency.artifact) ++
           versionElement(version) ++
-          scope(dependencyValue.scope)
-
+          scope(dependency.scope)
       wrap("dependency", dependencyContents)
+    }
+
+    def chooseVersion(dependency: Specification.Dependency): String = {
+      dependency.lockedAtVersion match {
+        case Some(version) => version
+        case None => repository.latestVersion(dependency.group, dependency.artifact)
+      }
     }
 
     def partialDependencyValue(name: String, dependencyValue: Specification.Dependency): Seq[String] = {
@@ -752,5 +758,4 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
       }
     }
   }
-
 }

@@ -13,7 +13,8 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
       project.developer.githubName,
       project.developer.name,
       project.developer.organization,
-      project.developer.url
+      project.developer.url,
+      project.javaVersion
     )
     pomGenerator.generate()
   }
@@ -33,7 +34,8 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
       moduleName,
       project.detangler,
       project.consoleEntryPoint,
-      project.mavenPlugin
+      project.mavenPlugin,
+      project.javaVersion
     )
     pomGenerator.generate()
   }
@@ -47,7 +49,8 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
                               githubName: String,
                               developerName: String,
                               developerOrganization: String,
-                              developerUrl: String) {
+                              developerUrl: String,
+                              maybeJavaVersion: Option[String]) {
     def generate(): Seq[String] = {
       Seq(
         """<?xml version="1.0" encoding="UTF-8" standalone="no"?>""",
@@ -277,12 +280,34 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
 
     def parentPlugins(): Seq[String] = {
       val pluginContents =
+        maybeJavaVersionPlugin() ++
         scalaMavenPlugin() ++
           mavenSourcePlugin() ++
           disableSurefirePlugin()
       wrap("plugins", pluginContents)
     }
 
+    def maybeJavaVersionPlugin(): Seq[String] = {
+      maybeJavaVersion match {
+        case Some(javaVersion) => javaVersionPlugin(javaVersion)
+        case None => Seq()
+      }
+    }
+
+    def javaVersionPlugin(javaVersion: String): Seq[String] = {
+      val group = "org.apache.maven.plugins"
+      val artifact = "maven-compiler-plugin"
+      val version = repository.latestVersion(group, artifact)
+      val configurationContents =
+        wrap("source", javaVersion) ++
+          wrap("target", javaVersion)
+      val pluginContents =
+        wrap("groupId", group) ++
+          wrap("artifactId", artifact) ++
+          wrap("version", version) ++
+          wrap("configuration", configurationContents)
+      wrap("plugin", pluginContents)
+    }
     def pluginManagement(): Seq[String] = Seq()
 
     def fullPluginManagement(): Seq[String] = {
@@ -616,7 +641,8 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
                            githubName: String,
                            developerName: String,
                            developerOrganization: String,
-                           developerUrl: String) extends PomGenerator(
+                           developerUrl: String,
+                           maybeJavaVersion: Option[String]) extends PomGenerator(
     prefix,
     name,
     description,
@@ -626,7 +652,8 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
     githubName,
     developerName,
     developerOrganization,
-    developerUrl) {
+    developerUrl,
+    maybeJavaVersion) {
     override def generateArtifact(): Seq[String] = parentArtifact()
 
     override def dependencies(): Seq[String] = parentDependencies(global)
@@ -711,7 +738,8 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
                                 moduleName: String,
                                 detangler: Seq[String],
                                 entryPoint: Map[String, String],
-                                mavenPlugin: Seq[String]) extends PomGenerator(
+                                mavenPlugin: Seq[String],
+                                maybeJavaVersion: Option[String]) extends PomGenerator(
     prefix,
     name,
     description,
@@ -721,7 +749,8 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
     githubName,
     developerName,
     developerOrganization,
-    developerUrl) {
+    developerUrl,
+    maybeJavaVersion) {
     override def generateArtifact(): Seq[String] = moduleArtifact(moduleName)
 
     override def parent(): Seq[String] = {

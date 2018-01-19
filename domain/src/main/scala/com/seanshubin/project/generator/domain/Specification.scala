@@ -15,7 +15,8 @@ object Specification {
                      detangler: Seq[String],
                      consoleEntryPoint: Map[String, String],
                      mavenPlugin: Seq[String],
-                     primary: Option[String]) {
+                     primary: Option[String],
+                     javaVersion: Option[String]) {
     def baseDirectoryName: String = name.mkString("-")
 
     def nullSafe: Project = copy(

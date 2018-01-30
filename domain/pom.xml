@@ -11,12 +11,23 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.seanshubin.devon</groupId>
-            <artifactId>devon-domain</artifactId>
+            <groupId>com.seanshubin.project.generator</groupId>
+            <artifactId>project-generator-datomic</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.google.http-client</groupId>
-            <artifactId>google-http-client</artifactId>
+            <groupId>com.seanshubin.project.generator</groupId>
+            <artifactId>project-generator-http</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.seanshubin.project.generator</groupId>
+            <artifactId>project-generator-io</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.seanshubin.devon</groupId>
+            <artifactId>devon-domain</artifactId>
         </dependency>
     </dependencies>
     <parent>

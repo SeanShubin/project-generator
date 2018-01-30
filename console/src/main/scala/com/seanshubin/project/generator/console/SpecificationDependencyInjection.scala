@@ -3,6 +3,7 @@ package com.seanshubin.project.generator.console
 import java.nio.file.Path
 
 import com.seanshubin.project.generator.domain._
+import com.seanshubin.project.generator.http.{GoogleHttpClient, HttpClient}
 
 trait SpecificationDependencyInjection {
   def specification: Specification.Project

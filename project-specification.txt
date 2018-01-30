@@ -28,12 +28,20 @@
       group com.google.http-client
       artifact google-http-client
     }
+    jsoup {
+      group org.jsoup
+      artifact jsoup
+    }
   }
   global [scala-library scala-test]
   modules {
-    console [domain]
-    domain  [devon xml google-http-client]
-    xml     []
+    console         [domain]
+    domain          [devon xml datomic http io]
+    xml             []
+    datomic         [http jsoup io duration-format]
+    http            [google-http-client]
+    io              []
+    duration-format []
   }
   detangler [console]
   consoleEntryPoint {

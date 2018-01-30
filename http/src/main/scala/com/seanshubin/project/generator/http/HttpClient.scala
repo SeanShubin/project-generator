@@ -1,4 +1,4 @@
-package com.seanshubin.project.generator.domain
+package com.seanshubin.project.generator.http
 
 import java.io.InputStream
 

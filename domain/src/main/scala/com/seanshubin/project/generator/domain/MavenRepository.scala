@@ -1,5 +1,6 @@
 package com.seanshubin.project.generator.domain
 
+import com.seanshubin.project.generator.http.HttpClient
 import com.seanshubin.project.generator.xml.Node
 
 class MavenRepository(httpClient: HttpClient) extends Repository {

@@ -1,11 +1,26 @@
-package com.seanshubin.project.generator.domain
+package com.seanshubin.project.generator.io
 
 import java.io._
+import java.nio.ByteBuffer
+import java.nio.channels.{Channels, ReadableByteChannel, WritableByteChannel}
 import java.nio.charset.Charset
 
 import scala.annotation.tailrec
 
 object IoUtil {
+  private val bufferSize = 16 * 1024
+
+  def feedReadableChannelIntoWritableChannel(readableChannel: ReadableByteChannel, writableChannel: WritableByteChannel): Unit = {
+    val buffer = ByteBuffer.allocateDirect(bufferSize)
+    var bytesRead = readableChannel.read(buffer)
+    while (bytesRead != -1) {
+      buffer.flip()
+      writableChannel.write(buffer)
+      buffer.flip()
+      bytesRead = readableChannel.read(buffer)
+    }
+  }
+
   @tailrec
   def feedInputStreamToOutputStream(inputStream: InputStream, outputStream: OutputStream): Unit = {
     val byte = inputStream.read()
@@ -66,5 +81,19 @@ object IoUtil {
   def bytesToOutputStream(bytes: Array[Byte], outputStream: OutputStream): Unit = {
     val inputStream = bytesToInputStream(bytes)
     feedInputStreamToOutputStream(inputStream, outputStream)
+  }
+
+  def stringToReadableByteChannel(s: String, charset: Charset): ReadableByteChannel = {
+    val inputStream = stringToInputStream(s, charset)
+    Channels.newChannel(inputStream)
+  }
+
+  def stringToWritableByteChannel(s: String, charset: Charset, writableByteChannel: WritableByteChannel): Unit = {
+    val readableByteChannel = stringToReadableByteChannel(s, charset)
+    feedReadableChannelIntoWritableChannel(readableByteChannel, writableByteChannel)
+  }
+
+  def outputStreamToWritableByteChannel(outputStream: OutputStream): WritableByteChannel = {
+    Channels.newChannel(outputStream)
   }
 }

@@ -40,12 +40,21 @@
                 <artifactId>google-http-client</artifactId>
                 <version>1.23.0</version>
             </dependency>
+            <dependency>
+                <groupId>org.jsoup</groupId>
+                <artifactId>jsoup</artifactId>
+                <version>1.11.2</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <modules>
         <module>console</module>
         <module>domain</module>
         <module>xml</module>
+        <module>datomic</module>
+        <module>http</module>
+        <module>io</module>
+        <module>duration-format</module>
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

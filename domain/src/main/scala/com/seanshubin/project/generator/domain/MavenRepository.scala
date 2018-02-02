@@ -1,7 +1,7 @@
 package com.seanshubin.project.generator.domain
 
 import com.seanshubin.project.generator.http.HttpClient
-import com.seanshubin.project.generator.xml.Node
+import com.seanshubin.project.generator.xml.Structure.Node
 
 class MavenRepository(httpClient: HttpClient) extends Repository {
   private val latestVersionOrdering = Ordering.fromLessThan(LexicographicalCompare.lessThan).reverse

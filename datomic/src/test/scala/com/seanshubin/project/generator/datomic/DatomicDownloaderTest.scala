@@ -1,7 +1,6 @@
 package com.seanshubin.project.generator.datomic
 
-import java.nio.channels.Channels
-import java.nio.file.{Files, Paths, StandardOpenOption}
+import java.nio.file.{Files, Paths}
 
 import com.seanshubin.project.generator.duration.format.DurationFormat
 import com.seanshubin.project.generator.http.{GoogleHttpClient, HttpClient}
@@ -12,7 +11,7 @@ import org.jsoup.select.Elements
 import org.scalatest.FunSuite
 
 class DatomicDownloaderTest extends FunSuite {
-  test("list datomic versions") {
+  ignore("list datomic versions") {
     trait DatomicRepository {
       def versions(): Seq[String]
     }
@@ -49,13 +48,9 @@ class DatomicDownloaderTest extends FunSuite {
       val destination = Paths.get("target", "datomic.jar")
       Files.createDirectories(destination.getParent)
       println(destination.toAbsolutePath)
-      //      val outputStream = Files.newOutputStream(destination)
-      val inputChannel = Channels.newChannel(inputStream)
-      val outputChannel = Files.newByteChannel(destination, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)
-      //      IoUtil.feedInputStreamToOutputStream(inputStream, outputStream)
-      IoUtil.feedReadableChannelIntoWritableChannel(inputChannel, outputChannel)
-      //      outputStream.close()
-      outputChannel.close()
+      val outputStream = Files.newOutputStream(destination)
+      IoUtil.feedInputStreamToOutputStream(inputStream, outputStream)
+      outputStream.close()
     }
 
     val datomicRepository: DatomicRepository = new DatomicOfficialWebsite

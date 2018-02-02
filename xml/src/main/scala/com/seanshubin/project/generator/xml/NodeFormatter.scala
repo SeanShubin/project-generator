@@ -1,5 +1,7 @@
 package com.seanshubin.project.generator.xml
 
+import com.seanshubin.project.generator.xml.Structure.Node
+
 object NodeFormatter {
   def format(node: Node): String = {
     nodeToMultipleLineString(node).mkString("\n")

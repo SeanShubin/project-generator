@@ -1,13 +1,23 @@
 # Project Generator
 - Convert minimal project specifications to project structures required by specific tools
 
+## Why this project exists
+- I found creation and maintenance of maven project files tedious
+- Particularly onerous where
+    - the parent/child structure
+    - updating the dependency structure
+    - updating the module structure
+    - remembering all the details required to push to maven central, especially the javadoc configuration
+- Now I can manage my dependency structure from a single file in a concise, minimal format.
+
 ## How to use
 - Create a directory where you want your project to reside
 - Create a specification text file in [Developers Value Notation](https://github.com/SeanShubin/devon)
     - See comments in the [Specification](domain/src/main/scala/com/seanshubin/project/generator/domain/Specification.scala) source file for details
 - Run [com.seanshubin.project.generator.console.EntryPoint](console/src/main/scala/com/seanshubin/project/generator/console/EntryPoint.scala) with the path to your specification file as the only command line argument
 - All of the maven files will be generated with the proper dependency structure, as well as configuration options and scripts necessary for deploying to maven central
-- If your dependency structure changes, update your specification file and re-run the project generator.  Your old files will be clobbered with the updated dependency structure. 
+- If your dependency structure changes, update your specification file and re-run the project generator.  Your old files will be clobbered with the updated dependency structure.
+    - modules no longer in your dependency structure will not be deleted. 
 
 ## Examples
 

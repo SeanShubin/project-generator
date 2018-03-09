@@ -1,6 +1,12 @@
 # Project Generator
 - Convert minimal project specifications to project structures required by specific tools
 
+## Specification
+
+Specification is marshalled from a text file in [Developers Value Notation](https://github.com/SeanShubin/devon)
+
+See comments in [Specification](domain/src/main/scala/com/seanshubin/project/generator/domain/Specification.scala) for details
+
 ## Examples
 
 ### Devon Specification
@@ -11,31 +17,40 @@ Note that detangler only runs for the domain module.  Omitted consoleEntryPoint 
   name [devon]
   description 'A simple, language neutral notation for representing structured values'
   version 1.1.2
-  developer {
+  developer
+  {
     name 'Sean Shubin'
     githubName SeanShubin
+    mavenUserName SeanShubin
     organization 'Sean Shubin'
     url http://seanshubin.com/
   }
-  dependencies {
-    scala-library {
+  dependencies
+  {
+    scala-library
+    {
       group org.scala-lang
       artifact scala-library
-      version 2.12.4
     }
-    scala-reflect {
+    scala-reflect
+    {
       group org.scala-lang
       artifact scala-reflect
-      version 2.12.4
     }
-    scala-test {
+    scala-test
+    {
       group org.scalatest
       artifact scalatest_2.12
-      version 3.0.4
       scope test
     }
   }
-  modules {
+  global
+  [
+    scala-library
+    scala-test
+  ]
+  modules
+  {
     domain     [tokenizer reflection]
     tokenizer  [rules]
     reflection [scala-reflect]
@@ -44,6 +59,7 @@ Note that detangler only runs for the domain module.  Omitted consoleEntryPoint 
     string     []
   }
   detangler [domain]
+  primary domain
 }
 ```
 

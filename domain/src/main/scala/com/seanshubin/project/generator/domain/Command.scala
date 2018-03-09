@@ -169,10 +169,8 @@ object Command {
             createEntryPointSearchPath()
           } else if (project.primary.contains(moduleName)) {
             createPrimarySearchPath()
-            //            Seq(createSearchPath(moduleName))
           } else {
             createThisModuleSearchPath()
-            //            project.modules.keys.toSeq.map(createSearchPath)
           }
         val level = Some(2)
         val include = Seq(project.prefix ++ project.name)

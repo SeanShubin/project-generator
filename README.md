@@ -149,6 +149,3 @@ Detangler is omitted.
   mavenPlugin [ maven-plugin ]
 }
 ```
-
-## To Do
-- remove need to specify versions, use latest instead

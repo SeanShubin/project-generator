@@ -1,11 +1,13 @@
 # Project Generator
 - Convert minimal project specifications to project structures required by specific tools
 
-## Specification
-
-Specification is marshalled from a text file in [Developers Value Notation](https://github.com/SeanShubin/devon)
-
-See comments in [Specification](domain/src/main/scala/com/seanshubin/project/generator/domain/Specification.scala) for details
+## How to use
+- Create a directory where you want your project to reside
+- Create a specification text file in [Developers Value Notation](https://github.com/SeanShubin/devon)
+    - See comments in the [Specification](domain/src/main/scala/com/seanshubin/project/generator/domain/Specification.scala) source file for details
+- Run [com.seanshubin.project.generator.console.EntryPoint](console/src/main/scala/com/seanshubin/project/generator/console/EntryPoint.scala) with the path to your specification file as the only command line argument
+- All of the maven files will be generated with the proper dependency structure, as well as configuration options and scripts necessary for deploying to maven central
+- If your dependency structure changes, update your specification file and re-run the project generator.  Your old files will be clobbered with the updated dependency structure. 
 
 ## Examples
 

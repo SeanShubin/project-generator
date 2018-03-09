@@ -3,7 +3,7 @@
 
 ## Why this project exists
 - I found creation and maintenance of maven project files tedious
-- Particularly onerous where
+- Particularly onerous were
     - the parent/child structure
     - updating the dependency structure
     - updating the module structure

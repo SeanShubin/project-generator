@@ -9,6 +9,11 @@
     - updating the module structure
     - remembering all the details required to push to maven central, especially the javadoc configuration
 - Now I can manage my dependency structure from a single file in a concise, minimal format.
+- Sometimes the ideal thing to do is create a separate module or project,
+  but this has to be balanced against the time it takes.
+  Since I have converted most of my projects to use this generator,
+  I find myself much more likely to create new projects or modules when it makes sense,
+  leading to a more organized code base. 
 
 ## How to use
 - Create a directory where you want your project to reside

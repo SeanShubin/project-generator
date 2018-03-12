@@ -84,10 +84,11 @@ Detangler is omitted.
   prefix [com seanshubin]
   name [detangler]
   description 'Analyzes dependency structure and cycles'
-  version 0.9.1
+  version 0.9.2
   developer {
     name 'Sean Shubin'
     githubName SeanShubin
+    mavenUserName SeanShubin
     organization 'Sean Shubin'
     url http://seanshubin.com/
   }
@@ -95,36 +96,31 @@ Detangler is omitted.
     scala-library {
       group org.scala-lang
       artifact scala-library
-      version 2.12.4
     }
     scala-test {
       group org.scalatest
       artifact scalatest_2.12
-      version 3.0.4
       scope test
     }
     devon {
       group com.seanshubin.devon
       artifact devon-domain
-      version 1.1.2
     }
     jsoup {
       group org.jsoup
       artifact jsoup
-      version 1.11.2
     }
     maven-plugin-api {
       group org.apache.maven
       artifact maven-plugin-api
-      version 3.5.2
     }
     maven-plugin-annotations {
       group org.apache.maven.plugin-tools
       artifact maven-plugin-annotations
-      version 3.5
       scope provided
     }
   }
+  global [scala-library scala-test]
   modules {
     analysis       [model data collection devon]
     bytecode       [collection]

@@ -9,9 +9,9 @@ object Specification {
                      description: String,                       // description of the project, required in order to push to maven central
                      version: String,                           // the project version
                      developer: Developer,                      // developer information, required in order to push to maven central
-                     dependencies: ListMap[String, Dependency], // the dependencies
-                     global: Seq[String],                       // these dependencies will be specified in the parent pom file, so they will be included in each child module without having to be specified
-                     modules: ListMap[String, Seq[String]],     // the dependency structure
+                     dependencies: ListMap[String, Dependency], // the dependencies, mapped by alias
+                     global: Seq[String],                       // global dependencies will be specified in the parent pom file, so they will be included in each child module without having to be specified
+                     modules: ListMap[String, Seq[String]],     // the dependency structure, each dependency can be identified by either module name or alias
                      detangler: Seq[String],                    // which modules have the detangler enabled, detangler fails the build upon detecting a dependency cycle
                      consoleEntryPoint: Map[String, String],    // module name -> qualified class name, for each entry point.  Used to generate the maven-assembly-plugin section to create an executable jar
                      mavenPlugin: Seq[String],                  // used to specify which modules have "packaging" element set to "maven-plugin"

@@ -8,13 +8,13 @@ import com.seanshubin.project.generator.domain.Specification.Project
 class CommandGeneratorImpl(project: Project, destinationDirectory: Path) extends CommandGenerator {
   override def generate(): Iterable[Command] = {
     val moduleCommands = project.modules.keys.toSeq.sorted.flatMap(generateModuleCommands)
+    val mavenDeployableCommands = if(project.deployableToMavenCentral.getOrElse(false)){
+      Seq(CreateLicense, CreateStageScript(project), CreateSettings(project.developer.mavenUserName))
+    } else Seq()
     val commands = Seq(
       CreateParentPom(project),
-      CreateLicense,
-      CreateGitIgnore,
-      CreateSettings(project.developer.mavenUserName),
-      CreateStageScript(project)
-    ) ++ moduleCommands
+      CreateGitIgnore
+    ) ++ mavenDeployableCommands ++ moduleCommands
     commands
   }
 
@@ -27,14 +27,15 @@ class CommandGeneratorImpl(project: Project, destinationDirectory: Path) extends
 
     val scalaSourceDir = generatePath(sourceDirParts)
     val scalaTestDir = generatePath(testDirParts)
+    val mavenDeployableCommands = if(project.deployableToMavenCentral.getOrElse(false)){
+      Seq(CreateJavadocOverview(project, moduleName), CreateJavadocStub(project, moduleName))
+    } else Seq()
     val commands = Seq(
       EnsureDirectoryExists(scalaSourceDir),
       EnsureDirectoryExists(scalaTestDir),
       CreateModulePom(moduleDirectory, project, moduleName),
-      CreateJavadocOverview(project, moduleName),
-      CreateJavadocStub(project, moduleName),
       CreateDetanglerConfig(project, moduleName)
-    )
+    ) ++ mavenDeployableCommands
     commands
   }
 

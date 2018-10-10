@@ -16,7 +16,8 @@ object Specification {
                      consoleEntryPoint: Map[String, String],    // module name -> qualified class name, for each entry point.  Used to generate the maven-assembly-plugin section to create an executable jar
                      mavenPlugin: Seq[String],                  // used to specify which modules have "packaging" element set to "maven-plugin"
                      primary: Option[String],                   // used for generating detangler configuration.  not needed for modules that are a console entry point.  used to indicate that this module is responsible for generating the detangler report for itself and all other modules
-                     javaVersion: Option[String])               // which java version to use
+                     javaVersion: Option[String],               // which java version to use
+                     deployableToMavenCentral:Option[Boolean])  // should files for deploying to maven central be generated?
   {
     def baseDirectoryName: String = name.mkString("-")
 
@@ -24,7 +25,7 @@ object Specification {
       global = Option(global).getOrElse(Seq()),
       detangler = Option(detangler).getOrElse(Seq()),
       consoleEntryPoint = Option(consoleEntryPoint).getOrElse(Map()),
-      mavenPlugin = Option(mavenPlugin).getOrElse(Seq()),
+      mavenPlugin = Option(mavenPlugin).getOrElse(Seq())
     )
   }
 

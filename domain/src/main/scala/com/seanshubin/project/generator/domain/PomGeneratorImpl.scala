@@ -14,7 +14,8 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
       project.developer.name,
       project.developer.organization,
       project.developer.url,
-      project.javaVersion
+      project.javaVersion,
+      project.deployableToMavenCentral.getOrElse(false)
     )
     pomGenerator.generate()
   }
@@ -35,7 +36,8 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
       project.detangler,
       project.consoleEntryPoint,
       project.mavenPlugin,
-      project.javaVersion
+      project.javaVersion,
+      project.deployableToMavenCentral.getOrElse(false)
     )
     pomGenerator.generate()
   }
@@ -50,7 +52,8 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
                               developerName: String,
                               developerOrganization: String,
                               developerUrl: String,
-                              maybeJavaVersion: Option[String]) {
+                              maybeJavaVersion: Option[String],
+                              deployableToMavenCentral: Boolean) {
     def generate(): Seq[String] = {
       Seq(
         """<?xml version="1.0" encoding="UTF-8" standalone="no"?>""",
@@ -62,6 +65,24 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
     }
 
     def projectLines(): Seq[String] = {
+      val linesForDeployableToMavenCentral = if (deployableToMavenCentral) {
+        url() ++
+          inceptionYear() ++
+          licenses() ++
+          organization() ++
+          developers() ++
+          contributors() ++
+          issueManagement() ++
+          ciManagement() ++
+          mailingLists() ++
+          scm() ++
+          prerequisites() ++
+          repositories() ++
+          pluginRepositories() ++
+          distributionManagement() ++
+          profiles()
+
+      } else Seq()
       model() ++
         generateGroup() ++
         generateArtifact() ++
@@ -76,21 +97,7 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
         reporting() ++
         generateName() ++
         generateDescription() ++
-        url() ++
-        inceptionYear() ++
-        licenses() ++
-        organization() ++
-        developers() ++
-        contributors() ++
-        issueManagement() ++
-        ciManagement() ++
-        mailingLists() ++
-        scm() ++
-        prerequisites() ++
-        repositories() ++
-        pluginRepositories() ++
-        distributionManagement() ++
-        profiles()
+        linesForDeployableToMavenCentral
     }
 
     def model(): Seq[String] = {
@@ -201,11 +208,13 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
 
     def fullDependencyValue(name: String, dependency: Specification.Dependency): Seq[String] = {
       val version = chooseVersion(dependency)
+
       def dependencyContents =
         groupElement(dependency.group) ++
           artifactElement(dependency.artifact) ++
           versionElement(version) ++
           scope(dependency.scope)
+
       wrap("dependency", dependencyContents)
     }
 
@@ -281,7 +290,7 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
     def parentPlugins(): Seq[String] = {
       val pluginContents =
         maybeJavaVersionPlugin() ++
-        scalaMavenPlugin() ++
+          scalaMavenPlugin() ++
           mavenSourcePlugin() ++
           disableSurefirePlugin()
       wrap("plugins", pluginContents)
@@ -308,6 +317,7 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
           wrap("configuration", configurationContents)
       wrap("plugin", pluginContents)
     }
+
     def pluginManagement(): Seq[String] = Seq()
 
     def fullPluginManagement(): Seq[String] = {
@@ -642,7 +652,8 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
                            developerName: String,
                            developerOrganization: String,
                            developerUrl: String,
-                           maybeJavaVersion: Option[String]) extends PomGenerator(
+                           maybeJavaVersion: Option[String],
+                           deployableToMavenCentral:Boolean) extends PomGenerator(
     prefix,
     name,
     description,
@@ -653,7 +664,8 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
     developerName,
     developerOrganization,
     developerUrl,
-    maybeJavaVersion) {
+    maybeJavaVersion,
+    deployableToMavenCentral) {
     override def generateArtifact(): Seq[String] = parentArtifact()
 
     override def dependencies(): Seq[String] = parentDependencies(global)
@@ -739,7 +751,8 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
                                 detangler: Seq[String],
                                 entryPoint: Map[String, String],
                                 mavenPlugin: Seq[String],
-                                maybeJavaVersion: Option[String]) extends PomGenerator(
+                                maybeJavaVersion: Option[String],
+                                deployableToMavenCentral:Boolean) extends PomGenerator(
     prefix,
     name,
     description,
@@ -750,7 +763,8 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
     developerName,
     developerOrganization,
     developerUrl,
-    maybeJavaVersion) {
+    maybeJavaVersion,
+    deployableToMavenCentral) {
     override def generateArtifact(): Seq[String] = moduleArtifact(moduleName)
 
     override def parent(): Seq[String] = {
@@ -787,4 +801,5 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
       }
     }
   }
+
 }

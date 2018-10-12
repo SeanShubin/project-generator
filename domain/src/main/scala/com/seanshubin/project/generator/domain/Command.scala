@@ -172,15 +172,28 @@ object Command {
           } else {
             createThisModuleSearchPath()
           }
-        val level = Some(2)
+        val level = 2
         val include = Seq(project.prefix ++ project.name)
         val exclude = Seq()
         val drop = include
         val startsWith = StartsWithConfiguration(include, exclude, drop)
         val ignoreFiles = Seq()
-        val canFailBuild = Some(true)
+        val canFailBuild = true
+        val ignoreJavadoc = true
+        val logTiming = true
+        val logEffectiveConfiguration = true
         val allowedInCycle = Paths.get(moduleName, "detangler-allowed-in-cycle.txt")
-        val detanglerConfig = DetanglerConfig.Configuration(reportDir, searchPaths, level, startsWith, ignoreFiles, canFailBuild, allowedInCycle)
+        val detanglerConfig = DetanglerConfig.Configuration(
+          reportDir,
+          searchPaths,
+          level,
+          startsWith,
+          ignoreFiles,
+          canFailBuild,
+          ignoreJavadoc,
+          logTiming,
+          logEffectiveConfiguration,
+          allowedInCycle)
         val lines = devonMarshaller.valueToPretty(detanglerConfig)
         val path = commandEnvironment.baseDirectory.resolve(moduleName).resolve("detangler.txt")
         val allowedInCyclePath = commandEnvironment.baseDirectory.resolve(allowedInCycle)

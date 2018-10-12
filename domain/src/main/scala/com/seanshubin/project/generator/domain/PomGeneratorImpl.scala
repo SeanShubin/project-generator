@@ -1,5 +1,7 @@
 package com.seanshubin.project.generator.domain
 
+import com.seanshubin.project.generator.domain.Specification.Developer
+
 class PomGeneratorImpl(newline: String, repository: Repository) extends PomGenerator {
   override def generateParent(project: Specification.Project): Seq[String] = {
     val pomGenerator = new ParentPomGenerator(
@@ -10,10 +12,7 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
       project.dependencies,
       project.global,
       project.modules,
-      project.developer.githubName,
-      project.developer.name,
-      project.developer.organization,
-      project.developer.url,
+      project.developer,
       project.javaVersion,
       project.deployableToMavenCentral.getOrElse(false)
     )
@@ -28,10 +27,7 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
       project.version,
       project.dependencies,
       project.modules,
-      project.developer.githubName,
-      project.developer.name,
-      project.developer.organization,
-      project.developer.url,
+      project.developer,
       moduleName,
       project.detangler,
       project.consoleEntryPoint,
@@ -48,10 +44,7 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
                               versionString: String,
                               dependencyMap: Map[String, Specification.Dependency],
                               moduleMap: Map[String, Seq[String]],
-                              githubName: String,
-                              developerName: String,
-                              developerOrganization: String,
-                              developerUrl: String,
+                              developer: Developer,
                               maybeJavaVersion: Option[String],
                               deployableToMavenCentral: Boolean) {
     def generate(): Seq[String] = {
@@ -648,10 +641,7 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
                            dependencyMap: Map[String, Specification.Dependency],
                            global: Seq[String],
                            moduleMap: Map[String, Seq[String]],
-                           githubName: String,
-                           developerName: String,
-                           developerOrganization: String,
-                           developerUrl: String,
+                           developer: Developer,
                            maybeJavaVersion: Option[String],
                            deployableToMavenCentral:Boolean) extends PomGenerator(
     prefix,
@@ -660,10 +650,7 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
     versionString,
     dependencyMap,
     moduleMap,
-    githubName,
-    developerName,
-    developerOrganization,
-    developerUrl,
+    developer,
     maybeJavaVersion,
     deployableToMavenCentral) {
     override def generateArtifact(): Seq[String] = parentArtifact()
@@ -695,7 +682,7 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
     }
 
     override def url(): Seq[String] = {
-      wrap("url", s"https://github.com/$githubName/${name.mkString("-")}")
+      wrap("url", s"https://github.com/${developer.githubName}/${name.mkString("-")}")
     }
 
     override def licenses(): Seq[String] = {
@@ -708,18 +695,18 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
 
     override def developers(): Seq[String] = {
       val developerContent =
-        wrap("name", developerName) ++
-          wrap("organization", developerOrganization) ++
-          wrap("organizationUrl", developerUrl)
+        wrap("name", developer.name) ++
+          wrap("organization", developer.organization) ++
+          wrap("organizationUrl", developer.url)
       val developersContent = wrap("developer", developerContent)
       wrap("developers", developersContent)
     }
 
     override def scm(): Seq[String] = {
       val scmContent =
-        wrap("connection", s"git@github.com:$githubName/${name.mkString("-")}.git") ++
-          wrap("developerConnection", s"git@github.com:$githubName/${name.mkString("-")}.git") ++
-          wrap("url", s"https://github.com/$githubName/${name.mkString("-")}")
+        wrap("connection", s"git@github.com:${developer.githubName}/${name.mkString("-")}.git") ++
+          wrap("developerConnection", s"git@github.com:${developer.githubName}/${name.mkString("-")}.git") ++
+          wrap("url", s"https://github.com/${developer.githubName}/${name.mkString("-")}")
       wrap("scm", scmContent)
     }
 
@@ -743,10 +730,7 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
                                 versionString: String,
                                 dependencyMap: Map[String, Specification.Dependency],
                                 moduleMap: Map[String, Seq[String]],
-                                githubName: String,
-                                developerName: String,
-                                developerOrganization: String,
-                                developerUrl: String,
+                                developer: Developer,
                                 moduleName: String,
                                 detangler: Seq[String],
                                 entryPoint: Map[String, String],
@@ -759,10 +743,7 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
     versionString,
     dependencyMap,
     moduleMap,
-    githubName,
-    developerName,
-    developerOrganization,
-    developerUrl,
+    developer,
     maybeJavaVersion,
     deployableToMavenCentral) {
     override def generateArtifact(): Seq[String] = moduleArtifact(moduleName)

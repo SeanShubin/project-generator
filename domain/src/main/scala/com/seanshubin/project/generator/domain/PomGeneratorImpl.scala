@@ -9,6 +9,7 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
       project.name,
       project.description,
       project.version,
+      project.language,
       project.dependencies,
       project.global,
       project.modules,
@@ -25,6 +26,7 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
       project.name,
       project.description,
       project.version,
+      project.language,
       project.dependencies,
       project.modules,
       project.developer,
@@ -42,6 +44,7 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
                               name: Seq[String],
                               description: String,
                               versionString: String,
+                              language: String,
                               dependencyMap: Map[String, Specification.Dependency],
                               moduleMap: Map[String, Seq[String]],
                               developer: Developer,
@@ -74,7 +77,6 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
           pluginRepositories() ++
           distributionManagement() ++
           profiles()
-
       } else Seq()
       model() ++
         generateGroup() ++
@@ -251,13 +253,6 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
 
     def parentBuild(): Seq[String] = {
       val buildContents =
-        plugins() ++
-          pluginManagement()
-      wrap("build", buildContents)
-    }
-
-    def childBuild(): Seq[String] = {
-      val buildContents =
         sourceDir() ++
           testDir() ++
           plugins() ++
@@ -265,27 +260,47 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
       wrap("build", buildContents)
     }
 
+    def childBuild(): Seq[String] = {
+      val buildContents =
+        plugins() ++
+          pluginManagement()
+      wrapUnlessEmpty("build", buildContents)
+    }
+
     def sourceDir(): Seq[String] = {
-      wrap("sourceDirectory", "src/main/scala")
+      wrap("sourceDirectory", "${project.basedir}/src/main/" + language)
     }
 
     def testDir(): Seq[String] = {
-      wrap("testSourceDirectory", "src/test/scala")
+      wrap("testSourceDirectory", "${project.basedir}/src/test/" + language)
     }
 
     def plugins(): Seq[String]
 
     def childPlugins(): Seq[String] = {
-      val pluginContents = scalaTestMavenPlugin() ++ detanglerPlugin() ++ executableJarPlugin() ++ maybeMavenPluginPlugin()
-      wrap("plugins", pluginContents)
+      val mavenTestPlugin =
+        if (language == "scala") scalaTestMavenPlugin()
+        else if (language == "kotlin") Seq()
+        else throw new RuntimeException(s"Unsupported language $language")
+
+      val pluginContents = mavenTestPlugin ++ detanglerPlugin() ++ executableJarPlugin() ++ maybeMavenPluginPlugin()
+      wrapUnlessEmpty("plugins", pluginContents)
     }
 
     def parentPlugins(): Seq[String] = {
+      val languagePlugin =
+        if (language == "scala") scalaMavenPlugin()
+        else if (language == "kotlin") kotlinMavenPlugin()
+        else throw new RuntimeException(s"Unsupported language $language")
+      val surefirePlugin =
+        if (language == "scala") disableSurefirePlugin()
+        else if (language == "kotlin") Seq()
+        else throw new RuntimeException(s"Unsupported language $language")
       val pluginContents =
         maybeJavaVersionPlugin() ++
-          scalaMavenPlugin() ++
+          languagePlugin ++
           mavenSourcePlugin() ++
-          disableSurefirePlugin()
+          surefirePlugin
       wrap("plugins", pluginContents)
     }
 
@@ -314,9 +329,12 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
     def pluginManagement(): Seq[String] = Seq()
 
     def fullPluginManagement(): Seq[String] = {
-      val pluginManagementContents = wrap("plugins",
-        Seq(indent("<!-- enable scalatest -->")) ++ scalaTestMavenPlugin())
-      wrap("pluginManagement", pluginManagementContents)
+      val testPlugin =
+        if (language == "scala") Seq(indent("<!-- enable scalatest -->")) ++ scalaTestMavenPlugin()
+        else if (language == "kotlin") Seq()
+        else throw new RuntimeException(s"Unsupported language $language")
+      val pluginManagementContents = wrapUnlessEmpty("plugins", testPlugin)
+      wrapUnlessEmpty("pluginManagement", pluginManagementContents)
     }
 
     def scalaTestMavenPluginInner(): Seq[String]
@@ -367,11 +385,47 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
         wrap("configuration", scalaMavenPluginConfiguration())
     }
 
+    def kotlinMavenPlugin(): Seq[String] = {
+      wrap("plugin", kotlinMavenPluginInner())
+    }
+
+    def kotlinMavenPluginInner(): Seq[String] = {
+      val group = "org.jetbrains.kotlin"
+      val artifact = "kotlin-maven-plugin"
+      val version = repository.latestVersion(group, artifact)
+      wrap("groupId", group) ++
+        wrap("artifactId", artifact) ++
+        wrap("version", version) ++
+        wrap("executions", kotlinMavenPluginExecutions())
+    }
+
     def scalaMavenPluginExecutions(): Seq[String] = {
       val goalsContent =
         wrap("goal", "compile") ++
           wrap("goal", "testCompile")
       val executionContent = wrap("goals", goalsContent)
+      wrap("execution", executionContent)
+    }
+
+    def kotlinMavenPluginExecutions(): Seq[String] = {
+      kotlinPluginCompileExecution() ++ kotlinPluginTestExecution()
+    }
+
+    def kotlinPluginCompileExecution(): Seq[String] = {
+      val goalsContent =
+        wrap("goal", "compile")
+      val executionContent =
+        wrap("id", "compile") ++
+          wrap("goals", goalsContent)
+      wrap("execution", executionContent)
+    }
+
+    def kotlinPluginTestExecution(): Seq[String] = {
+      val goalsContent =
+        wrap("goal", "test-compile")
+      val executionContent =
+        wrap("id", "test-compile") ++
+          wrap("goals", goalsContent)
       wrap("execution", executionContent)
     }
 
@@ -616,6 +670,15 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
         Seq(indent(s"</$elementName>"))
     }
 
+    def wrapUnlessEmpty(elementName: String, contents: Seq[String]): Seq[String] = {
+      if (contents.isEmpty)
+        Seq()
+      else
+        Seq(indent(s"<$elementName>")) ++
+          contents.map(indent(_: String)) ++
+          Seq(indent(s"</$elementName>"))
+    }
+
     def wrap(elementNames: Seq[String], contents: Seq[String]): Seq[String] = {
       (elementNames, contents) match {
         case (Seq(), _) => contents
@@ -638,16 +701,18 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
                            name: Seq[String],
                            description: String,
                            versionString: String,
+                           languageDirName: String,
                            dependencyMap: Map[String, Specification.Dependency],
                            global: Seq[String],
                            moduleMap: Map[String, Seq[String]],
                            developer: Developer,
                            maybeJavaVersion: Option[String],
-                           deployableToMavenCentral:Boolean) extends PomGenerator(
+                           deployableToMavenCentral: Boolean) extends PomGenerator(
     prefix,
     name,
     description,
     versionString,
+    languageDirName,
     dependencyMap,
     moduleMap,
     developer,
@@ -728,6 +793,7 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
                                 name: Seq[String],
                                 description: String,
                                 versionString: String,
+                                languageDirName: String,
                                 dependencyMap: Map[String, Specification.Dependency],
                                 moduleMap: Map[String, Seq[String]],
                                 developer: Developer,
@@ -736,11 +802,12 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
                                 entryPoint: Map[String, String],
                                 mavenPlugin: Seq[String],
                                 maybeJavaVersion: Option[String],
-                                deployableToMavenCentral:Boolean) extends PomGenerator(
+                                deployableToMavenCentral: Boolean) extends PomGenerator(
     prefix,
     name,
     description,
     versionString,
+    languageDirName,
     dependencyMap,
     moduleMap,
     developer,

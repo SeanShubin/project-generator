@@ -266,7 +266,7 @@ object Command {
            |public class JavaDocStub {
             |}
             |""".stripMargin
-      val relativePathParts = Seq(moduleName, "src", "main", "scala") ++ project.prefix ++ project.name ++ moduleName.split("-") ++ Seq("javadoc", "JavaDocStub.java")
+      val relativePathParts = Seq(moduleName, "src", "main", project.language) ++ project.prefix ++ project.name ++ moduleName.split("-") ++ Seq("javadoc", "JavaDocStub.java")
       val relativePath = Paths.get(relativePathParts.head, relativePathParts.tail: _*)
       val path = commandEnvironment.baseDirectory.resolve(relativePath)
       writeText(commandEnvironment, path, text, overwrite = true)

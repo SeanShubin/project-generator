@@ -17,8 +17,6 @@
         <version>0.1-SNAPSHOT</version>
     </parent>
     <build>
-        <sourceDirectory>src/main/scala</sourceDirectory>
-        <testSourceDirectory>src/test/scala</testSourceDirectory>
         <plugins>
             <plugin>
                 <groupId>org.scalatest</groupId>
@@ -27,7 +25,7 @@
             <plugin>
                 <groupId>com.seanshubin.detangler</groupId>
                 <artifactId>detangler-maven-plugin</artifactId>
-                <version>0.9.2</version>
+                <version>0.9.4</version>
                 <executions>
                     <execution>
                         <phase>verify</phase>
@@ -42,7 +40,7 @@
             </plugin>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <version>3.1.0</version>
+                <version>3.1.1</version>
                 <configuration>
                     <finalName>project-generator</finalName>
                     <appendAssemblyId>false</appendAssemblyId>

@@ -10,8 +10,6 @@
         <version>0.1-SNAPSHOT</version>
     </parent>
     <build>
-        <sourceDirectory>src/main/scala</sourceDirectory>
-        <testSourceDirectory>src/test/scala</testSourceDirectory>
         <plugins>
             <plugin>
                 <groupId>org.scalatest</groupId>

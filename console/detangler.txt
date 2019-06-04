@@ -29,5 +29,8 @@
   }
   ignoreFiles []
   canFailBuild true
+  ignoreJavadoc true
+  logTiming true
+  logEffectiveConfiguration true
   allowedInCycle console/detangler-allowed-in-cycle.txt
 }

@@ -3,6 +3,7 @@
   name [project generator]
   description 'Generate project structure from a minimal specification'
   version 0.1-SNAPSHOT
+  language 'scala'
   developer {
     name 'Sean Shubin'
     githubName SeanShubin
@@ -27,6 +28,10 @@
     google-http-client {
       group com.google.http-client
       artifact google-http-client
+    }
+    guava {
+      group com.google.guava
+      artifact guava
     }
     jsoup {
       group org.jsoup

@@ -393,10 +393,12 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
       val group = "org.jetbrains.kotlin"
       val artifact = "kotlin-maven-plugin"
       val version = repository.latestVersion(group, artifact)
+      val kotlinMavenConfiguration = wrap("jvmTarget", "1.8")
       wrap("groupId", group) ++
         wrap("artifactId", artifact) ++
         wrap("version", version) ++
-        wrap("executions", kotlinMavenPluginExecutions())
+        wrap("executions", kotlinMavenPluginExecutions()) ++
+        wrap("configuration", kotlinMavenConfiguration)
     }
 
     def scalaMavenPluginExecutions(): Seq[String] = {

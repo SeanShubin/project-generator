@@ -235,19 +235,20 @@ object Command {
 
   case class CreateJavadocOverview(project: Specification.Project, moduleName: String) extends Command {
     override def execute(commandEnvironment: CommandEnvironment): Result = {
+      val language = project.language
       val text =
-        """<!DOCTYPE html>
-          |<html lang="en">
-          |<head>
-          |    <meta charset="UTF-8">
-          |    <title>Javadoc Placeholder</title>
-          |</head>
-          |<body>
-          |<h1>Javadoc is not applicable to a Scala project</h1>
-          |<p>This placeholder documentation is only here to meet the requirements of maven central</p>
-          |</body>
-          |</html>
-          |""".stripMargin
+        s"""<!DOCTYPE html>
+           |<html lang="en">
+           |<head>
+           |    <meta charset="UTF-8">
+           |    <title>Javadoc Placeholder</title>
+           |</head>
+           |<body>
+           |<h1>Javadoc is not applicable to a $language project</h1>
+           |<p>This placeholder documentation is only here to meet the requirements of maven central</p>
+           |</body>
+           |</html>
+           |""".stripMargin
       val pathParts = Seq(moduleName, "src", "main", "javadoc", "overview.html")
       val relativePath = Paths.get(pathParts.head, pathParts.tail: _*)
       val path = commandEnvironment.baseDirectory.resolve(relativePath)

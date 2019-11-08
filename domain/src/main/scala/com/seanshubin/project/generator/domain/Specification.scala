@@ -3,7 +3,6 @@ package com.seanshubin.project.generator.domain
 import scala.collection.immutable.ListMap
 
 object Specification {
-
   case class Project(prefix: Seq[String], // words of the reverse domain name, host only, do not include the path
                      name: Seq[String], // words distinguishing this project, does not include prefix.  The group id will be prefix + name
                      description: String, // description of the project, required in order to push to maven central
@@ -23,11 +22,33 @@ object Specification {
     def baseDirectoryName: String = name.mkString("-")
 
     def nullSafe: Project = copy(
+      prefix = Option(prefix).getOrElse(Seq()),
+      name = Option(name).getOrElse(Seq()),
+      description = Option(description).getOrElse(""),
       global = Option(global).getOrElse(Seq()),
       detangler = Option(detangler).getOrElse(Seq()),
       consoleEntryPoint = Option(consoleEntryPoint).getOrElse(Map()),
       mavenPlugin = Option(mavenPlugin).getOrElse(Seq())
     )
+  }
+
+  object Project {
+    val Empty: Project = Project(
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null).nullSafe
   }
 
   case class Dependency(group: String,                   // maven group id

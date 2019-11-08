@@ -393,7 +393,8 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
       val group = "org.jetbrains.kotlin"
       val artifact = "kotlin-maven-plugin"
       val version = repository.latestVersion(group, artifact)
-      val kotlinMavenConfiguration = wrap("jvmTarget", "1.8")
+      val javaVersion = maybeJavaVersion.getOrElse("1.8")
+      val kotlinMavenConfiguration = wrap("jvmTarget", javaVersion)
       wrap("groupId", group) ++
         wrap("artifactId", artifact) ++
         wrap("version", version) ++
@@ -597,7 +598,8 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
     }
 
     def executableJarPlugin(finalName: String, mainClass: String): Seq[String] = {
-      val manifest = wrap("mainClass", mainClass)
+      val executableClass = if (this.language == "kotlin") mainClass + "Kt" else mainClass
+      val manifest = wrap("mainClass", executableClass)
       val descriptorRefs = wrap("descriptorRef", "jar-with-dependencies")
       val archive = wrap("manifest", manifest)
       val configuration =

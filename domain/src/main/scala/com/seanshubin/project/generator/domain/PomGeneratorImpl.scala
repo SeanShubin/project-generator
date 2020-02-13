@@ -281,6 +281,7 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
       val mavenTestPlugin =
         if (language == "scala") scalaTestMavenPlugin()
         else if (language == "kotlin") Seq()
+        else if (language == "java") Seq()
         else throw new RuntimeException(s"Unsupported language $language")
 
       val pluginContents = mavenTestPlugin ++ detanglerPlugin() ++ executableJarPlugin() ++ maybeMavenPluginPlugin()
@@ -291,10 +292,12 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
       val languagePlugin =
         if (language == "scala") scalaMavenPlugin()
         else if (language == "kotlin") kotlinMavenPlugin()
+        else if(language == "java") Seq()
         else throw new RuntimeException(s"Unsupported language $language")
       val surefirePlugin =
         if (language == "scala") disableSurefirePlugin()
         else if (language == "kotlin") Seq()
+        else if (language == "java") Seq()
         else throw new RuntimeException(s"Unsupported language $language")
       val pluginContents =
         maybeJavaVersionPlugin() ++
@@ -332,6 +335,7 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
       val testPlugin =
         if (language == "scala") Seq(indent("<!-- enable scalatest -->")) ++ scalaTestMavenPlugin()
         else if (language == "kotlin") Seq()
+        else if (language == "java") Seq()
         else throw new RuntimeException(s"Unsupported language $language")
       val pluginManagementContents = wrapUnlessEmpty("plugins", testPlugin)
       wrapUnlessEmpty("pluginManagement", pluginManagementContents)

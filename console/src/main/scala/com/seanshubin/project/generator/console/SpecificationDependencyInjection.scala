@@ -3,7 +3,7 @@ package com.seanshubin.project.generator.console
 import java.nio.file.Path
 
 import com.seanshubin.project.generator.domain._
-import com.seanshubin.project.generator.http.{GoogleHttpClient, HttpClient}
+import com.seanshubin.project.generator.http.{GoogleHttpClient, HttpClient, JavaHttpClient}
 
 trait SpecificationDependencyInjection {
   def specification: Specification.Project
@@ -14,7 +14,7 @@ trait SpecificationDependencyInjection {
   val files: FilesContract = FilesDelegate
   val classLoader: ClassLoaderContract = new ClassLoaderDelegate(this.getClass.getClassLoader)
   val newline: String = "\n"
-  val httpClient: HttpClient = new GoogleHttpClient()
+  val httpClient: HttpClient = new JavaHttpClient()
   val repository: Repository = new MavenRepository(httpClient)
   val pomGenerator: PomGenerator = new PomGeneratorImpl(newline, repository)
   val commandEnvironment: CommandEnvironment = new CommandEnvironment(destinationDirectory, pomGenerator, files, classLoader)

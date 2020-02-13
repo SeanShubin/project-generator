@@ -8,7 +8,7 @@ class MavenRepository(httpClient: HttpClient) extends Repository {
 
   override def latestVersion(group: String, artifact: String): String = {
     val groupPath = group.replace(".", "/")
-    val uri = s"http://repo1.maven.org/maven2/$groupPath/$artifact/maven-metadata.xml"
+    val uri = s"https://repo1.maven.org/maven2/$groupPath/$artifact/maven-metadata.xml"
     val xmlInputStream = httpClient.getInputStream(uri)
     val node = Node.fromInputStream(xmlInputStream)
     val versions = node.stringSeqAt("versioning", "versions", "version")

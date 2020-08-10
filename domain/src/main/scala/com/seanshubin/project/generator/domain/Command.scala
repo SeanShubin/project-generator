@@ -93,13 +93,15 @@ object Command {
           |**/*.ipr
           |**/*.iws
           |**/target
-          |generated
-          |local-config
+          |/generated
+          |/local-config
+          |/secrets
           |*~
           |*#
           |.#*
           |.DS_Store
           |dependency-reduced-pom.xml
+          |/cdk.out
           |""".stripMargin
       val path = commandEnvironment.baseDirectory.resolve(".gitignore")
       writeText(commandEnvironment, path, text, overwrite = true)

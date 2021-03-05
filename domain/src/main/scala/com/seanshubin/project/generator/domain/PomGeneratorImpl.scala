@@ -602,8 +602,7 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
     }
 
     def executableJarPlugin(finalName: String, mainClass: String): Seq[String] = {
-      val executableClass = if (this.language == "kotlin") mainClass + "Kt" else mainClass
-      val manifest = wrap("mainClass", executableClass)
+      val manifest = wrap("mainClass", mainClass)
       val descriptorRefs = wrap("descriptorRef", "jar-with-dependencies")
       val archive = wrap("manifest", manifest)
       val configuration =
@@ -840,7 +839,9 @@ class PomGeneratorImpl(newline: String, repository: Repository) extends PomGener
 
     override def executableJarPlugin(): Seq[String] = {
       entryPoint.get(moduleName) match {
-        case Some(className) => executableJarPlugin(name.mkString("-"), className)
+        case Some(className) =>
+          val finalName = (name :+ moduleName).mkString("-")
+          executableJarPlugin(finalName, className)
         case None => Seq()
       }
     }

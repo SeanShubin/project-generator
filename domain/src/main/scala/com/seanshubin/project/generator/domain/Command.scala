@@ -1,11 +1,10 @@
 package com.seanshubin.project.generator.domain
 
-import java.nio.file.{Path, Paths}
-
 import com.seanshubin.project.generator.domain.DetanglerConfig.StartsWithConfiguration
 import com.seanshubin.project.generator.domain.GlobalConstants.{charset, devonMarshaller}
 import com.seanshubin.project.generator.domain.Result.Success
 
+import java.nio.file.{Path, Paths}
 import scala.collection.JavaConverters._
 
 sealed trait Command {
@@ -87,12 +86,12 @@ object Command {
   case object CreateGitIgnore extends Command {
     override def execute(commandEnvironment: CommandEnvironment): Result = {
       val text =
-        """**/.idea
-          |**/out
+        """/.idea/
           |**/*.iml
           |**/*.ipr
           |**/*.iws
-          |**/target
+          |**/out/
+          |**/target/
           |generated
           |local-config
           |*~
@@ -100,6 +99,7 @@ object Command {
           |.#*
           |.DS_Store
           |dependency-reduced-pom.xml
+          |/cdk.out/
           |""".stripMargin
       val path = commandEnvironment.baseDirectory.resolve(".gitignore")
       writeText(commandEnvironment, path, text, overwrite = true)
@@ -149,7 +149,7 @@ object Command {
       }
 
       def createEntryPointSearchPath(): Seq[Path] = {
-        val artifactName = project.name.mkString("-") + ".jar"
+        val artifactName = (project.name :+ moduleName).mkString("-") + ".jar"
         val path = Paths.get(".", moduleName, "target", artifactName)
         Seq(path)
       }

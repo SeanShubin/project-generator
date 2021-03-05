@@ -86,12 +86,12 @@ object Command {
   case object CreateGitIgnore extends Command {
     override def execute(commandEnvironment: CommandEnvironment): Result = {
       val text =
-        """/.idea/
+        """**/.idea
+          |**/out
           |**/*.iml
           |**/*.ipr
           |**/*.iws
-          |**/out/
-          |**/target/
+          |**/target
           |generated
           |local-config
           |*~
@@ -99,7 +99,6 @@ object Command {
           |.#*
           |.DS_Store
           |dependency-reduced-pom.xml
-          |/cdk.out/
           |""".stripMargin
       val path = commandEnvironment.baseDirectory.resolve(".gitignore")
       writeText(commandEnvironment, path, text, overwrite = true)
@@ -149,7 +148,7 @@ object Command {
       }
 
       def createEntryPointSearchPath(): Seq[Path] = {
-        val artifactName = (project.name :+ moduleName).mkString("-") + ".jar"
+        val artifactName = project.name.mkString("-") + ".jar"
         val path = Paths.get(".", moduleName, "target", artifactName)
         Seq(path)
       }

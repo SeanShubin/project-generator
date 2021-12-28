@@ -93,6 +93,7 @@ object Command {
           |**/*.iws
           |**/target
           |generated
+          |secrets
           |local-config
           |*~
           |*#

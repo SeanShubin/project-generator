@@ -148,9 +148,10 @@ object Command {
         Seq(path)
       }
 
-      def createEntryPointSearchPath(): Seq[Path] = {
-        val artifactName = project.name.mkString("-") + ".jar"
-        val path = Paths.get(".", moduleName, "target", artifactName)
+      def createEntryPointSearchPath(moduleName: String): Seq[Path] = {
+        val artifactNameParts = project.name ++ moduleName.split("-")
+        val artifactName = artifactNameParts.mkString("-")
+        val path = Paths.get(".", moduleName, "target", artifactName + ".jar")
         Seq(path)
       }
 
@@ -166,7 +167,7 @@ object Command {
         val reportDir = Paths.get(moduleName, "target", "detangled")
         val searchPaths =
           if (project.consoleEntryPoint.contains(moduleName)) {
-            createEntryPointSearchPath()
+            createEntryPointSearchPath(moduleName)
           } else if (project.primary.contains(moduleName)) {
             createPrimarySearchPath()
           } else {

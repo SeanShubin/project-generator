@@ -92,6 +92,7 @@ object Command {
           |**/*.ipr
           |**/*.iws
           |**/target
+          |cdk.out
           |generated
           |secrets
           |local-config

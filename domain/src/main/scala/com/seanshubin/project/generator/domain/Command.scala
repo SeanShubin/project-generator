@@ -94,6 +94,7 @@ object Command {
           |**/target
           |cdk.out
           |generated
+          |downloaded
           |secrets
           |local-config
           |*~

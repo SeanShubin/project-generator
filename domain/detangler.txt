@@ -1,0 +1,36 @@
+{
+  reportDir domain/target/detangled
+  searchPaths
+  [
+    ./domain/target/project-generator-domain-0.1.0.jar
+  ]
+  level 2
+  startsWith
+  {
+    include
+    [
+      [
+        com
+        seanshubin
+        project
+        generator
+      ]
+    ]
+    exclude []
+    drop
+    [
+      [
+        com
+        seanshubin
+        project
+        generator
+      ]
+    ]
+  }
+  ignoreFiles []
+  canFailBuild true
+  ignoreJavadoc true
+  logTiming true
+  logEffectiveConfiguration true
+  allowedInCycle domain/detangler-allowed-in-cycle.txt
+}

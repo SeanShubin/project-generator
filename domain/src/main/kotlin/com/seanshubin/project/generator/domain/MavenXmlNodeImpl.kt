@@ -178,31 +178,31 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
     private fun dependencyManagement(project: Project): XmlNode {
         val dependencyNodeChildren = project.dependencies.map { (dependencyName, dependency) ->
             val latestDependency = lookup(dependency.group, dependency.artifact)
-            latestDependency.toDependencyNode()
+            latestDependency.toDependencyNode(includeVersion = true)
         }
         val dependencyNode = element("dependencies", dependencyNodeChildren)
         val dependencyManagementNode = element("dependencyManagement", listOf(dependencyNode))
         return dependencyManagementNode
     }
 
-    private fun externalDependency(project: Project, dependencyName: String): XmlNode {
+    private fun externalDependency(project: Project, dependencyName: String, includeVersion: Boolean): XmlNode {
         val dependency = project.dependencies[dependencyName]
             ?: throw RuntimeException("Unable to find dependency named '$dependencyName'")
         val latestDependency = lookup(dependency.group, dependency.artifact)
-        val dependencyNode = latestDependency.toDependencyNode()
+        val dependencyNode = latestDependency.toDependencyNode(includeVersion)
         return dependencyNode
     }
 
     private fun internalDependency(project: Project, dependencyName: String): XmlNode {
         val dependency =
             GroupArtifactVersion(groupId(project), artifactId(project, dependencyName), "\${project.version}")
-        val dependencyNode = dependency.toDependencyNode()
+        val dependencyNode = dependency.toDependencyNode(includeVersion = true)
         return dependencyNode
     }
 
     private fun globalDependencies(project: Project): XmlNode {
         val dependencyNodes = project.global.map { dependencyName ->
-            externalDependency(project, dependencyName)
+            externalDependency(project, dependencyName, includeVersion = false)
         }
         return element("dependencies", dependencyNodes)
     }
@@ -226,7 +226,7 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
             val dependencyType = getDependencyType(project, dependencyName)
             when (dependencyType) {
                 DependencyType.INTERNAL -> internalDependency(project, dependencyName)
-                DependencyType.EXTERNAL -> externalDependency(project, dependencyName)
+                DependencyType.EXTERNAL -> externalDependency(project, dependencyName, includeVersion = false)
             }
         }
         val moduleDependenciesNode = element("dependencies", moduleDependenciesNodeChildren)
@@ -268,12 +268,13 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         return GroupArtifactVersion(group, artifact, version)
     }
 
-    private fun GroupArtifactVersion.toDependencyNode(): XmlNode {
-        val dependencyChildNodes = listOf(
+    private fun GroupArtifactVersion.toDependencyNode(includeVersion: Boolean): XmlNode {
+        val dependencyChildNodesBeforeVersion = listOf(
             simpleElement("groupId", this.group),
-            simpleElement("artifactId", this.artifact),
-            simpleElement("version", this.version)
+            simpleElement("artifactId", this.artifact)
         )
+        val maybeVersion = if (includeVersion) listOf(simpleElement("version", this.version)) else emptyList()
+        val dependencyChildNodes = dependencyChildNodesBeforeVersion + maybeVersion
         return XmlNode.Element("dependency", emptyList(), dependencyChildNodes)
     }
 

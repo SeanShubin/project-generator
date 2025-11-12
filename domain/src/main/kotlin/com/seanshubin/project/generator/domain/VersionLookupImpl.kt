@@ -15,7 +15,7 @@ class VersionLookupImpl(
         val saxParser = saxParserFactory.newSAXParser()
         saxParser.parse(xmlText.byteInputStream(), handler)
         val releaseVersion = handler.latestReleaseVersion()
-        val dependency = GroupArtifactVersion(group, artifact, releaseVersion)
+        val dependency = GroupArtifactVersion(group, artifact, releaseVersion, scope = null)
         lookupVersionEvent(uri, dependency)
         return releaseVersion
     }

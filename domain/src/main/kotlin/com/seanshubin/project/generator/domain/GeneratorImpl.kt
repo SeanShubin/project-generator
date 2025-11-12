@@ -4,7 +4,8 @@ import java.nio.file.Path
 
 class GeneratorImpl(
     private val xmlRenderer: XmlRenderer,
-    private val baseDirectory: Path
+    private val baseDirectory: Path,
+    private val mavenXmlNode: MavenXmlNode
 ) : Generator {
     override fun generate(project: Project): List<Command> {
         val rootCommand = generateRootCommand(project)
@@ -15,14 +16,14 @@ class GeneratorImpl(
     }
 
     private fun generateRootCommand(project: Project): Command {
-        val xml = MavenXmlNode.generateRootXml(project)
+        val xml = mavenXmlNode.generateRootXml(project)
         val lines = xmlRenderer.toLines(xml)
         val path = baseDirectory.resolve("pom.xml")
         return WriteFile(path, lines)
     }
 
     private fun generateModuleCommand(project: Project, module: String, dependencies: List<String>): Command {
-        val xml = MavenXmlNode.generateModuleXml(project, module, dependencies)
+        val xml = mavenXmlNode.generateModuleXml(project, module, dependencies)
         val lines = xmlRenderer.toLines(xml)
         val path = baseDirectory.resolve(module).resolve("pom.xml")
         return WriteFile(path, lines)

@@ -14,7 +14,8 @@ class ProjectDependencies(
     private val xmlRenderer: XmlRenderer = XmlRendererImpl(indent)
     private val httpClient: HttpClient = HttpClient.newHttpClient()
     private val http: Http = HttpImpl(httpClient)
-    private val versionLookup: VersionLookup = VersionLookupImpl(http)
+    private val notifications: Notifications = LineEmittingNotifications(System.out::println)
+    private val versionLookup: VersionLookup = VersionLookupImpl(http,notifications::lookupVersionEvent)
     private val mavenXmlNode: MavenXmlNode = MavenXmlNodeImpl(versionLookup)
     private val generator: Generator = GeneratorImpl(xmlRenderer, baseDirectory, mavenXmlNode)
     private val files: FilesContract = FilesDelegate

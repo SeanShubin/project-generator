@@ -1,6 +1,6 @@
 package com.seanshubin.project.generator.domain
 
-class MavenXmlNodeImpl(private val versionLookup:VersionLookup):MavenXmlNode {
+class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode {
     override fun generateRootXml(project: Project): XmlNode {
         return projectNode(rootChildren(project))
     }
@@ -14,10 +14,10 @@ class MavenXmlNodeImpl(private val versionLookup:VersionLookup):MavenXmlNode {
         EXTERNAL
     }
 
-    private fun getDependencyType(project: Project, dependencyName:String):DependencyType{
-        return if(project.dependencies.containsKey(dependencyName)){
+    private fun getDependencyType(project: Project, dependencyName: String): DependencyType {
+        return if (project.dependencies.containsKey(dependencyName)) {
             DependencyType.EXTERNAL
-        }else if(project.modules.containsKey(dependencyName)){
+        } else if (project.modules.containsKey(dependencyName)) {
             DependencyType.INTERNAL
         } else {
             throw RuntimeException("Dependency not found '$dependencyName'")
@@ -45,7 +45,7 @@ class MavenXmlNodeImpl(private val versionLookup:VersionLookup):MavenXmlNode {
         )
     }
 
-    private fun build(language:String, javaVersion:String):XmlNode {
+    private fun build(language: String, javaVersion: String): XmlNode {
         val buildNodeChildren = listOf(
             sourceDirectory(language),
             testSourceDirectory(language),
@@ -55,17 +55,17 @@ class MavenXmlNodeImpl(private val versionLookup:VersionLookup):MavenXmlNode {
         return buildNode
     }
 
-    private fun sourceDirectory(language:String):XmlNode {
+    private fun sourceDirectory(language: String): XmlNode {
         val sourceDirectory = simpleElement("sourceDirectory", "\${project.basedir}/src/main/$language")
         return sourceDirectory
     }
 
-    private fun testSourceDirectory(language:String):XmlNode {
+    private fun testSourceDirectory(language: String): XmlNode {
         val testSourceDirectory = simpleElement("testSourceDirectory", "\${project.basedir}/src/test/$language")
         return testSourceDirectory
     }
 
-    private fun plugins(language:String, javaVersion:String):XmlNode {
+    private fun plugins(language: String, javaVersion: String): XmlNode {
         val pluginsNodeChildren = listOf(
             compilerPlugin(javaVersion),
             sourcePlugin(),
@@ -76,12 +76,13 @@ class MavenXmlNodeImpl(private val versionLookup:VersionLookup):MavenXmlNode {
         return pluginsNode
     }
 
-    private fun languagePlugin(language:String, javaVersion:String):XmlNode {
-        val languagePluginFunction = languagePluginFunctionMap[language] ?: throw RuntimeException("Unsupported language '$language'")
+    private fun languagePlugin(language: String, javaVersion: String): XmlNode {
+        val languagePluginFunction =
+            languagePluginFunctionMap[language] ?: throw RuntimeException("Unsupported language '$language'")
         return languagePluginFunction(javaVersion)
     }
 
-    private fun languagePluginKotlin(javaVersion:String):XmlNode {
+    private fun languagePluginKotlin(javaVersion: String): XmlNode {
         val compileGoalsChildren = listOf(
             simpleElement("goal", "compile")
         )
@@ -119,7 +120,7 @@ class MavenXmlNodeImpl(private val versionLookup:VersionLookup):MavenXmlNode {
         return kotlinPluginNode
     }
 
-    private fun sourcePlugin():XmlNode {
+    private fun sourcePlugin(): XmlNode {
         val attachSourcesGoalsChildren = listOf(
             simpleElement("goal", "jar-no-fork"),
             simpleElement("goal", "test-jar-no-fork")
@@ -144,7 +145,7 @@ class MavenXmlNodeImpl(private val versionLookup:VersionLookup):MavenXmlNode {
         return sourcePluginNode
     }
 
-    private fun compilerPlugin(javaVersion:String):XmlNode {
+    private fun compilerPlugin(javaVersion: String): XmlNode {
         val configurationNodeChildren = listOf(
             simpleElement("source", javaVersion),
             simpleElement("target", javaVersion)
@@ -161,10 +162,10 @@ class MavenXmlNodeImpl(private val versionLookup:VersionLookup):MavenXmlNode {
         return compilerPluginNode
     }
 
-    private fun properties():XmlNode{
+    private fun properties(): XmlNode {
         val sourceEncoding = simpleElement("project.build.sourceEncoding", "UTF-8")
         val propertiesNodeChildren = listOf(sourceEncoding)
-        val propertiesNode =  element("properties", propertiesNodeChildren)
+        val propertiesNode = element("properties", propertiesNodeChildren)
         return propertiesNode
     }
 
@@ -174,7 +175,7 @@ class MavenXmlNodeImpl(private val versionLookup:VersionLookup):MavenXmlNode {
         return modulesNode
     }
 
-    private fun dependencyManagement(project:Project):XmlNode {
+    private fun dependencyManagement(project: Project): XmlNode {
         val dependencyNodeChildren = project.dependencies.map { (dependencyName, dependency) ->
             val latestDependency = lookup(dependency.group, dependency.artifact)
             latestDependency.toDependencyNode()
@@ -184,20 +185,22 @@ class MavenXmlNodeImpl(private val versionLookup:VersionLookup):MavenXmlNode {
         return dependencyManagementNode
     }
 
-    private fun externalDependency(project:Project, dependencyName:String):XmlNode{
-        val dependency = project.dependencies[dependencyName] ?: throw RuntimeException("Unable to find dependency named '$dependencyName'")
+    private fun externalDependency(project: Project, dependencyName: String): XmlNode {
+        val dependency = project.dependencies[dependencyName]
+            ?: throw RuntimeException("Unable to find dependency named '$dependencyName'")
         val latestDependency = lookup(dependency.group, dependency.artifact)
         val dependencyNode = latestDependency.toDependencyNode()
         return dependencyNode
     }
 
-    private fun internalDependency(project:Project, dependencyName:String):XmlNode{
-        val dependency = GroupArtifactVersion(groupId(project), artifactId(project, dependencyName), "\${project.version}")
+    private fun internalDependency(project: Project, dependencyName: String): XmlNode {
+        val dependency =
+            GroupArtifactVersion(groupId(project), artifactId(project, dependencyName), "\${project.version}")
         val dependencyNode = dependency.toDependencyNode()
         return dependencyNode
     }
 
-    private fun globalDependencies(project:Project):XmlNode {
+    private fun globalDependencies(project: Project): XmlNode {
         val dependencyNodes = project.global.map { dependencyName ->
             externalDependency(project, dependencyName)
         }
@@ -221,12 +224,12 @@ class MavenXmlNodeImpl(private val versionLookup:VersionLookup):MavenXmlNode {
     private fun moduleDependencies(project: Project, moduleName: String): XmlNode {
         val moduleDependenciesNodeChildren = project.modules.getValue(moduleName).map { dependencyName ->
             val dependencyType = getDependencyType(project, dependencyName)
-            when(dependencyType){
+            when (dependencyType) {
                 DependencyType.INTERNAL -> internalDependency(project, dependencyName)
                 DependencyType.EXTERNAL -> externalDependency(project, dependencyName)
             }
         }
-        val moduleDependenciesNode= element("dependencies", moduleDependenciesNodeChildren)
+        val moduleDependenciesNode = element("dependencies", moduleDependenciesNodeChildren)
         return moduleDependenciesNode
     }
 
@@ -259,12 +262,13 @@ class MavenXmlNodeImpl(private val versionLookup:VersionLookup):MavenXmlNode {
     private val languagePluginFunctionMap = mapOf(
         "kotlin" to ::languagePluginKotlin
     )
-    private fun lookup(group:String, artifact:String):GroupArtifactVersion{
+
+    private fun lookup(group: String, artifact: String): GroupArtifactVersion {
         val version = versionLookup.latestProductionVersion(group, artifact)
         return GroupArtifactVersion(group, artifact, version)
     }
 
-    private fun GroupArtifactVersion.toDependencyNode():XmlNode{
+    private fun GroupArtifactVersion.toDependencyNode(): XmlNode {
         val dependencyChildNodes = listOf(
             simpleElement("groupId", this.group),
             simpleElement("artifactId", this.artifact),
@@ -273,7 +277,7 @@ class MavenXmlNodeImpl(private val versionLookup:VersionLookup):MavenXmlNode {
         return XmlNode.Element("dependency", emptyList(), dependencyChildNodes)
     }
 
-    private fun GroupArtifactVersion.toDependencyChildNodes():List<XmlNode>{
+    private fun GroupArtifactVersion.toDependencyChildNodes(): List<XmlNode> {
         val dependencyChildNodes = listOf(
             simpleElement("groupId", this.group),
             simpleElement("artifactId", this.artifact),

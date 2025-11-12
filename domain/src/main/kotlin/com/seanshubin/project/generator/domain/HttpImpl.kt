@@ -11,11 +11,12 @@ class HttpImpl(private val httpClient: HttpClient) : Http {
         val request = HttpRequest.newBuilder().uri(uri).build()
         val response = httpClient.send(request, HttpResponse.BodyHandlers.ofString())
         val statusCode = response.statusCode()
-        if(!isSuccess(statusCode)){
+        if (!isSuccess(statusCode)) {
             throw RuntimeException("Unexpected status code $statusCode")
         }
         val body = response.body()
         return body
     }
-    private fun isSuccess(statusCode:Int):Boolean = statusCode in 200..299
+
+    private fun isSuccess(statusCode: Int): Boolean = statusCode in 200..299
 }

@@ -1,5 +1,5 @@
 package com.seanshubin.project.generator.domain
 
 interface Command {
-    fun execute(environment:Environment)
+    fun execute(environment: Environment)
 }

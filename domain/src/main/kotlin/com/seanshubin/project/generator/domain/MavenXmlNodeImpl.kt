@@ -35,7 +35,7 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
             project.version,
             scope = null
         )
-        val dependencyNodes = projectDependency.toDependencyChildNodes(includeVersion = true)
+        val dependencyNodes = projectDependency.toDependencyChildNodes(includeVersion = true, includeScope = true)
         return dependencyNodes + listOf(
             simpleElement("packaging", "pom"),
             globalDependencies(project),
@@ -112,7 +112,7 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         )
         val configurationNode = element("configuration", configurationNodeChildren)
         val kotlinMavenPlugin = lookup("org.jetbrains.kotlin", "kotlin-maven-plugin", scope = null)
-        val dependencyNodes = kotlinMavenPlugin.toDependencyChildNodes(includeVersion = true)
+        val dependencyNodes = kotlinMavenPlugin.toDependencyChildNodes(includeVersion = true, includeScope = true)
         val kotlinPluginNodeChildren = dependencyNodes + listOf(
             executionsNode,
             configurationNode
@@ -138,7 +138,7 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         )
         val executionNode = element("executions", executionNodeChildren)
         val mavenSourcePluginDependency = lookup("org.apache.maven.plugins", "maven-source-plugin", scope = null)
-        val mavenSourcePluginDependencyNodes = mavenSourcePluginDependency.toDependencyChildNodes(includeVersion = true)
+        val mavenSourcePluginDependencyNodes = mavenSourcePluginDependency.toDependencyChildNodes(includeVersion = true, includeScope = true)
         val sourcePluginNodeChildren = mavenSourcePluginDependencyNodes + listOf(
             executionNode
         )
@@ -156,7 +156,7 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         val compilerArtifact = "maven-compiler-plugin"
         val mavenCompilerPluginDependency = lookup(compilerGroup, compilerArtifact, scope = null)
         val mavenCompilerPluginDependencyNodes =
-            mavenCompilerPluginDependency.toDependencyChildNodes(includeVersion = true)
+            mavenCompilerPluginDependency.toDependencyChildNodes(includeVersion = true, includeScope = true)
         val compilerPluginChildren = mavenCompilerPluginDependencyNodes + listOf(
             configurationNode
         )
@@ -180,7 +180,7 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
     private fun dependencyManagement(project: Project): XmlNode {
         val dependencyNodeChildren = project.dependencies.map { (dependencyName, dependency) ->
             val latestDependency = lookup(dependency.group, dependency.artifact, dependency.scope)
-            latestDependency.toDependencyNode(includeVersion = true)
+            latestDependency.toDependencyNode(includeVersion = true, includeScope = true)
         }
         val dependencyNode = element("dependencies", dependencyNodeChildren)
         val dependencyManagementNode = element("dependencyManagement", listOf(dependencyNode))
@@ -191,7 +191,7 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         val dependency = project.dependencies[dependencyName]
             ?: throw RuntimeException("Unable to find dependency named '$dependencyName'")
         val latestDependency = lookup(dependency.group, dependency.artifact, dependency.scope)
-        val dependencyNode = latestDependency.toDependencyNode(includeVersion)
+        val dependencyNode = latestDependency.toDependencyNode(includeVersion, includeScope = false)
         return dependencyNode
     }
 
@@ -203,7 +203,7 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
                 "\${project.version}",
                 scope = null
             )
-        val dependencyNode = dependency.toDependencyNode(includeVersion = true)
+        val dependencyNode = dependency.toDependencyNode(includeVersion = true, includeScope = false)
         return dependencyNode
     }
 
@@ -217,7 +217,7 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
     private fun moduleChildren(project: Project, moduleName: String): List<XmlNode> {
         val parentDependency =
             GroupArtifactVersion(groupId(project), artifactId(project, "parent"), project.version, scope = null)
-        val parentNodeChildren = parentDependency.toDependencyChildNodes(includeVersion = true)
+        val parentNodeChildren = parentDependency.toDependencyChildNodes(includeVersion = true, includeScope = false)
         val parentNode = element("parent", parentNodeChildren)
         val nameNode = simpleElement("name", "\${project.groupId}:\${project.artifactId}")
         return listOf(
@@ -276,18 +276,18 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         return GroupArtifactVersion(group, artifact, version, scope)
     }
 
-    private fun GroupArtifactVersion.toDependencyNode(includeVersion: Boolean): XmlNode {
-        val dependencyChildNodes = toDependencyChildNodes(includeVersion)
+    private fun GroupArtifactVersion.toDependencyNode(includeVersion: Boolean, includeScope:Boolean): XmlNode {
+        val dependencyChildNodes = toDependencyChildNodes(includeVersion, includeScope)
         return XmlNode.Element("dependency", emptyList(), dependencyChildNodes)
     }
 
-    private fun GroupArtifactVersion.toDependencyChildNodes(includeVersion: Boolean): List<XmlNode> {
+    private fun GroupArtifactVersion.toDependencyChildNodes(includeVersion: Boolean, includeScope:Boolean): List<XmlNode> {
         val dependencyChildNodesWithoutScope = listOf(
             simpleElement("groupId", this.group),
             simpleElement("artifactId", this.artifact)
         )
         val versionNodes = if (includeVersion) listOf(simpleElement("version", this.version)) else emptyList()
-        val scopeNodes = if (this.scope == null) emptyList() else listOf(simpleElement("scope", this.scope))
+        val scopeNodes = if (this.scope == null || !includeScope) emptyList() else listOf(simpleElement("scope", this.scope))
         val dependencyChildNodes = dependencyChildNodesWithoutScope + versionNodes + scopeNodes
         return dependencyChildNodes
     }

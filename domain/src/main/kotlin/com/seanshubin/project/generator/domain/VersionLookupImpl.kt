@@ -4,7 +4,7 @@ import javax.xml.parsers.SAXParserFactory
 
 class VersionLookupImpl(
     private val http: Http,
-    private val lookupVersionEvent: (String, GroupArtifactVersion) -> Unit
+    private val lookupVersionEvent: (String, GroupArtifactVersionScope) -> Unit
 ) : VersionLookup {
     override fun latestProductionVersion(group: String, artifact: String): String {
         val groupPath = group.replace(".", "/")
@@ -15,7 +15,7 @@ class VersionLookupImpl(
         val saxParser = saxParserFactory.newSAXParser()
         saxParser.parse(xmlText.byteInputStream(), handler)
         val releaseVersion = handler.latestReleaseVersion()
-        val dependency = GroupArtifactVersion(group, artifact, releaseVersion, scope = null)
+        val dependency = GroupArtifactVersionScope(group, artifact, releaseVersion, scope = null)
         lookupVersionEvent(uri, dependency)
         return releaseVersion
     }

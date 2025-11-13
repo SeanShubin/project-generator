@@ -29,7 +29,8 @@ class KeyValueStoreRunner(
         val developerUrl: String = keyValueStore.loadWithDefault(listOf("developer", "url"), "developer url") as String
         val developer: Developer =
             Developer(developerName, developerGithubName, developerMavenUserName, developerOrganization, developerUrl)
-        val dependencies: Map<String, Dependency> = loadDependencies()
+        val dependencies: Map<String, GroupArtifactScope> = loadDependencies()
+        val versionOverrides: List<GroupArtifactVersion> = loadVersionOverrides()
         val global: List<String> = keyValueStore.loadWithDefault(listOf("global"), emptyList<String>()) as List<String>
         val modules: Map<String, List<String>> = keyValueStore.loadWithDefault(
             listOf("modules"),
@@ -44,6 +45,7 @@ class KeyValueStoreRunner(
             language,
             developer,
             dependencies,
+            versionOverrides,
             global,
             modules,
             javaVersion
@@ -52,7 +54,7 @@ class KeyValueStoreRunner(
         runner.run()
     }
 
-    private fun loadDependencies(): Map<String, Dependency> {
+    private fun loadDependencies(): Map<String, GroupArtifactScope> {
         return if (keyValueStore.exists(listOf("dependencies"))) {
             convertDependencies(keyValueStore.load(listOf("dependencies")) as Map<String, Map<String, String>>)
         } else {
@@ -60,13 +62,30 @@ class KeyValueStoreRunner(
         }
     }
 
-    private fun convertDependencies(map: Map<String, Map<String, String>>): Map<String, Dependency> {
+    private fun loadVersionOverrides(): List<GroupArtifactVersion> {
+        return if (keyValueStore.exists(listOf("versionOverrides"))) {
+            convertVersionOverrides(keyValueStore.load(listOf("versionOverrides")) as List<Map<String, String>>)
+        } else {
+            emptyList()
+        }
+    }
+
+    private fun convertDependencies(map: Map<String, Map<String, String>>): Map<String, GroupArtifactScope> {
         return map.mapValues { (_, value) ->
-            Dependency(
+            GroupArtifactScope(
                 value["group"]!!,
                 value["artifact"]!!,
-                value["lockedAtVersion"],
                 value["scope"]
+            )
+        }
+    }
+
+    private fun convertVersionOverrides(list: List<Map<String, String>>): List<GroupArtifactVersion> {
+        return list.map { value ->
+            GroupArtifactVersion(
+                value["group"]!!,
+                value["artifact"]!!,
+                value["version"]!!
             )
         }
     }

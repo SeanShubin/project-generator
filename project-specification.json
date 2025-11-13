@@ -1,0 +1,65 @@
+{
+  "prefix": [
+    "com",
+    "seanshubin"
+  ],
+  "name": [
+    "project",
+    "generator"
+  ],
+  "description": "Project Generator",
+  "version": "0.1.0",
+  "language": "kotlin",
+  "developer": {
+    "name": "Sean Shubin",
+    "githubName": "SeanShubin",
+    "mavenUserName": "SeanShubin",
+    "organization": "Sean Shubin",
+    "url": "http://seanshubin.com/"
+  },
+  "global": [
+    "stdlib",
+    "test"
+  ],
+  "dependencies": {
+    "stdlib": {
+      "group": "org.jetbrains.kotlin",
+      "artifact": "kotlin-stdlib-jdk8"
+    },
+    "test": {
+      "group": "org.jetbrains.kotlin",
+      "artifact": "kotlin-test-junit",
+      "scope": "test"
+    },
+    "jackson": {
+      "group": "com.fasterxml.jackson.module",
+      "artifact": "jackson-module-kotlin"
+    },
+    "jackson-time": {
+      "group": "com.fasterxml.jackson.datatype",
+      "artifact": "jackson-datatype-jsr310"
+    }
+  },
+  "versionOverrides": [
+    {
+      "group": "org.jetbrains.kotlin",
+      "artifact": "kotlin-maven-plugin",
+      "version": "2.3.0-Beta2"
+    }
+  ],
+  "modules": {
+    "console": [
+      "domain"
+    ],
+    "domain": [
+      "configuration"
+    ],
+    "configuration": [
+      "jackson",
+      "jackson-time",
+      "contract"
+    ],
+    "contract": []
+  },
+  "javaVersion": "25"
+}

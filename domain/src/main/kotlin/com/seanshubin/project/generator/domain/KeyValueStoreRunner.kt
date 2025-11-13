@@ -12,9 +12,8 @@ class KeyValueStoreRunner(
 ) : Runnable {
     override fun run() {
         files.createDirectories(baseDirectory)
-        val prefix: List<String> =
-            keyValueStore.loadWithDefault(listOf("prefix"), default = listOf("prefix", "parts")) as List<String>
-        val name: List<String> = keyValueStore.loadWithDefault(listOf("name"), listOf("name", "parts")) as List<String>
+        val prefix: List<String> = loadStringArray(listOf("prefix"), listOf("prefix", "parts"))
+        val name: List<String> = loadStringArray(listOf("name"), listOf("name", "parts"))
         val description: String = keyValueStore.loadWithDefault(listOf("description"), "project description") as String
         val version: String = keyValueStore.loadWithDefault(listOf("version"), "project version") as String
         val language: String = keyValueStore.loadWithDefault(listOf("language"), "kotlin") as String
@@ -27,15 +26,12 @@ class KeyValueStoreRunner(
         val developerOrganization: String =
             keyValueStore.loadWithDefault(listOf("developer", "organization"), "developer organization") as String
         val developerUrl: String = keyValueStore.loadWithDefault(listOf("developer", "url"), "developer url") as String
-        val developer: Developer =
+        val developer =
             Developer(developerName, developerGithubName, developerMavenUserName, developerOrganization, developerUrl)
         val dependencies: Map<String, GroupArtifactScope> = loadDependencies()
         val versionOverrides: List<GroupArtifactVersion> = loadVersionOverrides()
-        val global: List<String> = keyValueStore.loadWithDefault(listOf("global"), emptyList<String>()) as List<String>
-        val modules: Map<String, List<String>> = keyValueStore.loadWithDefault(
-            listOf("modules"),
-            emptyMap<String, List<String>>()
-        ) as Map<String, List<String>>
+        val global: List<String> = loadStringArray(listOf("global"), emptyList<String>())
+        val modules: Map<String, List<String>> = loadMapOfListOfString(listOf("modules"), emptyMap())
         val javaVersion: String = keyValueStore.loadWithDefault(listOf("javaVersion"), "25") as String
         val project = Project(
             prefix,
@@ -54,9 +50,30 @@ class KeyValueStoreRunner(
         runner.run()
     }
 
+    private fun loadMapOfListOfString(
+        key: List<String>,
+        default: Map<String, List<String>>
+    ): Map<String, List<String>> {
+        return if (keyValueStore.exists(key)) {
+            val theObject = keyValueStore.load(key) as Map<*, *>
+            theObject.mapKeys { entry -> (entry.key as String) }
+                .mapValues { entry -> (entry.value as List<*>).map { it as String } }
+        } else {
+            default
+        }
+    }
+
     private fun loadDependencies(): Map<String, GroupArtifactScope> {
         return if (keyValueStore.exists(listOf("dependencies"))) {
-            convertDependencies(keyValueStore.load(listOf("dependencies")) as Map<String, Map<String, String>>)
+            val theObject = keyValueStore.load(listOf("dependencies")) as Map<*, *>
+            theObject.map { (name, dependency) ->
+                name as String
+                dependency as Map<*, *>
+                val group = dependency["group"] as String
+                val artifact = dependency["artifact"] as String
+                val scope = dependency["scope"] as String?
+                name to GroupArtifactScope(group, artifact, scope)
+            }.toMap()
         } else {
             emptyMap()
         }
@@ -64,29 +81,26 @@ class KeyValueStoreRunner(
 
     private fun loadVersionOverrides(): List<GroupArtifactVersion> {
         return if (keyValueStore.exists(listOf("versionOverrides"))) {
-            convertVersionOverrides(keyValueStore.load(listOf("versionOverrides")) as List<Map<String, String>>)
+            val versionOverridesList = keyValueStore.load(listOf("versionOverrides")) as List<*>
+            versionOverridesList.map { versionOverrideMap ->
+                versionOverrideMap as Map<*, *>
+                val group = versionOverrideMap["group"] as String
+                val artifact = versionOverrideMap["artifact"] as String
+                val version = versionOverrideMap["version"] as String
+                GroupArtifactVersion(group, artifact, version)
+            }
         } else {
             emptyList()
         }
     }
 
-    private fun convertDependencies(map: Map<String, Map<String, String>>): Map<String, GroupArtifactScope> {
-        return map.mapValues { (_, value) ->
-            GroupArtifactScope(
-                value["group"]!!,
-                value["artifact"]!!,
-                value["scope"]
-            )
-        }
-    }
-
-    private fun convertVersionOverrides(list: List<Map<String, String>>): List<GroupArtifactVersion> {
-        return list.map { value ->
-            GroupArtifactVersion(
-                value["group"]!!,
-                value["artifact"]!!,
-                value["version"]!!
-            )
+    private fun loadStringArray(key: List<String>, default: List<String>): List<String> {
+        if (!keyValueStore.exists(key)) return default
+        val arraySize = keyValueStore.arraySize(key)
+        return (0 until arraySize).map { index ->
+            val subKey = key + index
+            val value = keyValueStore.load(subKey)
+            value as String
         }
     }
 }

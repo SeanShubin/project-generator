@@ -9,7 +9,7 @@ class GeneratorImpl(
 ) : Generator {
     override fun generate(project: Project): List<Command> {
         val rootCommand = generateRootCommand(project)
-        val moduleCommands = project.modules.map { (name, dependencies) ->
+        val moduleCommands = project.modules.flatMap { (name, dependencies) ->
             generateModuleCommand(project, name, dependencies)
         }
         return listOf(rootCommand) + moduleCommands
@@ -22,10 +22,11 @@ class GeneratorImpl(
         return WriteFile(path, lines)
     }
 
-    private fun generateModuleCommand(project: Project, module: String, dependencies: List<String>): Command {
+    private fun generateModuleCommand(project: Project, module: String, dependencies: List<String>): List<Command> {
         val xml = mavenXmlNode.generateModuleXml(project, module, dependencies)
         val lines = xmlRenderer.toLines(xml)
         val path = baseDirectory.resolve(module).resolve("pom.xml")
-        return WriteFile(path, lines)
+        val writePomFile = WriteFile(path, lines)
+        return listOf(writePomFile)
     }
 }

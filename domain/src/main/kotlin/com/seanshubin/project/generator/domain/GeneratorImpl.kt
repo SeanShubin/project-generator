@@ -12,7 +12,8 @@ class GeneratorImpl(
         val moduleCommands = project.modules.flatMap { (name, dependencies) ->
             generateModuleCommand(project, name, dependencies)
         }
-        return listOf(rootCommand) + moduleCommands
+        val codeStructureConfigCommands = generateCodeStructureConfigCommands(project)
+        return listOf(rootCommand) + moduleCommands + codeStructureConfigCommands
     }
 
     private fun generateRootCommand(project: Project): Command {
@@ -35,4 +36,30 @@ class GeneratorImpl(
         val writePomFile = WriteFile(path, lines)
         return listOf(createSourceDir, createTestDir, writePomFile)
     }
+
+    private fun generateCodeStructureConfigCommands(project: Project): List<Command> {
+        val path = baseDirectory.resolve("code-structure-config.json")
+        val githubDeveloperName= project.developer.githubName
+        val githubRepoName = project.name.joinToString("-")
+
+        return listOf(
+            setJsonConfig(path, true, "countAsErrors", "inDirectCycle"),
+            setJsonConfig(path, true, "countAsErrors", "inGroupCycle"),
+            setJsonConfig(path, true, "countAsErrors", "ancestorDependsOnDescendant"),
+            setJsonConfig(path, true, "countAsErrors", "descendantDependsOnAncestor"),
+            setJsonConfig(path, 0, "maximumAllowedErrorCount"),
+            setJsonConfig(path, ".", "inputDir"),
+            setJsonConfig(path, "generated/code-structure", "outputDir"),
+            setJsonConfig(path, false, "useObservationsCache"),
+            setJsonConfig(path, false, "includeJvmDynamicInvocations"),
+            setJsonConfig(path, "https://github.com/$githubDeveloperName/$githubRepoName/blob/master/", "sourcePrefix"),
+            setJsonConfig(path, listOf(".*/src/main/kotlin/.*\\.kt"), "sourceFileRegexPatterns", "include"),
+            setJsonConfig(path, emptyList<String>(), "sourceFileRegexPatterns", "exclude"),
+            setJsonConfig(path, 100, "nodeLimitForGraph"),
+            setJsonConfig(path, listOf(".*/target/.*\\.class"), "binaryFileRegexPatterns", "include"),
+            setJsonConfig(path, emptyList<String>(), "binaryFileRegexPatterns", "exclude")
+        )
+    }
+
+    private fun setJsonConfig(path:Path, value:Any, vararg keys:String) = SetJsonConfig(path, value, keys.toList())
 }

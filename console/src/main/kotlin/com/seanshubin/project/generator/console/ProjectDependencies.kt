@@ -1,5 +1,7 @@
 package com.seanshubin.project.generator.console
 
+import com.seanshubin.project.generator.configuration.JsonFileKeyValueStore
+import com.seanshubin.project.generator.configuration.KeyValueStore
 import com.seanshubin.project.generator.contract.FilesContract
 import com.seanshubin.project.generator.contract.FilesDelegate
 import com.seanshubin.project.generator.domain.*
@@ -19,6 +21,7 @@ class ProjectDependencies(
     private val mavenXmlNode: MavenXmlNode = MavenXmlNodeImpl(versionLookup)
     private val generator: Generator = GeneratorImpl(xmlRenderer, baseDirectory, mavenXmlNode)
     private val files: FilesContract = FilesDelegate
-    private val environment: Environment = EnvironmentImpl(files)
+    private val createKeyStore:(Path)-> KeyValueStore = {path:Path -> JsonFileKeyValueStore(path, files) }
+    private val environment: Environment = EnvironmentImpl(files, createKeyStore)
     val runner: ProjectRunner = ProjectRunner(generator, project, environment)
 }

@@ -70,8 +70,8 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         val pluginsNodeChildren = listOf(
             compilerPlugin(project),
             sourcePlugin(project),
-            languagePlugin(project)
-
+            languagePlugin(project),
+            codeStructurePlugin(project)
         )
         val pluginsNode = element("plugins", pluginsNodeChildren)
         return pluginsNode
@@ -82,6 +82,34 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
             languagePluginFunctionMap[project.language]
                 ?: throw RuntimeException("Unsupported language '${project.language}'")
         return languagePluginFunction(project)
+    }
+
+    private fun codeStructurePlugin(project: Project):XmlNode {
+        val groupId = "com.seanshubin.code.structure"
+        val artifactId = "code-structure-maven"
+        val version = versionLookup.latestProductionVersion(groupId, artifactId)
+        val groupNode = simpleElement("groupId", groupId)
+        val artifactNode = simpleElement("artifactId", artifactId)
+        val versionNode = simpleElement("version", version)
+        val goalNode = simpleElement("goal", "code-structure")
+        val goalsChildren = listOf(goalNode)
+        val goalsNode = element("goals", goalsChildren)
+        val executionNodeChildren = listOf(goalsNode)
+        val executionNode = element("execution", executionNodeChildren)
+        val executionsNodeChildren = listOf(executionNode)
+        val executionsNode = element("executions", executionsNodeChildren)
+        val configBaseNameNode = simpleElement("configBaseName", "code-structure")
+        val configurationNodeChildren = listOf(configBaseNameNode)
+        val configurationNode = element("configuration", configurationNodeChildren)
+        val pluginNodeChildren = listOf(
+            groupNode,
+            artifactNode,
+            versionNode,
+            executionsNode,
+            configurationNode
+        )
+        val pluginNode = element("plugin", pluginNodeChildren)
+        return pluginNode
     }
 
     private fun languagePluginKotlin(project: Project): XmlNode {

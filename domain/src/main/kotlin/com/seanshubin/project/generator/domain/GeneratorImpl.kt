@@ -27,9 +27,10 @@ class GeneratorImpl(
         val xml = mavenXmlNode.generateModuleXml(project, module, dependencies)
         val lines = xmlRenderer.toLines(xml)
         val path = baseDirectory.resolve(module).resolve("pom.xml")
-        val sourcePathParts = listOf(module, "src", "main",project.language) + project.prefix + project.name + listOf(module)
+        val moduleParts = module.split("-")
+        val sourcePathParts = listOf(module, "src", "main",project.language) + project.prefix + project.name + moduleParts
         val sourcePath = sourcePathParts.fold(baseDirectory, Path::resolve)
-        val testPathParts = listOf(module, "src", "test",project.language) + project.prefix + project.name + listOf(module)
+        val testPathParts = listOf(module, "src", "test",project.language) + project.prefix + project.name + moduleParts
         val testPath = testPathParts.fold(baseDirectory, Path::resolve)
         val createSourceDir = CreateDirectory(sourcePath)
         val createTestDir = CreateDirectory(testPath)

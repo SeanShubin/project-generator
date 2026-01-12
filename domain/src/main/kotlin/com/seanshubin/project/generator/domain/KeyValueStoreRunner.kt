@@ -14,25 +14,25 @@ class KeyValueStoreRunner(
         files.createDirectories(baseDirectory)
         val prefix: List<String> = loadStringArray(listOf("prefix"), listOf("prefix", "parts"))
         val name: List<String> = loadStringArray(listOf("name"), listOf("name", "parts"))
-        val description: String = keyValueStore.loadWithDefault(listOf("description"), "project description") as String
-        val version: String = keyValueStore.loadWithDefault(listOf("version"), "project version") as String
-        val language: String = keyValueStore.loadWithDefault(listOf("language"), "kotlin") as String
+        val description: String = keyValueStore.loadOrCreateDefault(listOf("description"), "project description") as String
+        val version: String = keyValueStore.loadOrCreateDefault(listOf("version"), "project version") as String
+        val language: String = keyValueStore.loadOrCreateDefault(listOf("language"), "kotlin") as String
         val developerName: String =
-            keyValueStore.loadWithDefault(listOf("developer", "name"), "developer name") as String
+            keyValueStore.loadOrCreateDefault(listOf("developer", "name"), "developer name") as String
         val developerGithubName: String =
-            keyValueStore.loadWithDefault(listOf("developer", "githubName"), "developer github name") as String
+            keyValueStore.loadOrCreateDefault(listOf("developer", "githubName"), "developer github name") as String
         val developerMavenUserName: String =
-            keyValueStore.loadWithDefault(listOf("developer", "mavenUserName"), "developer maven user name") as String
+            keyValueStore.loadOrCreateDefault(listOf("developer", "mavenUserName"), "developer maven user name") as String
         val developerOrganization: String =
-            keyValueStore.loadWithDefault(listOf("developer", "organization"), "developer organization") as String
-        val developerUrl: String = keyValueStore.loadWithDefault(listOf("developer", "url"), "developer url") as String
+            keyValueStore.loadOrCreateDefault(listOf("developer", "organization"), "developer organization") as String
+        val developerUrl: String = keyValueStore.loadOrCreateDefault(listOf("developer", "url"), "developer url") as String
         val developer =
             Developer(developerName, developerGithubName, developerMavenUserName, developerOrganization, developerUrl)
         val dependencies: Map<String, GroupArtifactScope> = loadDependencies()
         val versionOverrides: List<GroupArtifactVersion> = loadVersionOverrides()
         val global: List<String> = loadStringArray(listOf("global"), emptyList<String>())
         val modules: Map<String, List<String>> = loadMapOfListOfString(listOf("modules"), emptyMap())
-        val javaVersion: String = keyValueStore.loadWithDefault(listOf("javaVersion"), "25") as String
+        val javaVersion: String = keyValueStore.loadOrCreateDefault(listOf("javaVersion"), "25") as String
         val project = Project(
             prefix,
             name,

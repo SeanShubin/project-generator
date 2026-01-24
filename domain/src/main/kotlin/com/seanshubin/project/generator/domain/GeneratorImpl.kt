@@ -27,15 +27,26 @@ class GeneratorImpl(
         val xml = mavenXmlNode.generateModuleXml(project, module, dependencies)
         val lines = xmlRenderer.toLines(xml)
         val path = baseDirectory.resolve(module).resolve("pom.xml")
-        val moduleParts = module.split("-")
-        val sourcePathParts = listOf(module, "src", "main",project.language) + project.prefix + project.name + moduleParts
-        val sourcePath = sourcePathParts.fold(baseDirectory, Path::resolve)
-        val testPathParts = listOf(module, "src", "test",project.language) + project.prefix + project.name + moduleParts
-        val testPath = testPathParts.fold(baseDirectory, Path::resolve)
+        val sourcePath = moduleSourcePath(module, project)
+        val testPath = moduleTestPath(module, project)
         val createSourceDir = CreateDirectory(sourcePath)
         val createTestDir = CreateDirectory(testPath)
         val writePomFile = WriteFile(path, lines)
         return listOf(createSourceDir, createTestDir, writePomFile)
+    }
+
+    private fun moduleSourcePath(module: String, project: Project): Path {
+        val moduleParts = module.split("-")
+        val pathParts = listOf(module, SRC_DIR, MAIN_DIR, project.language) +
+                project.prefix + project.name + moduleParts
+        return pathParts.fold(baseDirectory, Path::resolve)
+    }
+
+    private fun moduleTestPath(module: String, project: Project): Path {
+        val moduleParts = module.split("-")
+        val pathParts = listOf(module, SRC_DIR, TEST_DIR, project.language) +
+                project.prefix + project.name + moduleParts
+        return pathParts.fold(baseDirectory, Path::resolve)
     }
 
     private fun generateCodeStructureConfigCommands(project: Project): List<Command> {
@@ -63,4 +74,10 @@ class GeneratorImpl(
     }
 
     private fun setJsonConfig(path:Path, value:Any, vararg keys:String) = SetJsonConfig(path, value, keys.toList())
+
+    companion object {
+        private const val SRC_DIR = "src"
+        private const val MAIN_DIR = "main"
+        private const val TEST_DIR = "test"
+    }
 }

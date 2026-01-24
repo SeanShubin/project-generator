@@ -41,11 +41,6 @@
     }
   },
   "versionOverrides": [
-    {
-      "group": "org.jetbrains.kotlin",
-      "artifact": "kotlin-maven-plugin",
-      "version": "2.3.0-Beta2"
-    }
   ],
   "modules": {
     "console": [
@@ -61,5 +56,8 @@
     ],
     "contract": []
   },
-  "javaVersion": "25"
+  "javaVersion": "25",
+  "entryPoints": {
+    "console": "com.seanshubin.project.generator.console.EntryPoint"
+  }
 }

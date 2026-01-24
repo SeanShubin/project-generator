@@ -33,6 +33,7 @@ class KeyValueStoreRunner(
         val global: List<String> = loadStringArray(listOf("global"), emptyList<String>())
         val modules: Map<String, List<String>> = loadMapOfListOfString(listOf("modules"), emptyMap())
         val javaVersion: String = keyValueStore.loadOrCreateDefault(listOf("javaVersion"), "25") as String
+        val entryPoints: Map<String, String> = loadEntryPoints()
         val project = Project(
             prefix,
             name,
@@ -44,7 +45,8 @@ class KeyValueStoreRunner(
             versionOverrides,
             global,
             modules,
-            javaVersion
+            javaVersion,
+            entryPoints
         )
         val runner = createRunner(project, baseDirectory)
         runner.run()
@@ -91,6 +93,16 @@ class KeyValueStoreRunner(
             }
         } else {
             emptyList()
+        }
+    }
+
+    private fun loadEntryPoints(): Map<String, String> {
+        return if (keyValueStore.exists(listOf("entryPoints"))) {
+            val theObject = keyValueStore.load(listOf("entryPoints")) as Map<*, *>
+            theObject.mapKeys { entry -> entry.key as String }
+                .mapValues { entry -> entry.value as String }
+        } else {
+            emptyMap()
         }
     }
 

@@ -58,5 +58,8 @@
       "domain"
     ]
   },
+  "entryPoints": {
+    "console": "com.seanshubin.kotlin.tryme.console.MainKt"
+  },
   "javaVersion": "25"
 }

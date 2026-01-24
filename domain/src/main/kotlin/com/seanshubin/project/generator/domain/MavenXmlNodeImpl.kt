@@ -57,12 +57,12 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
     }
 
     private fun sourceDirectory(language: String): XmlNode {
-        val sourceDirectory = simpleElement("sourceDirectory", "\${project.basedir}/src/main/$language")
+        val sourceDirectory = simpleElement("sourceDirectory", "\${project.basedir}/$SRC_DIR/$MAIN_DIR/$language")
         return sourceDirectory
     }
 
     private fun testSourceDirectory(language: String): XmlNode {
-        val testSourceDirectory = simpleElement("testSourceDirectory", "\${project.basedir}/src/test/$language")
+        val testSourceDirectory = simpleElement("testSourceDirectory", "\${project.basedir}/$SRC_DIR/$TEST_DIR/$language")
         return testSourceDirectory
     }
 
@@ -195,6 +195,41 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         return compilerPluginNode
     }
 
+    private fun assemblyPlugin(project: Project, entryPoint: String): XmlNode {
+        val mainClassNode = simpleElement("mainClass", entryPoint)
+        val manifestNode = element("manifest", listOf(mainClassNode))
+        val archiveNode = element("archive", listOf(manifestNode))
+        val descriptorRefNode = simpleElement("descriptorRef", ASSEMBLY_DESCRIPTOR_JAR_WITH_DEPENDENCIES)
+        val descriptorRefsNode = element("descriptorRefs", listOf(descriptorRefNode))
+        val configurationNode = element("configuration", listOf(descriptorRefsNode, archiveNode))
+
+        val goalNode = simpleElement("goal", ASSEMBLY_GOAL_SINGLE)
+        val goalsNode = element("goals", listOf(goalNode))
+        val phaseNode = simpleElement("phase", ASSEMBLY_PHASE_PACKAGE)
+        val executionNode = element("execution", listOf(
+            simpleElement("id", ASSEMBLY_EXECUTION_ID),
+            phaseNode,
+            goalsNode
+        ))
+        val executionsNode = element("executions", listOf(executionNode))
+
+        val assemblyPluginDependency = lookup(project, ASSEMBLY_PLUGIN_GROUP, ASSEMBLY_PLUGIN_ARTIFACT, scope = null)
+        val pluginNodes = assemblyPluginDependency.toDependencyChildNodes(includeVersion = true, includeScope = false)
+
+        val pluginNode = element("plugin", pluginNodes + listOf(configurationNode, executionsNode))
+        return pluginNode
+    }
+
+    private fun moduleBuild(project: Project, moduleName: String): XmlNode? {
+        val entryPoint = project.entryPoints[moduleName]
+        return if (entryPoint != null) {
+            val pluginsNode = element("plugins", listOf(assemblyPlugin(project, entryPoint)))
+            element("build", listOf(pluginsNode))
+        } else {
+            null
+        }
+    }
+
     private fun properties(): XmlNode {
         val sourceEncoding = simpleElement("project.build.sourceEncoding", "UTF-8")
         val propertiesNodeChildren = listOf(sourceEncoding)
@@ -251,13 +286,19 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         val parentNodeChildren = parentDependency.toDependencyChildNodes(includeVersion = true, includeScope = false)
         val parentNode = element("parent", parentNodeChildren)
         val nameNode = simpleElement("name", "\${project.groupId}:\${project.artifactId}")
-        return listOf(
+        val buildNode = moduleBuild(project, moduleName)
+        val baseNodes = listOf(
             simpleElement("modelVersion", "4.0.0"),
             simpleElement("artifactId", artifactId(project, moduleName)),
             moduleDependencies(project, moduleName),
             parentNode,
             nameNode
         )
+        return if (buildNode != null) {
+            baseNodes + buildNode
+        } else {
+            baseNodes
+        }
     }
 
     private fun moduleDependencies(project: Project, moduleName: String): XmlNode {
@@ -333,5 +374,17 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
             if (this.scope == null || !includeScope) emptyList() else listOf(simpleElement("scope", this.scope))
         val dependencyChildNodes = dependencyChildNodesWithoutScope + versionNodes + scopeNodes
         return dependencyChildNodes
+    }
+
+    companion object {
+        private const val SRC_DIR = "src"
+        private const val MAIN_DIR = "main"
+        private const val TEST_DIR = "test"
+        private const val ASSEMBLY_PLUGIN_GROUP = "org.apache.maven.plugins"
+        private const val ASSEMBLY_PLUGIN_ARTIFACT = "maven-assembly-plugin"
+        private const val ASSEMBLY_DESCRIPTOR_JAR_WITH_DEPENDENCIES = "jar-with-dependencies"
+        private const val ASSEMBLY_GOAL_SINGLE = "single"
+        private const val ASSEMBLY_PHASE_PACKAGE = "package"
+        private const val ASSEMBLY_EXECUTION_ID = "make-assembly"
     }
 }

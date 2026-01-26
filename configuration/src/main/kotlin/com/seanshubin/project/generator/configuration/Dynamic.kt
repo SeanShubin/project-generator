@@ -56,17 +56,28 @@ data class Dynamic(val o: Any?) {
     }
 
     private fun updateArray(o:Any?, index:Int, defaultValue:Any?, value:Any?):List<Any?> {
-        if(o is List<*>) {
-            if(o.size < index) {
-                return o + (o.size until index).map{defaultValue} + value
-            } else {
-                val before = o.take(index)
-                val after = o.drop(index + 1)
-                return before + listOf(value) + after
-            }
-        } else {
-            return (0 until index).map{defaultValue} + value
+        return when {
+            o is List<*> && o.size < index -> padListAndAdd(o, index, defaultValue, value)
+            o is List<*> -> replaceAt(o, index, value)
+            else -> createListWithPadding(index, defaultValue, value)
         }
+    }
+
+    private fun padListAndAdd(list: List<*>, targetIndex: Int, defaultValue: Any?, value: Any?): List<Any?> {
+        val paddingCount = targetIndex - list.size
+        val padding = (0 until paddingCount).map { defaultValue }
+        return list + padding + value
+    }
+
+    private fun replaceAt(list: List<*>, index: Int, value: Any?): List<Any?> {
+        val before = list.take(index)
+        val after = list.drop(index + 1)
+        return before + listOf(value) + after
+    }
+
+    private fun createListWithPadding(targetIndex: Int, defaultValue: Any?, value: Any?): List<Any?> {
+        val padding = (0 until targetIndex).map { defaultValue }
+        return padding + value
     }
 
     fun exists(path: List<Any?>): Boolean {

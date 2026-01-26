@@ -7,7 +7,9 @@ class VersionLookupImpl(
     private val lookupVersionEvent: (String, GroupArtifactVersionScope) -> Unit
 ) : VersionLookup {
     override fun latestProductionVersion(group: String, artifact: String): String {
-        val groupPath = group.replace(".", "/")
+        val dotSeparator = "."
+        val pathSeparator = "/"
+        val groupPath = group.replace(dotSeparator, pathSeparator)
         val uri = "https://repo1.maven.org/maven2/$groupPath/$artifact/maven-metadata.xml"
         val xmlText = http.getAssertSuccess(uri)
         val handler = SaxHandlerGetProductionVersion()

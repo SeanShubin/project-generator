@@ -84,140 +84,114 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         return languagePluginFunction(project)
     }
 
-    private fun codeStructurePlugin(project: Project):XmlNode {
+    private fun codeStructurePlugin(project: Project): XmlNode {
         val groupId = "com.seanshubin.code.structure"
         val artifactId = "code-structure-maven"
         val version = versionLookup.latestProductionVersion(groupId, artifactId)
-        val groupNode = simpleElement("groupId", groupId)
-        val artifactNode = simpleElement("artifactId", artifactId)
-        val versionNode = simpleElement("version", version)
-        val goalNode = simpleElement("goal", "code-structure")
-        val goalsChildren = listOf(goalNode)
-        val goalsNode = element("goals", goalsChildren)
-        val executionNodeChildren = listOf(goalsNode)
-        val executionNode = element("execution", executionNodeChildren)
-        val executionsNodeChildren = listOf(executionNode)
-        val executionsNode = element("executions", executionsNodeChildren)
-        val configBaseNameNode = simpleElement("configBaseName", "code-structure")
-        val configurationNodeChildren = listOf(configBaseNameNode)
-        val configurationNode = element("configuration", configurationNodeChildren)
-        val pluginNodeChildren = listOf(
-            groupNode,
-            artifactNode,
-            versionNode,
-            executionsNode,
-            configurationNode
+        val goals = listOf("code-structure")
+        val configEntries = mapOf("configBaseName" to "code-structure")
+        return createPluginWithGoalsAndConfig(groupId, artifactId, version, goals, configEntries)
+    }
+
+    private fun createPluginWithGoalsAndConfig(
+        groupId: String,
+        artifactId: String,
+        version: String,
+        goals: List<String>,
+        configEntries: Map<String, String>
+    ): XmlNode {
+        val coordinates = createPluginCoordinates(groupId, artifactId, version)
+        val executions = createExecutionsWithGoals(goals)
+        val configuration = createConfigurationFromEntries(configEntries)
+        return element("plugin", coordinates + listOf(executions, configuration))
+    }
+
+    private fun createPluginCoordinates(groupId: String, artifactId: String, version: String): List<XmlNode> {
+        return listOf(
+            simpleElement("groupId", groupId),
+            simpleElement("artifactId", artifactId),
+            simpleElement("version", version)
         )
-        val pluginNode = element("plugin", pluginNodeChildren)
-        return pluginNode
+    }
+
+    private fun createExecutionsWithGoals(goals: List<String>): XmlNode {
+        val goalNodes = goals.map { goal -> simpleElement("goal", goal) }
+        val goalsNode = element("goals", goalNodes)
+        val executionNode = element("execution", listOf(goalsNode))
+        return element("executions", listOf(executionNode))
+    }
+
+    private fun createConfigurationFromEntries(entries: Map<String, String>): XmlNode {
+        val configNodes = entries.map { (key, value) -> simpleElement(key, value) }
+        return element("configuration", configNodes)
     }
 
     private fun languagePluginKotlin(project: Project): XmlNode {
-        val compileGoalsChildren = listOf(
-            simpleElement("goal", "compile")
-        )
-        val compileGoals = element("goals", compileGoalsChildren)
-        val compileNodeChildren = listOf(
-            simpleElement("id", "compile"),
-            compileGoals
-        )
-        val compileNode = element("execution", compileNodeChildren)
-        val testCompileGoalsChildren = listOf(
-            simpleElement("goal", "test-compile")
-        )
-        val testCompileGoals = element("goals", testCompileGoalsChildren)
-        val testCompileNodeChildren = listOf(
-            simpleElement("id", "test-compile"),
-            testCompileGoals
-        )
-        val testCompileNode = element("execution", testCompileNodeChildren)
-        val executionsNodeChildren = listOf(
-            compileNode,
-            testCompileNode
-        )
-        val executionsNode = element("executions", executionsNodeChildren)
-        val configurationNodeChildren = listOf(
-            simpleElement("jvmTarget", project.javaVersion)
-        )
-        val configurationNode = element("configuration", configurationNodeChildren)
-        val kotlinMavenPlugin = lookup(project, "org.jetbrains.kotlin", "kotlin-maven-plugin", scope = null)
-        val dependencyNodes = kotlinMavenPlugin.toDependencyChildNodes(includeVersion = true, includeScope = true)
-        val kotlinPluginNodeChildren = dependencyNodes + listOf(
-            executionsNode,
-            configurationNode
-        )
-        val kotlinPluginNode = element("plugin", kotlinPluginNodeChildren)
-        return kotlinPluginNode
+        val dependency = lookup(project, "org.jetbrains.kotlin", "kotlin-maven-plugin", scope = null)
+        val coordinates = dependency.toDependencyChildNodes(includeVersion = true, includeScope = true)
+        val compileExecution = createExecutionWithIdAndGoals("compile", listOf("compile"))
+        val testCompileExecution = createExecutionWithIdAndGoals("test-compile", listOf("test-compile"))
+        val executions = element("executions", listOf(compileExecution, testCompileExecution))
+        val configuration = createConfigurationFromEntries(mapOf("jvmTarget" to project.javaVersion))
+        return element("plugin", coordinates + listOf(executions, configuration))
+    }
+
+    private fun createExecutionWithIdAndGoals(id: String, goals: List<String>): XmlNode {
+        val goalNodes = goals.map { goal -> simpleElement("goal", goal) }
+        val goalsNode = element("goals", goalNodes)
+        return element("execution", listOf(simpleElement("id", id), goalsNode))
     }
 
     private fun sourcePlugin(project: Project): XmlNode {
-        val attachSourcesGoalsChildren = listOf(
-            simpleElement("goal", "jar-no-fork"),
-            simpleElement("goal", "test-jar-no-fork")
+        val dependency = lookup(project, "org.apache.maven.plugins", "maven-source-plugin", scope = null)
+        val coordinates = dependency.toDependencyChildNodes(includeVersion = true, includeScope = true)
+        val goals = listOf("jar-no-fork", "test-jar-no-fork")
+        val execution = createExecutionWithIdPhaseAndGoals("attach-sources", "verify", goals)
+        val executions = element("executions", listOf(execution))
+        return element("plugin", coordinates + listOf(executions))
+    }
+
+    private fun createExecutionWithIdPhaseAndGoals(id: String, phase: String, goals: List<String>): XmlNode {
+        val goalNodes = goals.map { goal -> simpleElement("goal", goal) }
+        val goalsNode = element("goals", goalNodes)
+        val executionChildren = listOf(
+            simpleElement("id", id),
+            simpleElement("phase", phase),
+            goalsNode
         )
-        val attachSourcesGoals = element("goals", attachSourcesGoalsChildren)
-        val attachSourcesChildren = listOf(
-            simpleElement("id", "attach-sources"),
-            simpleElement("phase", "verify"),
-            attachSourcesGoals
-        )
-        val attachSourcesNode = element("execution", attachSourcesChildren)
-        val executionNodeChildren = listOf(
-            attachSourcesNode
-        )
-        val executionNode = element("executions", executionNodeChildren)
-        val mavenSourcePluginDependency =
-            lookup(project, "org.apache.maven.plugins", "maven-source-plugin", scope = null)
-        val mavenSourcePluginDependencyNodes =
-            mavenSourcePluginDependency.toDependencyChildNodes(includeVersion = true, includeScope = true)
-        val sourcePluginNodeChildren = mavenSourcePluginDependencyNodes + listOf(
-            executionNode
-        )
-        val sourcePluginNode = element("plugin", sourcePluginNodeChildren)
-        return sourcePluginNode
+        return element("execution", executionChildren)
     }
 
     private fun compilerPlugin(project: Project): XmlNode {
-        val configurationNodeChildren = listOf(
-            simpleElement("source", project.javaVersion),
-            simpleElement("target", project.javaVersion)
+        val dependency = lookup(project, "org.apache.maven.plugins", "maven-compiler-plugin", scope = null)
+        val coordinates = dependency.toDependencyChildNodes(includeVersion = true, includeScope = true)
+        val configEntries = mapOf(
+            "source" to project.javaVersion,
+            "target" to project.javaVersion
         )
-        val configurationNode = element("configuration", configurationNodeChildren)
-        val compilerGroup = "org.apache.maven.plugins"
-        val compilerArtifact = "maven-compiler-plugin"
-        val mavenCompilerPluginDependency = lookup(project, compilerGroup, compilerArtifact, scope = null)
-        val mavenCompilerPluginDependencyNodes =
-            mavenCompilerPluginDependency.toDependencyChildNodes(includeVersion = true, includeScope = true)
-        val compilerPluginChildren = mavenCompilerPluginDependencyNodes + listOf(
-            configurationNode
-        )
-        val compilerPluginNode = element("plugin", compilerPluginChildren)
-        return compilerPluginNode
+        val configuration = createConfigurationFromEntries(configEntries)
+        return element("plugin", coordinates + listOf(configuration))
     }
 
     private fun assemblyPlugin(project: Project, entryPoint: String): XmlNode {
-        val mainClassNode = simpleElement("mainClass", entryPoint)
-        val manifestNode = element("manifest", listOf(mainClassNode))
-        val archiveNode = element("archive", listOf(manifestNode))
-        val descriptorRefNode = simpleElement("descriptorRef", ASSEMBLY_DESCRIPTOR_JAR_WITH_DEPENDENCIES)
-        val descriptorRefsNode = element("descriptorRefs", listOf(descriptorRefNode))
-        val configurationNode = element("configuration", listOf(descriptorRefsNode, archiveNode))
+        val dependency = lookup(project, ASSEMBLY_PLUGIN_GROUP, ASSEMBLY_PLUGIN_ARTIFACT, scope = null)
+        val coordinates = dependency.toDependencyChildNodes(includeVersion = true, includeScope = false)
+        val configuration = createAssemblyConfiguration(entryPoint)
+        val execution = createExecutionWithIdPhaseAndGoals(
+            ASSEMBLY_EXECUTION_ID,
+            ASSEMBLY_PHASE_PACKAGE,
+            listOf(ASSEMBLY_GOAL_SINGLE)
+        )
+        val executions = element("executions", listOf(execution))
+        return element("plugin", coordinates + listOf(configuration, executions))
+    }
 
-        val goalNode = simpleElement("goal", ASSEMBLY_GOAL_SINGLE)
-        val goalsNode = element("goals", listOf(goalNode))
-        val phaseNode = simpleElement("phase", ASSEMBLY_PHASE_PACKAGE)
-        val executionNode = element("execution", listOf(
-            simpleElement("id", ASSEMBLY_EXECUTION_ID),
-            phaseNode,
-            goalsNode
-        ))
-        val executionsNode = element("executions", listOf(executionNode))
-
-        val assemblyPluginDependency = lookup(project, ASSEMBLY_PLUGIN_GROUP, ASSEMBLY_PLUGIN_ARTIFACT, scope = null)
-        val pluginNodes = assemblyPluginDependency.toDependencyChildNodes(includeVersion = true, includeScope = false)
-
-        val pluginNode = element("plugin", pluginNodes + listOf(configurationNode, executionsNode))
-        return pluginNode
+    private fun createAssemblyConfiguration(entryPoint: String): XmlNode {
+        val manifest = element("manifest", listOf(simpleElement("mainClass", entryPoint)))
+        val archive = element("archive", listOf(manifest))
+        val descriptorRef = simpleElement("descriptorRef", ASSEMBLY_DESCRIPTOR_JAR_WITH_DEPENDENCIES)
+        val descriptorRefs = element("descriptorRefs", listOf(descriptorRef))
+        return element("configuration", listOf(descriptorRefs, archive))
     }
 
     private fun moduleBuild(project: Project, moduleName: String): XmlNode? {

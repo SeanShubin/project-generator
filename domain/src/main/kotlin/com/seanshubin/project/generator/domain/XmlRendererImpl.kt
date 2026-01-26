@@ -44,8 +44,10 @@ class XmlRendererImpl(private val indent: (String) -> String) : XmlRenderer {
 
     private fun attributesString(element: XmlNode.Element): String =
         if (element.attributes.isEmpty()) "" else element.attributes.joinToString(" ", " ") { (name, value) ->
-            "$name=\"$value\""
+            formatAttribute(name, value)
         }
+
+    private fun formatAttribute(name: String, value: String): String = "$name=\"$value\""
 
     private val xmlHeader = """<?xml version="1.0" encoding="UTF-8"?>"""
 }

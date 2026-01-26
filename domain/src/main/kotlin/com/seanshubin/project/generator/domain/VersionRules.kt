@@ -1,8 +1,10 @@
 package com.seanshubin.project.generator.domain
 
 object VersionRules {
+    private const val versionSeparator = "."
+
     fun isReleaseVersion(version: String): Boolean {
-        val versionParts = version.split(".")
+        val versionParts = version.split(versionSeparator)
         return versionParts.all(allDigits)
     }
 
@@ -16,6 +18,6 @@ object VersionRules {
         listOfIntComparator.compare(o1List, o2List)
     }
 
-    private fun String.toListOfInts(): List<Int> = split(".").map { it.toInt() }
+    private fun String.toListOfInts(): List<Int> = split(versionSeparator).map { it.toInt() }
     private val listOfIntComparator = ListComparator<Int>()
 }

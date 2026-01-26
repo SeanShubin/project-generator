@@ -36,17 +36,22 @@ class GeneratorImpl(
     }
 
     private fun moduleSourcePath(module: String, project: Project): Path {
-        val moduleParts = module.split("-")
+        val moduleParts = parseModuleName(module)
         val pathParts = listOf(module, SRC_DIR, MAIN_DIR, project.language) +
                 project.prefix + project.name + moduleParts
         return pathParts.fold(baseDirectory, Path::resolve)
     }
 
     private fun moduleTestPath(module: String, project: Project): Path {
-        val moduleParts = module.split("-")
+        val moduleParts = parseModuleName(module)
         val pathParts = listOf(module, SRC_DIR, TEST_DIR, project.language) +
                 project.prefix + project.name + moduleParts
         return pathParts.fold(baseDirectory, Path::resolve)
+    }
+
+    private fun parseModuleName(module: String): List<String> {
+        val moduleSeparator = "-"
+        return module.split(moduleSeparator)
     }
 
     private fun generateCodeStructureConfigCommands(project: Project): List<Command> {

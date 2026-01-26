@@ -3,7 +3,32 @@ package com.seanshubin.project.generator.domain
 import com.seanshubin.project.generator.contract.FilesContract
 import java.nio.file.Path
 
+/**
+ * Finds all source files in mapped modules that need to be copied and transformed.
+ *
+ * Walks the directory structure of mapped modules in the source project to identify
+ * all source files, and determines their corresponding target paths in the target project.
+ */
 interface SourceFileFinder {
+    /**
+     * Finds all source files in the mapped modules.
+     *
+     * For each module mapping (source → target), walks the source module's directory tree
+     * and creates a SourceFileInfo for each source file found, containing both the source
+     * path and the calculated target path.
+     *
+     * Warnings are printed to stderr for:
+     * - Source module directories that don't exist (skipped)
+     * - Paths that exist but aren't directories (skipped)
+     *
+     * @param sourceProjectPath The absolute path to the external source project
+     * @param targetProjectPath The absolute path to the target project being generated
+     * @param sourceProject The source project metadata (for package structure)
+     * @param targetProject The target project metadata (for package structure)
+     * @param moduleMapping Map of source module names to target module names
+     * @param language The source file language extension (e.g., "kotlin", "java")
+     * @return List of all source files to be copied with their source and target paths
+     */
     fun findSourceFiles(
         sourceProjectPath: Path,
         targetProjectPath: Path,
@@ -49,7 +74,17 @@ class SourceFileFinderImpl(
                 .resolve("src/main/$language")
                 .resolve(targetPackagePath.joinToString("/"))
 
-            if (!files.exists(moduleSourceRoot)) continue
+            if (!files.exists(moduleSourceRoot)) {
+                // Module source directory doesn't exist - this might be intentional if the module
+                // only has test code or generated code. Log a warning but continue.
+                System.err.println("Warning: Source module directory not found, skipping: $moduleSourceRoot")
+                continue
+            }
+
+            if (!files.isDirectory(moduleSourceRoot)) {
+                System.err.println("Warning: Source module path is not a directory, skipping: $moduleSourceRoot")
+                continue
+            }
 
             // Walk the source tree to find all source files
             walkDirectory(moduleSourceRoot, moduleTargetRoot, sourceModule, targetModule, language, sourceFiles)

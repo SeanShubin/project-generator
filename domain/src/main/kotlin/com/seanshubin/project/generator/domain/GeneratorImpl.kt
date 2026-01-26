@@ -89,6 +89,9 @@ class GeneratorImpl(
         // Load source project metadata to determine package structure
         val sourceProject = sourceProjectLoader.loadProject(sourceDependency.sourceProjectPath)
 
+        // Validate module mappings
+        validateModuleMappings(sourceProject, project, sourceDependency.moduleMapping)
+
         // Build transformation map
         val transformations = buildTransformations(
             sourceProject,
@@ -113,6 +116,32 @@ class GeneratorImpl(
                 sourceFileInfo.targetPath,
                 transformations
             )
+        }
+    }
+
+    private fun validateModuleMappings(
+        sourceProject: Project,
+        targetProject: Project,
+        moduleMapping: Map<String, String>
+    ) {
+        // Validate that source modules exist in source project
+        val sourceModules = sourceProject.modules.keys
+        val unmappedSourceModules = moduleMapping.keys.filterNot { it in sourceModules }
+        if (unmappedSourceModules.isNotEmpty()) {
+            System.err.println("Warning: Source modules not found in source project: $unmappedSourceModules")
+        }
+
+        // Validate that target modules exist in target project
+        val targetModules = targetProject.modules.keys
+        val unmappedTargetModules = moduleMapping.values.filterNot { it in targetModules }
+        if (unmappedTargetModules.isNotEmpty()) {
+            System.err.println("Warning: Target modules not found in target project: $unmappedTargetModules")
+        }
+
+        // Check for duplicate target modules (multiple source modules mapping to same target)
+        val duplicateTargets = moduleMapping.values.groupingBy { it }.eachCount().filter { it.value > 1 }
+        if (duplicateTargets.isNotEmpty()) {
+            System.err.println("Warning: Multiple source modules mapping to same target module: ${duplicateTargets.keys}")
         }
     }
 

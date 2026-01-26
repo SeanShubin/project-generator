@@ -8,7 +8,22 @@ import com.seanshubin.project.generator.configuration.loadStringOrDefault
 import com.seanshubin.project.generator.contract.FilesContract
 import java.nio.file.Path
 
+/**
+ * Loads project metadata from an external source project.
+ *
+ * Reads the project-specification.json file from an external project to extract
+ * its package structure, module configuration, and other metadata needed for
+ * source code transformation.
+ */
 interface SourceProjectLoader {
+    /**
+     * Loads a Project from the specified project directory.
+     *
+     * @param projectPath The absolute path to the external project's root directory
+     * @return The Project metadata loaded from the external project
+     * @throws IllegalArgumentException if the project path doesn't exist, is not a directory,
+     *         or doesn't contain a project-specification.json file
+     */
     fun loadProject(projectPath: Path): Project
 }
 
@@ -16,7 +31,18 @@ class SourceProjectLoaderImpl(
     private val files: FilesContract
 ) : SourceProjectLoader {
     override fun loadProject(projectPath: Path): Project {
+        if (!files.exists(projectPath)) {
+            throw IllegalArgumentException("Source project path does not exist: $projectPath")
+        }
+        if (!files.isDirectory(projectPath)) {
+            throw IllegalArgumentException("Source project path is not a directory: $projectPath")
+        }
+
         val specPath = projectPath.resolve("project-specification.json")
+        if (!files.exists(specPath)) {
+            throw IllegalArgumentException("Source project specification file not found: $specPath")
+        }
+
         val keyStore = JsonFileKeyValueStore(specPath, files)
 
         // Load all project fields using same logic as KeyValueStoreRunner

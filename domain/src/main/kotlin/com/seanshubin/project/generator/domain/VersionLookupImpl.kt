@@ -1,9 +1,8 @@
 package com.seanshubin.project.generator.domain
 
-import javax.xml.parsers.SAXParserFactory
-
 class VersionLookupImpl(
     private val http: Http,
+    private val xmlParserFactory: XmlParserFactory,
     private val lookupVersionEvent: (String, GroupArtifactVersionScope) -> Unit
 ) : VersionLookup {
     override fun latestProductionVersion(group: String, artifact: String): String {
@@ -13,8 +12,7 @@ class VersionLookupImpl(
         val uri = "https://repo1.maven.org/maven2/$groupPath/$artifact/maven-metadata.xml"
         val xmlText = http.getAssertSuccess(uri)
         val handler = SaxHandlerGetProductionVersion()
-        val saxParserFactory = SAXParserFactory.newInstance()
-        val saxParser = saxParserFactory.newSAXParser()
+        val saxParser = xmlParserFactory.createParser()
         saxParser.parse(xmlText.byteInputStream(), handler)
         val releaseVersion = handler.latestReleaseVersion()
         val dependency = GroupArtifactVersionScope(group, artifact, releaseVersion, scope = null)

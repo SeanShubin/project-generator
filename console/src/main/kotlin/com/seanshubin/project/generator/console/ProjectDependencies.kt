@@ -5,7 +5,6 @@ import com.seanshubin.project.generator.configuration.KeyValueStore
 import com.seanshubin.project.generator.contract.FilesContract
 import com.seanshubin.project.generator.contract.FilesDelegate
 import com.seanshubin.project.generator.domain.*
-import java.net.http.HttpClient
 import java.nio.file.Path
 
 class ProjectDependencies(
@@ -14,10 +13,12 @@ class ProjectDependencies(
 ) {
     private val indent: (String) -> String = StringUtility.indent
     private val xmlRenderer: XmlRenderer = XmlRendererImpl(indent)
-    private val httpClient: HttpClient = HttpClient.newHttpClient()
+    private val httpClientFactory: HttpClientFactory = HttpClientFactoryImpl()
+    private val httpClient = httpClientFactory.createHttpClient()
     private val http: Http = HttpImpl(httpClient)
+    private val xmlParserFactory: XmlParserFactory = SaxParserFactoryImpl()
     private val notifications: Notifications = LineEmittingNotifications(System.out::println)
-    private val versionLookup: VersionLookup = VersionLookupImpl(http,notifications::lookupVersionEvent)
+    private val versionLookup: VersionLookup = VersionLookupImpl(http, xmlParserFactory, notifications::lookupVersionEvent)
     private val mavenXmlNode: MavenXmlNode = MavenXmlNodeImpl(versionLookup)
     private val generator: Generator = GeneratorImpl(xmlRenderer, baseDirectory, mavenXmlNode)
     private val files: FilesContract = FilesDelegate

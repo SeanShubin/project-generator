@@ -5,7 +5,7 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 import com.seanshubin.project.generator.contract.FilesContract
 
-class JsonFileKeyValueStore(val path: Path, val files: FilesContract) : KeyValueStore {
+class FixedPathJsonFileKeyValueStore(val path: Path, val files: FilesContract) : KeyValueStore {
     override fun load(key: List<Any>): Any? {
         assertKeyValid(key)
         val jsonObject = loadJsonObject()
@@ -56,7 +56,7 @@ class JsonFileKeyValueStore(val path: Path, val files: FilesContract) : KeyValue
         }
     }
 
-    companion object {
+    companion object Companion {
         private val jsonCharset = StandardCharsets.UTF_8
         private val defaultJsonText = "{}"
     }

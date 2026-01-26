@@ -1,6 +1,6 @@
 package com.seanshubin.project.generator.console
 
-import com.seanshubin.project.generator.configuration.JsonFileKeyValueStore
+import com.seanshubin.project.generator.configuration.FixedPathJsonFileKeyValueStore
 import com.seanshubin.project.generator.configuration.KeyValueStore
 import com.seanshubin.project.generator.contract.FilesContract
 import com.seanshubin.project.generator.contract.FilesDelegate
@@ -24,7 +24,7 @@ class ProjectDependencies(
     private val sourceProjectLoader: SourceProjectLoader = SourceProjectLoaderImpl(files)
     private val sourceFileFinder: SourceFileFinder = SourceFileFinderImpl(files)
     private val generator: Generator = GeneratorImpl(xmlRenderer, baseDirectory, mavenXmlNode, sourceProjectLoader, sourceFileFinder)
-    private val createKeyStore:(Path)-> KeyValueStore = {path:Path -> JsonFileKeyValueStore(path, files) }
+    private val createKeyStore:(Path)-> KeyValueStore = {path:Path -> FixedPathJsonFileKeyValueStore(path, files) }
     private val environment: Environment = EnvironmentImpl(files, createKeyStore)
     val runner: ProjectRunner = ProjectRunner(generator, project, environment)
 }

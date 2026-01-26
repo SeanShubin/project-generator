@@ -19,8 +19,17 @@ data class Dynamic(val o: Any?) {
 
     fun set(path: List<Any?>, value: Any?): Dynamic {
         if (path.isEmpty()) return Dynamic(value)
-        return if (o is Map<*, *>) {
-            val key = path.first()
+        val key = path.first()
+        return if(key is Int) {
+            if (o is List<*>) {
+                val oldSubTree = Dynamic(o.getOrNull(key))
+                val newSubTree = oldSubTree.set(path.drop(1), value)
+                val newValue = updateArray(o, key, null, newSubTree.o)
+                Dynamic(newValue)
+            } else {
+                Dynamic(emptyList<Any?>()).set(path, value)
+            }
+        } else if (o is Map<*, *>) {
             val oldSubTree = Dynamic(o[key])
             val subPath = path.drop(1)
             val newSubTree = oldSubTree.set(subPath, value)

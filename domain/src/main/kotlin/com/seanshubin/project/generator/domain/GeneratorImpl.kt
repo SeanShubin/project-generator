@@ -5,7 +5,9 @@ import java.nio.file.Path
 class GeneratorImpl(
     private val xmlRenderer: XmlRenderer,
     private val baseDirectory: Path,
-    private val mavenXmlNode: MavenXmlNode
+    private val mavenXmlNode: MavenXmlNode,
+    private val sourceProjectLoader: SourceProjectLoader,
+    private val sourceFileFinder: SourceFileFinder
 ) : Generator {
     override fun generate(project: Project): List<Command> {
         val rootCommand = generateRootCommand(project)
@@ -13,7 +15,8 @@ class GeneratorImpl(
             generateModuleCommand(project, name, dependencies)
         }
         val codeStructureConfigCommands = generateCodeStructureConfigCommands(project)
-        return listOf(rootCommand) + moduleCommands + codeStructureConfigCommands
+        val sourceDependencyCommands = generateSourceDependencyCommands(project)
+        return listOf(rootCommand) + moduleCommands + codeStructureConfigCommands + sourceDependencyCommands
     }
 
     private fun generateRootCommand(project: Project): Command {
@@ -79,6 +82,60 @@ class GeneratorImpl(
     }
 
     private fun setJsonConfig(path:Path, value:Any, vararg keys:String) = SetJsonConfig(path, value, keys.toList())
+
+    private fun generateSourceDependencyCommands(project: Project): List<Command> {
+        val sourceDependency = project.sourceDependency ?: return emptyList()
+
+        // Load source project metadata to determine package structure
+        val sourceProject = sourceProjectLoader.loadProject(sourceDependency.sourceProjectPath)
+
+        // Build transformation map
+        val transformations = buildTransformations(
+            sourceProject,
+            project,
+            sourceDependency.moduleMapping
+        )
+
+        // Find all source files in mapped modules
+        val sourceFiles = sourceFileFinder.findSourceFiles(
+            sourceDependency.sourceProjectPath,
+            baseDirectory,
+            sourceProject,
+            project,
+            sourceDependency.moduleMapping,
+            project.language
+        )
+
+        // Generate copy commands for each source file
+        return sourceFiles.map { sourceFileInfo ->
+            CopyAndTransformSourceFile(
+                sourceFileInfo.sourcePath,
+                sourceFileInfo.targetPath,
+                transformations
+            )
+        }
+    }
+
+    private fun buildTransformations(
+        sourceProject: Project,
+        targetProject: Project,
+        moduleMapping: Map<String, String>
+    ): List<PackageTransformation> {
+        return moduleMapping.map { (sourceModule, targetModule) ->
+            val sourceModuleParts = parseModuleName(sourceModule)
+            val targetModuleParts = parseModuleName(targetModule)
+
+            val sourcePackage = sourceProject.prefix +
+                    sourceProject.name +
+                    sourceModuleParts
+
+            val targetPackage = targetProject.prefix +
+                    targetProject.name +
+                    targetModuleParts
+
+            PackageTransformation(sourcePackage, targetPackage)
+        }
+    }
 
     companion object {
         private const val SRC_DIR = "src"

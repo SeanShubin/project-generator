@@ -6,6 +6,7 @@ import com.seanshubin.project.generator.configuration.loadMapOrEmpty
 import com.seanshubin.project.generator.configuration.loadStringOrDefault
 import com.seanshubin.project.generator.contract.FilesContract
 import java.nio.file.Path
+import java.nio.file.Paths
 
 class KeyValueStoreRunner(
     private val keyValueStore: KeyValueStore,
@@ -33,6 +34,7 @@ class KeyValueStoreRunner(
         val modules: Map<String, List<String>> = loadMapOfListOfString(listOf("modules"), emptyMap())
         val javaVersion: String = keyValueStore.loadStringOrDefault(listOf("javaVersion"), "25")
         val entryPoints: Map<String, String> = loadEntryPoints()
+        val sourceDependency: SourceDependency? = loadSourceDependency()
         val project = Project(
             prefix,
             name,
@@ -45,7 +47,8 @@ class KeyValueStoreRunner(
             global,
             modules,
             javaVersion,
-            entryPoints
+            entryPoints,
+            sourceDependency
         )
         val runner = createRunner(project, baseDirectory)
         runner.run()
@@ -106,5 +109,33 @@ class KeyValueStoreRunner(
             val value = keyValueStore.load(subKey)
             value as String
         }
+    }
+
+    private fun loadSourceDependency(): SourceDependency? {
+        if (!keyValueStore.exists(listOf("sourceDependencies"))) return null
+
+        val sourceProjectPathString = keyValueStore.loadStringOrDefault(
+            listOf("sourceDependencies", "sourceProjectPath"),
+            ""
+        )
+        if (sourceProjectPathString.isEmpty()) return null
+
+        val moduleMapping = loadMapOfString(
+            listOf("sourceDependencies", "moduleMapping"),
+            emptyMap()
+        )
+
+        val sourceProjectPath = Paths.get(sourceProjectPathString)
+        return SourceDependency(sourceProjectPath, moduleMapping)
+    }
+
+    private fun loadMapOfString(
+        key: List<String>,
+        default: Map<String, String>
+    ): Map<String, String> {
+        val theObject = keyValueStore.loadMapOrEmpty(key)
+        if (theObject.isEmpty()) return default
+        return theObject.mapKeys { entry -> entry.key as String }
+            .mapValues { entry -> entry.value as String }
     }
 }

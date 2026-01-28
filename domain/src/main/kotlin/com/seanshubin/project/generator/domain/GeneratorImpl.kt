@@ -7,7 +7,8 @@ class GeneratorImpl(
     private val baseDirectory: Path,
     private val mavenXmlNode: MavenXmlNode,
     private val sourceProjectLoader: SourceProjectLoader,
-    private val sourceFileFinder: SourceFileFinder
+    private val sourceFileFinder: SourceFileFinder,
+    private val moduleMappingNotifications: ModuleMappingNotifications
 ) : Generator {
     override fun generate(project: Project): List<Command> {
         val rootCommand = generateRootCommand(project)
@@ -128,20 +129,20 @@ class GeneratorImpl(
         val sourceModules = sourceProject.modules.keys
         val unmappedSourceModules = moduleMapping.keys.filterNot { it in sourceModules }
         if (unmappedSourceModules.isNotEmpty()) {
-            System.err.println("Warning: Source modules not found in source project: $unmappedSourceModules")
+            moduleMappingNotifications.sourceModulesNotFound(unmappedSourceModules)
         }
 
         // Validate that target modules exist in target project
         val targetModules = targetProject.modules.keys
         val unmappedTargetModules = moduleMapping.values.filterNot { it in targetModules }
         if (unmappedTargetModules.isNotEmpty()) {
-            System.err.println("Warning: Target modules not found in target project: $unmappedTargetModules")
+            moduleMappingNotifications.targetModulesNotFound(unmappedTargetModules)
         }
 
         // Check for duplicate target modules (multiple source modules mapping to same target)
         val duplicateTargets = moduleMapping.values.groupingBy { it }.eachCount().filter { it.value > 1 }
         if (duplicateTargets.isNotEmpty()) {
-            System.err.println("Warning: Multiple source modules mapping to same target module: ${duplicateTargets.keys}")
+            moduleMappingNotifications.duplicateTargetModules(duplicateTargets.keys)
         }
     }
 

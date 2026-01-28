@@ -29,7 +29,7 @@ data class CopyAndTransformSourceFile(
     override fun execute(environment: Environment) {
         try {
             if (!environment.files.exists(sourcePath)) {
-                System.err.println("Error: Source file not found: $sourcePath")
+                environment.sourceFileNotifications.sourceFileNotFound(sourcePath)
                 return
             }
 
@@ -42,7 +42,7 @@ data class CopyAndTransformSourceFile(
             }
             environment.files.write(targetPath, transformedLines)
         } catch (e: Exception) {
-            System.err.println("Error copying and transforming file from $sourcePath to $targetPath: ${e.message}")
+            environment.sourceFileNotifications.fileTransformationError(sourcePath, targetPath, e.message ?: "Unknown error")
             throw e
         }
     }

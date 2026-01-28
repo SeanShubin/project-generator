@@ -6,5 +6,6 @@ import java.nio.file.Path
 
 class EnvironmentImpl(
     override val files: FilesContract,
-    override val createKeyStore: (Path) -> KeyValueStore
+    override val createKeyStore: (Path) -> KeyValueStore,
+    override val sourceFileNotifications: SourceFileNotifications
 ) : Environment

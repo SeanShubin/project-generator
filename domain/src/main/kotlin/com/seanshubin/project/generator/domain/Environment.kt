@@ -7,4 +7,5 @@ import java.nio.file.Path
 interface Environment {
     val files: FilesContract
     val createKeyStore: (Path)-> KeyValueStore
+    val sourceFileNotifications: SourceFileNotifications
 }

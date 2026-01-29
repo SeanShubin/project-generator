@@ -1,6 +1,7 @@
 package com.seanshubin.project.generator.domain
 
 import com.seanshubin.project.generator.configuration.KeyValueStore
+import com.seanshubin.project.generator.configuration.loadBooleanOrDefault
 import com.seanshubin.project.generator.configuration.loadListOrEmpty
 import com.seanshubin.project.generator.configuration.loadMapOrEmpty
 import com.seanshubin.project.generator.configuration.loadStringOrDefault
@@ -35,6 +36,8 @@ class KeyValueStoreRunner(
         val javaVersion: String = keyValueStore.loadStringOrDefault(listOf("javaVersion"), "25")
         val entryPoints: Map<String, String> = loadEntryPoints()
         val sourceDependency: SourceDependency? = loadSourceDependency()
+        val mavenPlugin: List<String> = loadStringArray(listOf("mavenPlugin"), emptyList())
+        val deployableToMavenCentral: Boolean = keyValueStore.loadBooleanOrDefault(listOf("deployableToMavenCentral"), false)
         val project = Project(
             prefix,
             name,
@@ -48,7 +51,9 @@ class KeyValueStoreRunner(
             modules,
             javaVersion,
             entryPoints,
-            sourceDependency
+            sourceDependency,
+            mavenPlugin,
+            deployableToMavenCentral
         )
         val runner = createRunner(project, baseDirectory)
         runner.run()

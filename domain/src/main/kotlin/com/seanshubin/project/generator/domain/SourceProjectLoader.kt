@@ -2,6 +2,7 @@ package com.seanshubin.project.generator.domain
 
 import com.seanshubin.project.generator.configuration.FixedPathJsonFileKeyValueStore
 import com.seanshubin.project.generator.configuration.KeyValueStore
+import com.seanshubin.project.generator.configuration.loadBooleanOrDefault
 import com.seanshubin.project.generator.configuration.loadListOrEmpty
 import com.seanshubin.project.generator.configuration.loadMapOrEmpty
 import com.seanshubin.project.generator.configuration.loadStringOrDefault
@@ -65,6 +66,8 @@ class SourceProjectLoaderImpl(
         val modules = loadMapOfListOfString(keyStore, listOf("modules"), emptyMap())
         val javaVersion = keyStore.loadStringOrDefault(listOf("javaVersion"), "25")
         val entryPoints = loadMapOfString(keyStore, listOf("entryPoints"), emptyMap())
+        val mavenPlugin = loadStringArray(keyStore, listOf("mavenPlugin"), emptyList())
+        val deployableToMavenCentral = keyStore.loadBooleanOrDefault(listOf("deployableToMavenCentral"), false)
 
         return Project(
             prefix,
@@ -79,7 +82,9 @@ class SourceProjectLoaderImpl(
             modules,
             javaVersion,
             entryPoints,
-            null  // Source project itself doesn't have source dependencies
+            null,  // Source project itself doesn't have source dependencies
+            mavenPlugin,
+            deployableToMavenCentral
         )
     }
 

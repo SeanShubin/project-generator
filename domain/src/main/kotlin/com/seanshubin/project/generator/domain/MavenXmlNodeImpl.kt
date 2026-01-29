@@ -36,7 +36,7 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
             scope = null
         )
         val dependencyNodes = projectDependency.toDependencyChildNodes(includeVersion = true, includeScope = true)
-        return dependencyNodes + listOf(
+        val baseNodes = dependencyNodes + listOf(
             simpleElement("packaging", "pom"),
             globalDependencies(project),
             dependencyManagement(project),
@@ -44,6 +44,19 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
             properties(),
             build(project)
         )
+
+        return if (project.deployableToMavenCentral) {
+            baseNodes + listOf(
+                simpleElement("name", "\${project.groupId}:\${project.artifactId}"),
+                description(project),
+                url(project),
+                licenses(),
+                developers(project),
+                scm(project)
+            )
+        } else {
+            baseNodes
+        }
     }
 
     private fun build(project: Project): XmlNode {
@@ -67,12 +80,23 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
     }
 
     private fun plugins(project: Project): XmlNode {
-        val pluginsNodeChildren = listOf(
+        val basePlugins = listOf(
             compilerPlugin(project),
             sourcePlugin(project),
             languagePlugin(project),
             codeStructurePlugin(project)
         )
+
+        val pluginsNodeChildren = if (project.deployableToMavenCentral) {
+            basePlugins + listOf(
+                centralPublishingPlugin(project),
+                gpgPlugin(project),
+                javadocPlugin(project)
+            )
+        } else {
+            basePlugins
+        }
+
         val pluginsNode = element("plugins", pluginsNodeChildren)
         return pluginsNode
     }
@@ -91,6 +115,40 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         val goals = listOf("code-structure")
         val configEntries = mapOf("configBaseName" to "code-structure")
         return createPluginWithGoalsAndConfig(groupId, artifactId, version, goals, configEntries)
+    }
+
+    private fun centralPublishingPlugin(project: Project): XmlNode {
+        val dependency = lookup(project, "org.sonatype.central", "central-publishing-maven-plugin", scope = null)
+        val coordinates = dependency.toDependencyChildNodes(includeVersion = true, includeScope = false)
+
+        val extensionsNode = simpleElement("extensions", "true")
+        val configuration = createConfigurationFromEntries(mapOf("publishingServerId" to "central"))
+
+        return element("plugin", coordinates + listOf(extensionsNode, configuration))
+    }
+
+    private fun gpgPlugin(project: Project): XmlNode {
+        val dependency = lookup(project, "org.apache.maven.plugins", "maven-gpg-plugin", scope = null)
+        val coordinates = dependency.toDependencyChildNodes(includeVersion = true, includeScope = false)
+
+        val execution = createExecutionWithIdPhaseAndGoals("sign-artifacts", "verify", listOf("sign"))
+        val executions = element("executions", listOf(execution))
+
+        return element("plugin", coordinates + listOf(executions))
+    }
+
+    private fun javadocPlugin(project: Project): XmlNode {
+        val dependency = lookup(project, "org.apache.maven.plugins", "maven-javadoc-plugin", scope = null)
+        val coordinates = dependency.toDependencyChildNodes(includeVersion = true, includeScope = false)
+
+        val execution = createExecutionWithIdPhaseAndGoals(
+            "generate-dummy-javadoc-per-maven-central-requirements",
+            "package",
+            listOf("jar")
+        )
+        val executions = element("executions", listOf(execution))
+
+        return element("plugin", coordinates + listOf(executions))
     }
 
     private fun createPluginWithGoalsAndConfig(
@@ -194,10 +252,44 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         return element("configuration", listOf(descriptorRefs, archive))
     }
 
+    private fun mavenPluginPlugin(project: Project): XmlNode {
+        val dependency = lookup(project, "org.apache.maven.plugins", "maven-plugin-plugin", scope = null)
+        val coordinates = dependency.toDependencyChildNodes(includeVersion = true, includeScope = false)
+
+        // Goal prefix derived from project name
+        val goalPrefix = project.name.joinToString("-")
+        val configuration = createConfigurationFromEntries(mapOf("goalPrefix" to goalPrefix))
+
+        // Two executions: default-descriptor and help-descriptor
+        val descriptorExecution = createExecutionWithIdPhaseAndGoals(
+            "default-descriptor",
+            "process-classes",
+            listOf("descriptor")
+        )
+        val helpExecution = createExecutionWithIdPhaseAndGoals(
+            "help-descriptor",
+            "process-classes",
+            listOf("helpmojo")
+        )
+        val executions = element("executions", listOf(descriptorExecution, helpExecution))
+
+        return element("plugin", coordinates + listOf(configuration, executions))
+    }
+
     private fun moduleBuild(project: Project, moduleName: String): XmlNode? {
         val entryPoint = project.entryPoints[moduleName]
-        return if (entryPoint != null) {
-            val pluginsNode = element("plugins", listOf(assemblyPlugin(project, entryPoint)))
+        val isMavenPlugin = moduleName in project.mavenPlugin
+
+        return if (entryPoint != null || isMavenPlugin) {
+            val plugins = buildList {
+                if (entryPoint != null) {
+                    add(assemblyPlugin(project, entryPoint))
+                }
+                if (isMavenPlugin) {
+                    add(mavenPluginPlugin(project))
+                }
+            }
+            val pluginsNode = element("plugins", plugins)
             element("build", listOf(pluginsNode))
         } else {
             null
@@ -209,6 +301,48 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         val propertiesNodeChildren = listOf(sourceEncoding)
         val propertiesNode = element("properties", propertiesNodeChildren)
         return propertiesNode
+    }
+
+    private fun description(project: Project): XmlNode {
+        return simpleElement("description", project.description)
+    }
+
+    private fun url(project: Project): XmlNode {
+        val githubUrl = "https://github.com/${project.developer.githubName}/${project.name.joinToString("-")}"
+        return simpleElement("url", githubUrl)
+    }
+
+    private fun licenses(): XmlNode {
+        val licenseChildren = listOf(
+            simpleElement("name", "Unlicense"),
+            simpleElement("url", "http://unlicense.org/")
+        )
+        val licenseNode = element("license", licenseChildren)
+        return element("licenses", listOf(licenseNode))
+    }
+
+    private fun developers(project: Project): XmlNode {
+        val developerChildren = listOf(
+            simpleElement("name", project.developer.name),
+            simpleElement("organization", project.developer.organization),
+            simpleElement("organizationUrl", project.developer.url)
+        )
+        val developerNode = element("developer", developerChildren)
+        return element("developers", listOf(developerNode))
+    }
+
+    private fun scm(project: Project): XmlNode {
+        val repoName = project.name.joinToString("-")
+        val githubName = project.developer.githubName
+        val connection = "git@github.com:$githubName/$repoName.git"
+        val url = "https://github.com/$githubName/$repoName"
+
+        val scmChildren = listOf(
+            simpleElement("connection", connection),
+            simpleElement("developerConnection", connection),
+            simpleElement("url", url)
+        )
+        return element("scm", scmChildren)
     }
 
     private fun modules(project: Project): XmlNode {
@@ -261,9 +395,18 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         val parentNode = element("parent", parentNodeChildren)
         val nameNode = simpleElement("name", "\${project.groupId}:\${project.artifactId}")
         val buildNode = moduleBuild(project, moduleName)
+
+        // Add packaging element if this is a Maven plugin module
+        val packagingNode = if (moduleName in project.mavenPlugin) {
+            simpleElement("packaging", "maven-plugin")
+        } else {
+            null
+        }
+
         val baseNodes = listOfNotNull(
             simpleElement("modelVersion", "4.0.0"),
             simpleElement("artifactId", artifactId(project, moduleName)),
+            packagingNode,  // Inserted after artifactId if present
             moduleDependencies(project, moduleName),
             parentNode,
             nameNode

@@ -4,6 +4,11 @@ fun KeyValueStore.loadStringOrDefault(key: List<String>, default: String): Strin
     return loadOrCreateDefault(key, default) as String
 }
 
+fun KeyValueStore.loadBooleanOrDefault(key: List<String>, default: Boolean): Boolean {
+    val value = load(key) ?: return default
+    return value as Boolean
+}
+
 fun KeyValueStore.loadMapOrEmpty(key: List<String>): Map<*, *> {
     return if (exists(key)) {
         load(key) as Map<*, *>

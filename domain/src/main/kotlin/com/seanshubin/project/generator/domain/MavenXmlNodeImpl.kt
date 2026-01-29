@@ -261,7 +261,7 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         val parentNode = element("parent", parentNodeChildren)
         val nameNode = simpleElement("name", "\${project.groupId}:\${project.artifactId}")
         val buildNode = moduleBuild(project, moduleName)
-        val baseNodes = listOf(
+        val baseNodes = listOfNotNull(
             simpleElement("modelVersion", "4.0.0"),
             simpleElement("artifactId", artifactId(project, moduleName)),
             moduleDependencies(project, moduleName),
@@ -275,7 +275,7 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         }
     }
 
-    private fun moduleDependencies(project: Project, moduleName: String): XmlNode {
+    private fun moduleDependencies(project: Project, moduleName: String): XmlNode? {
         val moduleDependenciesNodeChildren = project.modules.getValue(moduleName).map { dependencyName ->
             val dependencyType = getDependencyType(project, dependencyName)
             when (dependencyType) {
@@ -283,8 +283,11 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
                 DependencyType.EXTERNAL -> externalDependency(project, dependencyName)
             }
         }
-        val moduleDependenciesNode = element("dependencies", moduleDependenciesNodeChildren)
-        return moduleDependenciesNode
+        return if (moduleDependenciesNodeChildren.isEmpty()) {
+            null
+        } else {
+            element("dependencies", moduleDependenciesNodeChildren)
+        }
     }
 
     private fun element(name: String, children: List<XmlNode>): XmlNode.Element {

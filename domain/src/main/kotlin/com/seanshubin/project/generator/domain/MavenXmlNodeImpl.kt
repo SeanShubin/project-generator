@@ -52,7 +52,8 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
                 url(project),
                 licenses(),
                 developers(project),
-                scm(project)
+                scm(project),
+                profiles(project)
             )
         } else {
             baseNodes
@@ -89,9 +90,7 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
 
         val pluginsNodeChildren = if (project.deployableToMavenCentral) {
             basePlugins + listOf(
-                centralPublishingPlugin(project),
-                gpgPlugin(project),
-                javadocPlugin(project)
+                centralPublishingPlugin(project)
             )
         } else {
             basePlugins
@@ -113,8 +112,9 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         val artifactId = "code-structure-maven"
         val version = versionLookup.latestProductionVersion(groupId, artifactId)
         val goals = listOf("code-structure")
+        val phase = "verify"
         val configEntries = mapOf("configBaseName" to "code-structure")
-        return createPluginWithGoalsAndConfig(groupId, artifactId, version, goals, configEntries)
+        return createPluginWithGoalsPhaseAndConfig(groupId, artifactId, version, goals, phase, configEntries)
     }
 
     private fun centralPublishingPlugin(project: Project): XmlNode {
@@ -179,6 +179,28 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         return element("executions", listOf(executionNode))
     }
 
+    private fun createPluginWithGoalsPhaseAndConfig(
+        groupId: String,
+        artifactId: String,
+        version: String,
+        goals: List<String>,
+        phase: String,
+        configEntries: Map<String, String>
+    ): XmlNode {
+        val coordinates = createPluginCoordinates(groupId, artifactId, version)
+        val execution = createExecutionWithGoals(goals, phase)
+        val executions = element("executions", listOf(execution))
+        val configuration = createConfigurationFromEntries(configEntries)
+        return element("plugin", coordinates + listOf(executions, configuration))
+    }
+
+    private fun createExecutionWithGoals(goals: List<String>, phase: String): XmlNode {
+        val goalNodes = goals.map { goal -> simpleElement("goal", goal) }
+        val goalsNode = element("goals", goalNodes)
+        val phaseNode = simpleElement("phase", phase)
+        return element("execution", listOf(goalsNode, phaseNode))
+    }
+
     private fun createConfigurationFromEntries(entries: Map<String, String>): XmlNode {
         val configNodes = entries.map { (key, value) -> simpleElement(key, value) }
         return element("configuration", configNodes)
@@ -231,10 +253,10 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         return element("plugin", coordinates + listOf(configuration))
     }
 
-    private fun assemblyPlugin(project: Project, entryPoint: String): XmlNode {
+    private fun assemblyPlugin(project: Project, moduleName: String, entryPoint: String): XmlNode {
         val dependency = lookup(project, ASSEMBLY_PLUGIN_GROUP, ASSEMBLY_PLUGIN_ARTIFACT, scope = null)
         val coordinates = dependency.toDependencyChildNodes(includeVersion = true, includeScope = false)
-        val configuration = createAssemblyConfiguration(entryPoint)
+        val configuration = createAssemblyConfiguration(project, moduleName, entryPoint)
         val execution = createExecutionWithIdPhaseAndGoals(
             ASSEMBLY_EXECUTION_ID,
             ASSEMBLY_PHASE_PACKAGE,
@@ -244,12 +266,15 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         return element("plugin", coordinates + listOf(configuration, executions))
     }
 
-    private fun createAssemblyConfiguration(entryPoint: String): XmlNode {
+    private fun createAssemblyConfiguration(project: Project, moduleName: String, entryPoint: String): XmlNode {
+        val finalName = artifactId(project, moduleName)
+        val appendAssemblyId = simpleElement("appendAssemblyId", "false")
+        val finalNameNode = simpleElement("finalName", finalName)
         val manifest = element("manifest", listOf(simpleElement("mainClass", entryPoint)))
         val archive = element("archive", listOf(manifest))
         val descriptorRef = simpleElement("descriptorRef", ASSEMBLY_DESCRIPTOR_JAR_WITH_DEPENDENCIES)
         val descriptorRefs = element("descriptorRefs", listOf(descriptorRef))
-        return element("configuration", listOf(descriptorRefs, archive))
+        return element("configuration", listOf(finalNameNode, appendAssemblyId, descriptorRefs, archive))
     }
 
     private fun mavenPluginPlugin(project: Project): XmlNode {
@@ -283,7 +308,7 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         return if (entryPoint != null || isMavenPlugin) {
             val plugins = buildList {
                 if (entryPoint != null) {
-                    add(assemblyPlugin(project, entryPoint))
+                    add(assemblyPlugin(project, moduleName, entryPoint))
                 }
                 if (isMavenPlugin) {
                     add(mavenPluginPlugin(project))
@@ -343,6 +368,20 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
             simpleElement("url", url)
         )
         return element("scm", scmChildren)
+    }
+
+    private fun profiles(project: Project): XmlNode {
+        val stagePlugins = listOf(
+            gpgPlugin(project),
+            javadocPlugin(project)
+        )
+        val pluginsNode = element("plugins", stagePlugins)
+        val buildNode = element("build", listOf(pluginsNode))
+        val profile = element("profile", listOf(
+            simpleElement("id", "stage"),
+            buildNode
+        ))
+        return element("profiles", listOf(profile))
     }
 
     private fun modules(project: Project): XmlNode {
@@ -419,13 +458,22 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
     }
 
     private fun moduleDependencies(project: Project, moduleName: String): XmlNode? {
-        val moduleDependenciesNodeChildren = project.modules.getValue(moduleName).map { dependencyName ->
-            val dependencyType = getDependencyType(project, dependencyName)
-            when (dependencyType) {
-                DependencyType.INTERNAL -> internalDependency(project, dependencyName)
-                DependencyType.EXTERNAL -> externalDependency(project, dependencyName)
-            }
+        val dependencies = project.modules.getValue(moduleName)
+
+        // Partition into internal and external
+        val (internal, external) = dependencies.partition { dependencyName ->
+            getDependencyType(project, dependencyName) == DependencyType.INTERNAL
         }
+
+        // Process internal first, then external
+        val internalNodes = internal.map { dependencyName ->
+            internalDependency(project, dependencyName)
+        }
+        val externalNodes = external.map { dependencyName ->
+            externalDependency(project, dependencyName)
+        }
+        val moduleDependenciesNodeChildren = internalNodes + externalNodes
+
         return if (moduleDependenciesNodeChildren.isEmpty()) {
             null
         } else {

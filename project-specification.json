@@ -47,17 +47,36 @@
       "domain"
     ],
     "domain": [
-      "configuration"
+      "dynamic-json",
+      "di-contract"
     ],
-    "configuration": [
+    "dynamic-core": [],
+    "dynamic-json": [
+      "dynamic-core",
+      "di-delegate",
       "jackson",
-      "jackson-time",
-      "contract"
+      "jackson-time"
     ],
-    "contract": []
+    "di-contract": [],
+    "di-delegate": [
+      "di-contract"
+    ],
+    "di-test": [
+      "di-contract"
+    ]
   },
   "javaVersion": "25",
   "entryPoints": {
     "console": "com.seanshubin.project.generator.console.EntryPoint"
+  },
+  "sourceDependencies": {
+    "sourceProjectPath": "/Users/seashubi/github.com/SeanShubin/kotlin-reusable",
+    "moduleMapping": {
+      "dynamic-core": "dynamic-core",
+      "dynamic-json": "dynamic-json",
+      "di-contract": "di-contract",
+      "di-delegate": "di-delegate",
+      "di-test": "di-test"
+    }
   }
 }

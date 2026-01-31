@@ -1,12 +1,8 @@
 package com.seanshubin.project.generator.domain
 
-import com.seanshubin.project.generator.configuration.FixedPathJsonFileKeyValueStore
-import com.seanshubin.project.generator.configuration.KeyValueStore
-import com.seanshubin.project.generator.configuration.loadBooleanOrDefault
-import com.seanshubin.project.generator.configuration.loadListOrEmpty
-import com.seanshubin.project.generator.configuration.loadMapOrEmpty
-import com.seanshubin.project.generator.configuration.loadStringOrDefault
-import com.seanshubin.project.generator.contract.FilesContract
+import com.seanshubin.project.generator.dynamic.json.JsonFileKeyValueStore
+import com.seanshubin.project.generator.dynamic.core.KeyValueStore
+import com.seanshubin.project.generator.di.contract.FilesContract
 import java.nio.file.Path
 
 /**
@@ -44,7 +40,7 @@ class SourceProjectLoaderImpl(
             throw IllegalArgumentException("Source project specification file not found: $specPath")
         }
 
-        val keyStore = FixedPathJsonFileKeyValueStore(specPath, files)
+        val keyStore = JsonFileKeyValueStore(files, specPath)
 
         // Load all project fields using same logic as KeyValueStoreRunner
         val prefix = loadStringArray(keyStore, listOf("prefix"), listOf("prefix", "parts"))

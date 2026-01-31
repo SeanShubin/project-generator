@@ -5,7 +5,12 @@
     <dependencies>
         <dependency>
             <groupId>com.seanshubin.project.generator</groupId>
-            <artifactId>project-generator-configuration</artifactId>
+            <artifactId>project-generator-dynamic-json</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.seanshubin.project.generator</groupId>
+            <artifactId>project-generator-di-contract</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

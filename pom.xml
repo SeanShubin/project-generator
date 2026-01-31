@@ -43,8 +43,11 @@
     <modules>
         <module>console</module>
         <module>domain</module>
-        <module>configuration</module>
-        <module>contract</module>
+        <module>dynamic-core</module>
+        <module>dynamic-json</module>
+        <module>di-contract</module>
+        <module>di-delegate</module>
+        <module>di-test</module>
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

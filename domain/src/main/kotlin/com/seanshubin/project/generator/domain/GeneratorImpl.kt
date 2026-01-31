@@ -106,8 +106,7 @@ class GeneratorImpl(
             baseDirectory,
             sourceProject,
             project,
-            sourceDependency.moduleMapping,
-            project.language
+            sourceDependency.moduleMapping
         )
 
         // Generate copy commands for each source file

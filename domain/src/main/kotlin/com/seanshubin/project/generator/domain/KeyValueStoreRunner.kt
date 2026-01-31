@@ -1,11 +1,7 @@
 package com.seanshubin.project.generator.domain
 
-import com.seanshubin.project.generator.configuration.KeyValueStore
-import com.seanshubin.project.generator.configuration.loadBooleanOrDefault
-import com.seanshubin.project.generator.configuration.loadListOrEmpty
-import com.seanshubin.project.generator.configuration.loadMapOrEmpty
-import com.seanshubin.project.generator.configuration.loadStringOrDefault
-import com.seanshubin.project.generator.contract.FilesContract
+import com.seanshubin.project.generator.dynamic.core.KeyValueStore
+import com.seanshubin.project.generator.di.contract.FilesContract
 import java.nio.file.Path
 import java.nio.file.Paths
 

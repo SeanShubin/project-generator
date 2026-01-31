@@ -74,11 +74,11 @@ class GeneratorImpl(
             setJsonConfig(path, false, "useObservationsCache"),
             setJsonConfig(path, false, "includeJvmDynamicInvocations"),
             setJsonConfig(path, "https://github.com/$githubDeveloperName/$githubRepoName/blob/master/", "sourcePrefix"),
-            setJsonConfig(path, listOf(".*/src/main/kotlin/.*\\.kt"), "sourceFileRegexPatterns", "include"),
+            setJsonConfig(path, listOf(".*/src/main/(kotlin|java)/.*\\.(kt|java)"), "sourceFileRegexPatterns", "include"),
             setJsonConfig(path, emptyList<String>(), "sourceFileRegexPatterns", "exclude"),
             setJsonConfig(path, 100, "nodeLimitForGraph"),
             setJsonConfig(path, listOf(".*/target/.*\\.class"), "binaryFileRegexPatterns", "include"),
-            setJsonConfig(path, emptyList<String>(), "binaryFileRegexPatterns", "exclude")
+            setJsonConfig(path, listOf(".*/testdata/.*", ".*/generated/.*"), "binaryFileRegexPatterns", "exclude")
         )
     }
 

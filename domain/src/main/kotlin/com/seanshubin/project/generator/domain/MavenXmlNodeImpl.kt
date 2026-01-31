@@ -111,10 +111,15 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         val groupId = "com.seanshubin.code.structure"
         val artifactId = "code-structure-maven"
         val version = versionLookup.latestProductionVersion(groupId, artifactId)
-        val goals = listOf("code-structure")
+        val coordinates = createPluginCoordinates(groupId, artifactId, version)
+        val inherited = simpleElement("inherited", "false")
+        val goals = listOf("analyze")
         val phase = "verify"
+        val execution = createExecutionWithGoals(goals, phase)
+        val executions = element("executions", listOf(execution))
         val configEntries = mapOf("configBaseName" to "code-structure")
-        return createPluginWithGoalsPhaseAndConfig(groupId, artifactId, version, goals, phase, configEntries)
+        val configuration = createConfigurationFromEntries(configEntries)
+        return element("plugin", coordinates + listOf(inherited, executions, configuration))
     }
 
     private fun centralPublishingPlugin(project: Project): XmlNode {

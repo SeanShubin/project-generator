@@ -102,12 +102,14 @@
             <plugin>
                 <groupId>com.seanshubin.code.structure</groupId>
                 <artifactId>code-structure-maven</artifactId>
-                <version>1.0.3</version>
+                <version>1.1.0</version>
+                <inherited>false</inherited>
                 <executions>
                     <execution>
                         <goals>
-                            <goal>code-structure</goal>
+                            <goal>analyze</goal>
                         </goals>
+                        <phase>verify</phase>
                     </execution>
                 </executions>
                 <configuration>

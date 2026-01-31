@@ -1,5 +1,13 @@
 package com.seanshubin.project.generator.dynamic.core
 
+//
+// This file was imported from: /Users/seashubi/github.com/SeanShubin/kotlin-reusable
+// Module: dynamic-core
+//
+// Before editing this file, consider whether updating the source project
+// and re-importing would be a better approach.
+//
+
 class KeyValueStoreWithDocumentationDelegate(
     private val keyValueStore: KeyValueStore,
     private val documentationKeyValueStore: KeyValueStore

@@ -8,6 +8,14 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
 
+//
+// This file was imported from: /Users/seashubi/github.com/SeanShubin/kotlin-reusable
+// Module: dynamic-json
+//
+// Before editing this file, consider whether updating the source project
+// and re-importing would be a better approach.
+//
+
 object JsonMappers {
     private val kotlinModule = KotlinModule.Builder().build()
     val pretty: ObjectMapper = JsonMapper.builder()

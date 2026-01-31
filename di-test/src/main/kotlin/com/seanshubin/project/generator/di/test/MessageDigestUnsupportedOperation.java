@@ -6,6 +6,14 @@ import java.nio.ByteBuffer;
 import java.security.DigestException;
 import java.security.Provider;
 
+//
+// This file was imported from: /Users/seashubi/github.com/SeanShubin/kotlin-reusable
+// Module: di-test
+//
+// Before editing this file, consider whether updating the source project
+// and re-importing would be a better approach.
+//
+
 public class MessageDigestUnsupportedOperation implements MessageDigestContract {
     @Override
     public Provider getProvider() {

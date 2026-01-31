@@ -114,7 +114,9 @@ class GeneratorImpl(
             CopyAndTransformSourceFile(
                 sourceFileInfo.sourcePath,
                 sourceFileInfo.targetPath,
-                transformations
+                transformations,
+                sourceDependency.sourceProjectPath,
+                sourceFileInfo.sourceModule
             )
         }
     }

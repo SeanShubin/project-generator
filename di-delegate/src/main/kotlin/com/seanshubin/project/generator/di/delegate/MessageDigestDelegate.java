@@ -7,6 +7,14 @@ import java.security.DigestException;
 import java.security.MessageDigest;
 import java.security.Provider;
 
+//
+// This file was imported from: /Users/seashubi/github.com/SeanShubin/kotlin-reusable
+// Module: di-delegate
+//
+// Before editing this file, consider whether updating the source project
+// and re-importing would be a better approach.
+//
+
 public class MessageDigestDelegate implements MessageDigestContract {
     private final MessageDigest delegate;
 

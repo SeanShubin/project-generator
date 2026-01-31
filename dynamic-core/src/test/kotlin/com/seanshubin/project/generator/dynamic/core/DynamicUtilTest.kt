@@ -5,6 +5,14 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
+//
+// This file was imported from: /Users/seashubi/github.com/SeanShubin/kotlin-reusable
+// Module: dynamic-core
+//
+// Before editing this file, consider whether updating the source project
+// and re-importing would be a better approach.
+//
+
 class DynamicUtilTest {
     @Test
     fun simpleOperations() {

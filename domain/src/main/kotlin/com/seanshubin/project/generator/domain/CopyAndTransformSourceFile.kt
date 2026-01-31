@@ -14,7 +14,8 @@ import java.nio.file.Path
  *    - Wildcard imports: Preserves wildcards (e.g., "import com.old.f.*" → "import com.new.j.*")
  *    - External imports: Left unchanged (imports from packages not in the transformation list)
  *    - All other code: Copied as-is
- * 3. Writes the transformed content to the target path
+ * 3. Inserts a comment after imports indicating the source of the file
+ * 4. Writes the transformed content to the target path
  *
  * Example transformation with ["com", "old", "project", "f"] → ["com", "new", "project", "j"]:
  * - "package com.old.project.f.util" → "package com.new.project.j.util"
@@ -24,7 +25,9 @@ import java.nio.file.Path
 data class CopyAndTransformSourceFile(
     val sourcePath: Path,
     val targetPath: Path,
-    val transformations: List<PackageTransformation>
+    val transformations: List<PackageTransformation>,
+    val sourceProjectPath: Path,
+    val sourceModule: String
 ) : Command {
     override fun execute(environment: Environment) {
         try {
@@ -48,7 +51,52 @@ data class CopyAndTransformSourceFile(
     }
 
     private fun transformLines(lines: List<String>): List<String> {
-        return lines.map { line -> transformLine(line) }
+        val transformedLines = lines.map { line -> transformLine(line) }
+        return insertSourceComment(transformedLines)
+    }
+
+    private fun insertSourceComment(lines: List<String>): List<String> {
+        // Find the index after the last import statement
+        var lastImportIndex = -1
+        for (i in lines.indices) {
+            val trimmed = lines[i].trim()
+            if (trimmed.startsWith("import ")) {
+                lastImportIndex = i
+            }
+        }
+
+        // If no imports found, try to find package declaration
+        if (lastImportIndex == -1) {
+            for (i in lines.indices) {
+                val trimmed = lines[i].trim()
+                if (trimmed.startsWith("package ")) {
+                    lastImportIndex = i
+                    break
+                }
+            }
+        }
+
+        // If still not found, insert at the beginning
+        val insertionIndex = if (lastImportIndex >= 0) lastImportIndex + 1 else 0
+
+        val comment = buildList {
+            add("")
+            add("//")
+            add("// This file was imported from: $sourceProjectPath")
+            add("// Module: $sourceModule")
+            add("//")
+            add("// Before editing this file, consider whether updating the source project")
+            add("// and re-importing would be a better approach.")
+            add("//")
+        }
+
+        return buildList {
+            addAll(lines.subList(0, insertionIndex))
+            addAll(comment)
+            if (insertionIndex < lines.size) {
+                addAll(lines.subList(insertionIndex, lines.size))
+            }
+        }
     }
 
     private fun transformLine(line: String): String {

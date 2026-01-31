@@ -1,5 +1,13 @@
 package com.seanshubin.project.generator.dynamic.core
 
+//
+// This file was imported from: /Users/seashubi/github.com/SeanShubin/kotlin-reusable
+// Module: dynamic-core
+//
+// Before editing this file, consider whether updating the source project
+// and re-importing would be a better approach.
+//
+
 data class Dynamic(val o: Any?) {
     fun get(path: List<Any?>): Dynamic {
         if (path.isEmpty()) return this

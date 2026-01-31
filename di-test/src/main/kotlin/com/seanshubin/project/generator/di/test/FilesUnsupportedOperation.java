@@ -16,6 +16,14 @@ import java.util.Set;
 import java.util.function.BiPredicate;
 import java.util.stream.Stream;
 
+//
+// This file was imported from: /Users/seashubi/github.com/SeanShubin/kotlin-reusable
+// Module: di-test
+//
+// Before editing this file, consider whether updating the source project
+// and re-importing would be a better approach.
+//
+
 public class FilesUnsupportedOperation implements FilesContract {
     @Override
     public InputStream newInputStream(Path path, OpenOption... options) {

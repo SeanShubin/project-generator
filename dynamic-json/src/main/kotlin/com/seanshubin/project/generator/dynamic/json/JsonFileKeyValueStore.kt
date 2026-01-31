@@ -8,6 +8,14 @@ import com.seanshubin.project.generator.dynamic.core.KeyValueStore
 import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 
+//
+// This file was imported from: /Users/seashubi/github.com/SeanShubin/kotlin-reusable
+// Module: dynamic-json
+//
+// Before editing this file, consider whether updating the source project
+// and re-importing would be a better approach.
+//
+
 class JsonFileKeyValueStore(val files: FilesContract, val path: Path) : KeyValueStore {
     override fun load(key: List<Any>): Any? {
         assertKeyValid(key)

@@ -9,4 +9,5 @@ interface Environment {
     val files: FilesContract
     val createKeyStore: (Path)-> KeyValueStore
     val sourceFileNotifications: SourceFileNotifications
+    val fileOperationNotifications: FileOperationNotifications
 }

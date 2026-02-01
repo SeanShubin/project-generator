@@ -44,7 +44,20 @@ data class CopyAndTransformSourceFile(
             if (parent != null) {
                 environment.files.createDirectories(parent)
             }
-            environment.files.write(targetPath, transformedLines)
+
+            val existed = environment.files.exists(targetPath)
+            if (existed) {
+                val existingLines = environment.files.readAllLines(targetPath)
+                if (existingLines == transformedLines) {
+                    environment.fileOperationNotifications.fileUnchanged(targetPath)
+                    return
+                }
+                environment.files.write(targetPath, transformedLines)
+                environment.fileOperationNotifications.fileModified(targetPath)
+            } else {
+                environment.files.write(targetPath, transformedLines)
+                environment.fileOperationNotifications.fileCreated(targetPath)
+            }
         } catch (e: Exception) {
             environment.sourceFileNotifications.fileTransformationError(sourcePath, targetPath, e.message ?: "Unknown error")
             throw e

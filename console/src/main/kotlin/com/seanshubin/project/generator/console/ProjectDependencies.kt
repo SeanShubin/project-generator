@@ -2,6 +2,8 @@ package com.seanshubin.project.generator.console
 
 import com.seanshubin.project.generator.commands.Environment
 import com.seanshubin.project.generator.commands.EnvironmentImpl
+import com.seanshubin.project.generator.commands.FileOperationNotifications
+import com.seanshubin.project.generator.commands.LineEmittingFileOperationNotifications
 import com.seanshubin.project.generator.core.*
 import com.seanshubin.project.generator.di.contract.FilesContract
 import com.seanshubin.project.generator.di.delegate.FilesDelegate
@@ -48,6 +50,7 @@ class ProjectDependencies(
     private val notifications: Notifications = LineEmittingNotifications(System.out::println)
     private val sourceFileNotifications: SourceFileNotifications = LineEmittingSourceFileNotifications(System.err::println)
     private val moduleMappingNotifications: ModuleMappingNotifications = LineEmittingModuleMappingNotifications(System.err::println)
+    private val fileOperationNotifications: FileOperationNotifications = LineEmittingFileOperationNotifications(System.out::println)
     private val versionLookup: VersionLookup = VersionLookupImpl(http, xmlParserFactory, notifications::lookupVersionEvent)
     private val mavenXmlNode: MavenXmlNode = MavenXmlNodeImpl(versionLookup)
     private val files: FilesContract = FilesDelegate.defaultInstance()
@@ -55,6 +58,6 @@ class ProjectDependencies(
     private val sourceFileFinder: SourceFileFinder = SourceFileFinderImpl(files, sourceFileNotifications)
     private val generator: Generator = GeneratorImpl(xmlRenderer, baseDirectory, mavenXmlNode, sourceProjectLoader, sourceFileFinder, moduleMappingNotifications)
     private val createKeyStore:(Path)-> KeyValueStore = {path:Path -> JsonFileKeyValueStore(files, path) }
-    private val environment: Environment = EnvironmentImpl(files, createKeyStore, sourceFileNotifications)
+    private val environment: Environment = EnvironmentImpl(files, createKeyStore, sourceFileNotifications, fileOperationNotifications)
     val runner: ProjectRunner = ProjectRunner(generator, project, environment)
 }

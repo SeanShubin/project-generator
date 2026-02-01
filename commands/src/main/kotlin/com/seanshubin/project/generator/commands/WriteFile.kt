@@ -8,6 +8,19 @@ data class WriteFile(val path: Path, val lines: List<String>) : Command {
         if (parent != null) {
             environment.files.createDirectories(parent)
         }
-        environment.files.write(path, lines)
+
+        val existed = environment.files.exists(path)
+        if (existed) {
+            val existingLines = environment.files.readAllLines(path)
+            if (existingLines == lines) {
+                environment.fileOperationNotifications.fileUnchanged(path)
+                return
+            }
+            environment.files.write(path, lines)
+            environment.fileOperationNotifications.fileModified(path)
+        } else {
+            environment.files.write(path, lines)
+            environment.fileOperationNotifications.fileCreated(path)
+        }
     }
 }

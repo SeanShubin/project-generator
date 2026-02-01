@@ -142,12 +142,48 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         return element("plugin", coordinates + listOf(executions))
     }
 
+    private fun documentationPlugin(project: Project): XmlNode {
+        return when (project.language.lowercase()) {
+            "kotlin" -> dokkaPlugin(project)
+            "scala" -> scaladocPlugin(project)
+            else -> javadocPlugin(project)
+        }
+    }
+
+    private fun dokkaPlugin(project: Project): XmlNode {
+        val dependency = lookup(project, "org.jetbrains.dokka", "dokka-maven-plugin", scope = null)
+        val coordinates = dependency.toDependencyChildNodes(includeVersion = true, includeScope = false)
+
+        val execution = createExecutionWithIdPhaseAndGoals(
+            "generate-dokka-javadoc",
+            "package",
+            listOf("javadoc")
+        )
+        val executions = element("executions", listOf(execution))
+
+        return element("plugin", coordinates + listOf(executions))
+    }
+
+    private fun scaladocPlugin(project: Project): XmlNode {
+        val dependency = lookup(project, "net.alchim31.maven", "scala-maven-plugin", scope = null)
+        val coordinates = dependency.toDependencyChildNodes(includeVersion = true, includeScope = false)
+
+        val execution = createExecutionWithIdPhaseAndGoals(
+            "generate-scaladoc",
+            "package",
+            listOf("doc-jar")
+        )
+        val executions = element("executions", listOf(execution))
+
+        return element("plugin", coordinates + listOf(executions))
+    }
+
     private fun javadocPlugin(project: Project): XmlNode {
         val dependency = lookup(project, "org.apache.maven.plugins", "maven-javadoc-plugin", scope = null)
         val coordinates = dependency.toDependencyChildNodes(includeVersion = true, includeScope = false)
 
         val execution = createExecutionWithIdPhaseAndGoals(
-            "generate-dummy-javadoc-per-maven-central-requirements",
+            "generate-javadoc",
             "package",
             listOf("jar")
         )
@@ -378,7 +414,7 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
     private fun profiles(project: Project): XmlNode {
         val stagePlugins = listOf(
             gpgPlugin(project),
-            javadocPlugin(project)
+            documentationPlugin(project)
         )
         val pluginsNode = element("plugins", stagePlugins)
         val buildNode = element("build", listOf(pluginsNode))

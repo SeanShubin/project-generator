@@ -15,9 +15,10 @@ class GeneratorImpl(
         val moduleCommands = project.modules.flatMap { (name, dependencies) ->
             generateModuleCommand(project, name, dependencies)
         }
+        val helperFileCommands = generateHelperFiles(project)
         val codeStructureConfigCommands = generateCodeStructureConfigCommands(project)
         val sourceDependencyCommands = generateSourceDependencyCommands(project)
-        return listOf(rootCommand) + moduleCommands + codeStructureConfigCommands + sourceDependencyCommands
+        return listOf(rootCommand) + moduleCommands + helperFileCommands + codeStructureConfigCommands + sourceDependencyCommands
     }
 
     private fun generateRootCommand(project: Project): Command {
@@ -83,6 +84,44 @@ class GeneratorImpl(
     }
 
     private fun setJsonConfig(path:Path, value:Any, vararg keys:String) = SetJsonConfig(path, value, keys.toList())
+
+    private fun generateHelperFiles(project: Project): List<Command> {
+        val gitignoreCommand = generateGitIgnore()
+        val unlicenseCommand = generateUnlicense()
+        val mavenCentralCommands = if (project.deployableToMavenCentral) {
+            listOf(generateStageScript(project))
+        } else {
+            emptyList()
+        }
+        return listOf(gitignoreCommand, unlicenseCommand) + mavenCentralCommands
+    }
+
+    private fun loadResource(resourcePath: String): String {
+        val classLoader = this.javaClass.classLoader
+        val inputStream = classLoader.getResourceAsStream(resourcePath)
+            ?: throw RuntimeException("Resource not found: $resourcePath")
+        return inputStream.bufferedReader().use { it.readText() }
+    }
+
+    private fun generateGitIgnore(): Command {
+        val content = loadResource("generated-project-files/gitignore.txt")
+        val path = baseDirectory.resolve(".gitignore")
+        return WriteTextFile(path, content)
+    }
+
+    private fun generateUnlicense(): Command {
+        val content = loadResource("generated-project-files/UNLICENSE.txt")
+        val path = baseDirectory.resolve("UNLICENSE.txt")
+        return WriteTextFile(path, content)
+    }
+
+    private fun generateStageScript(project: Project): Command {
+        val localRepoRelativePath = (project.prefix + project.name).joinToString("/", postfix = "/")
+        val template = loadResource("generated-project-files/stage.sh")
+        val content = template.replace("{{LOCAL_REPO_PATH}}", localRepoRelativePath)
+        val path = baseDirectory.resolve("stage.sh")
+        return WriteTextFile(path, content, executable = true)
+    }
 
     private fun generateSourceDependencyCommands(project: Project): List<Command> {
         val sourceDependency = project.sourceDependency ?: return emptyList()

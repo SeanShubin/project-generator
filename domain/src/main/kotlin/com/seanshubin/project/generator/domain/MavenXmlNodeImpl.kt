@@ -36,28 +36,21 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
             scope = null
         )
         val dependencyNodes = projectDependency.toDependencyChildNodes(includeVersion = true, includeScope = true)
-        val baseNodes = dependencyNodes + listOf(
+        return dependencyNodes + listOf(
             simpleElement("packaging", "pom"),
             globalDependencies(project),
             dependencyManagement(project),
             modules(project),
             properties(),
-            build(project)
+            build(project),
+            simpleElement("name", "\${project.groupId}:\${project.artifactId}"),
+            description(project),
+            url(project),
+            licenses(),
+            developers(project),
+            scm(project),
+            profiles(project)
         )
-
-        return if (project.deployableToMavenCentral) {
-            baseNodes + listOf(
-                simpleElement("name", "\${project.groupId}:\${project.artifactId}"),
-                description(project),
-                url(project),
-                licenses(),
-                developers(project),
-                scm(project),
-                profiles(project)
-            )
-        } else {
-            baseNodes
-        }
     }
 
     private fun build(project: Project): XmlNode {
@@ -81,20 +74,13 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
     }
 
     private fun plugins(project: Project): XmlNode {
-        val basePlugins = listOf(
+        val pluginsNodeChildren = listOf(
             compilerPlugin(project),
             sourcePlugin(project),
             languagePlugin(project),
-            codeStructurePlugin(project)
+            codeStructurePlugin(project),
+            centralPublishingPlugin(project)
         )
-
-        val pluginsNodeChildren = if (project.deployableToMavenCentral) {
-            basePlugins + listOf(
-                centralPublishingPlugin(project)
-            )
-        } else {
-            basePlugins
-        }
 
         val pluginsNode = element("plugins", pluginsNodeChildren)
         return pluginsNode

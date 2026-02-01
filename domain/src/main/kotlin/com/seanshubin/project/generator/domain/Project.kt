@@ -14,6 +14,5 @@ data class Project(
     val javaVersion: String, // which java version to use
     val entryPoints: Map<String, String> = emptyMap(), // optional entry point class names for modules that should generate executable JARs
     val sourceDependency: SourceDependency? = null, // optional source dependency for copying and transforming code from external projects
-    val mavenPlugin: List<String> = emptyList(), // modules that are Maven plugins
-    val deployableToMavenCentral: Boolean = false // whether to add Maven Central deployment configuration
+    val mavenPlugin: List<String> = emptyList() // modules that are Maven plugins
 )

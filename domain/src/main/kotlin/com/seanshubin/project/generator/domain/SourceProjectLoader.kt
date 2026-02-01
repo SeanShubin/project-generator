@@ -63,7 +63,6 @@ class SourceProjectLoaderImpl(
         val javaVersion = keyStore.loadStringOrDefault(listOf("javaVersion"), "25")
         val entryPoints = loadMapOfString(keyStore, listOf("entryPoints"), emptyMap())
         val mavenPlugin = loadStringArray(keyStore, listOf("mavenPlugin"), emptyList())
-        val deployableToMavenCentral = keyStore.loadBooleanOrDefault(listOf("deployableToMavenCentral"), false)
 
         return Project(
             prefix,
@@ -79,8 +78,7 @@ class SourceProjectLoaderImpl(
             javaVersion,
             entryPoints,
             null,  // Source project itself doesn't have source dependencies
-            mavenPlugin,
-            deployableToMavenCentral
+            mavenPlugin
         )
     }
 

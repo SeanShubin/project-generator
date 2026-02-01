@@ -243,6 +243,30 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         return element("plugin", coordinates + listOf(executions, configuration))
     }
 
+    private fun languagePluginScala(project: Project): XmlNode {
+        val dependency = lookup(project, "net.alchim31.maven", "scala-maven-plugin", scope = null)
+        val coordinates = dependency.toDependencyChildNodes(includeVersion = true, includeScope = true)
+
+        val compileGoal = simpleElement("goal", "compile")
+        val testCompileGoal = simpleElement("goal", "testCompile")
+        val goals = element("goals", listOf(compileGoal, testCompileGoal))
+        val execution = element("execution", listOf(goals))
+        val executions = element("executions", listOf(execution))
+
+        val jvmArg1 = simpleElement("jvmArg", "-Xms64m")
+        val jvmArg2 = simpleElement("jvmArg", "-Xmx1024m")
+        val jvmArgs = element("jvmArgs", listOf(jvmArg1, jvmArg2))
+
+        val arg1 = simpleElement("arg", "-unchecked")
+        val arg2 = simpleElement("arg", "-deprecation")
+        val arg3 = simpleElement("arg", "-feature")
+        val args = element("args", listOf(arg1, arg2, arg3))
+
+        val configuration = element("configuration", listOf(jvmArgs, args))
+
+        return element("plugin", coordinates + listOf(executions, configuration))
+    }
+
     private fun createExecutionWithIdAndGoals(id: String, goals: List<String>): XmlNode {
         val goalNodes = goals.map { goal -> simpleElement("goal", goal) }
         val goalsNode = element("goals", goalNodes)
@@ -535,7 +559,8 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
     )
 
     private val languagePluginFunctionMap = mapOf(
-        "kotlin" to ::languagePluginKotlin
+        "kotlin" to ::languagePluginKotlin,
+        "scala" to ::languagePluginScala
     )
 
     private fun lookup(project: Project, group: String, artifact: String, scope: String?): GroupArtifactVersionScope {

@@ -4,8 +4,8 @@ import com.seanshubin.project.generator.dynamic.json.JsonFileKeyValueStore
 import com.seanshubin.project.generator.dynamic.core.KeyValueStore
 import com.seanshubin.project.generator.di.contract.FilesContract
 import com.seanshubin.project.generator.di.delegate.FilesDelegate
-import com.seanshubin.project.generator.domain.KeyValueStoreRunner
-import com.seanshubin.project.generator.domain.Project
+import com.seanshubin.project.generator.generator.KeyValueStoreRunner
+import com.seanshubin.project.generator.core.Project
 import java.nio.file.Path
 
 class ConfigFileDependencies(

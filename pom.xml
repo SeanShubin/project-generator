@@ -42,7 +42,13 @@
     </dependencyManagement>
     <modules>
         <module>console</module>
-        <module>domain</module>
+        <module>core</module>
+        <module>http</module>
+        <module>xml</module>
+        <module>maven</module>
+        <module>source</module>
+        <module>commands</module>
+        <module>generator</module>
         <module>dynamic-core</module>
         <module>dynamic-json</module>
         <module>di-contract</module>

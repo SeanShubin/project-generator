@@ -5,7 +5,7 @@
     <dependencies>
         <dependency>
             <groupId>com.seanshubin.project.generator</groupId>
-            <artifactId>project-generator-domain</artifactId>
+            <artifactId>project-generator-generator</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

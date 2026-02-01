@@ -44,9 +44,32 @@
   ],
   "modules": {
     "console": [
-      "domain"
+      "generator"
     ],
-    "domain": [
+    "core": [],
+    "http": [],
+    "xml": [],
+    "maven": [
+      "core",
+      "xml",
+      "http"
+    ],
+    "source": [
+      "core",
+      "di-contract",
+      "dynamic-json"
+    ],
+    "commands": [
+      "core",
+      "source",
+      "di-contract",
+      "dynamic-json"
+    ],
+    "generator": [
+      "core",
+      "maven",
+      "source",
+      "commands",
       "dynamic-json",
       "di-contract"
     ],

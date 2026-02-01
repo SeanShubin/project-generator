@@ -8,7 +8,7 @@ import java.security.MessageDigest;
 import java.security.Provider;
 
 //
-// This file was imported from: /Users/seashubi/github.com/SeanShubin/kotlin-reusable
+// This file was imported from: ../kotlin-reusable
 // Module: di-delegate
 //
 // Before editing this file, consider whether updating the source project

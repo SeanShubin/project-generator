@@ -12,7 +12,7 @@ import java.util.Properties;
 import java.util.ResourceBundle;
 
 //
-// This file was imported from: /Users/seashubi/github.com/SeanShubin/kotlin-reusable
+// This file was imported from: ../kotlin-reusable
 // Module: di-delegate
 //
 // Before editing this file, consider whether updating the source project

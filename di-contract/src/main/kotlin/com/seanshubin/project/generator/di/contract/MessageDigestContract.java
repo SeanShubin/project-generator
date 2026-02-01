@@ -5,7 +5,7 @@ import java.security.DigestException;
 import java.security.Provider;
 
 //
-// This file was imported from: /Users/seashubi/github.com/SeanShubin/kotlin-reusable
+// This file was imported from: ../kotlin-reusable
 // Module: di-contract
 //
 // Before editing this file, consider whether updating the source project

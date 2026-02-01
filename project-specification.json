@@ -70,7 +70,7 @@
     "console": "com.seanshubin.project.generator.console.EntryPoint"
   },
   "sourceDependencies": {
-    "sourceProjectPath": "/Users/seashubi/github.com/SeanShubin/kotlin-reusable",
+    "sourceProjectPath": "../kotlin-reusable",
     "moduleMapping": {
       "dynamic-core": "dynamic-core",
       "dynamic-json": "dynamic-json",

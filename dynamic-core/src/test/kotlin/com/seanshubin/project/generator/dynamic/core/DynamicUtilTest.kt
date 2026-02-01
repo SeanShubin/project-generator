@@ -6,7 +6,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 //
-// This file was imported from: /Users/seashubi/github.com/SeanShubin/kotlin-reusable
+// This file was imported from: ../kotlin-reusable
 // Module: dynamic-core
 //
 // Before editing this file, consider whether updating the source project

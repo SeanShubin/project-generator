@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 
 //
-// This file was imported from: /Users/seashubi/github.com/SeanShubin/kotlin-reusable
+// This file was imported from: ../kotlin-reusable
 // Module: dynamic-json
 //
 // Before editing this file, consider whether updating the source project

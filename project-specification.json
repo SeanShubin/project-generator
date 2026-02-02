@@ -1,0 +1,105 @@
+{
+  "prefix": [
+    "com",
+    "seanshubin"
+  ],
+  "name": [
+    "project",
+    "generator"
+  ],
+  "description": "Project Generator",
+  "version": "0.1.0",
+  "language": "kotlin",
+  "developer": {
+    "name": "Sean Shubin",
+    "githubName": "SeanShubin",
+    "mavenUserName": "SeanShubin",
+    "organization": "Sean Shubin",
+    "url": "http://seanshubin.com/"
+  },
+  "global": [
+    "stdlib",
+    "test"
+  ],
+  "dependencies": {
+    "stdlib": {
+      "group": "org.jetbrains.kotlin",
+      "artifact": "kotlin-stdlib-jdk8"
+    },
+    "test": {
+      "group": "org.jetbrains.kotlin",
+      "artifact": "kotlin-test-junit",
+      "scope": "test"
+    },
+    "jackson": {
+      "group": "com.fasterxml.jackson.module",
+      "artifact": "jackson-module-kotlin"
+    },
+    "jackson-time": {
+      "group": "com.fasterxml.jackson.datatype",
+      "artifact": "jackson-datatype-jsr310"
+    }
+  },
+  "versionOverrides": [
+  ],
+  "modules": {
+    "console": [
+      "generator"
+    ],
+    "core": [],
+    "http": [],
+    "xml": [],
+    "maven": [
+      "core",
+      "xml",
+      "http"
+    ],
+    "source": [
+      "core",
+      "di-contract",
+      "dynamic-json"
+    ],
+    "commands": [
+      "core",
+      "source",
+      "di-contract",
+      "dynamic-json"
+    ],
+    "generator": [
+      "core",
+      "maven",
+      "source",
+      "commands",
+      "dynamic-json",
+      "di-contract"
+    ],
+    "dynamic-core": [],
+    "dynamic-json": [
+      "dynamic-core",
+      "di-delegate",
+      "jackson",
+      "jackson-time"
+    ],
+    "di-contract": [],
+    "di-delegate": [
+      "di-contract"
+    ],
+    "di-test": [
+      "di-contract"
+    ]
+  },
+  "javaVersion": "25",
+  "entryPoints": {
+    "console": "com.seanshubin.project.generator.console.EntryPoint"
+  },
+  "sourceDependencies": {
+    "sourceProjectPath": "../kotlin-reusable",
+    "moduleMapping": {
+      "dynamic-core": "dynamic-core",
+      "dynamic-json": "dynamic-json",
+      "di-contract": "di-contract",
+      "di-delegate": "di-delegate",
+      "di-test": "di-test"
+    }
+  }
+}

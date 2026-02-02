@@ -82,8 +82,8 @@ Note that detangler only runs for the domain module.  Omitted consoleEntryPoint 
 
 ### Detangler Specification 
 Only the "console" module has an entry point, which is com.seanshubin.detangler.console.ConsoleApplication.
-The "maven-plugin" module is is a maven plugin.
-Detangler is omitted.
+The "maven-plugin" module is a maven plugin.
+Detangler is omitted. 
 ```
 {
   prefix [com seanshubin]

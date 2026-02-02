@@ -19,4 +19,3 @@ trait CommandLineArgumentsDependencyInjection {
   }.runner
   val runner: Runnable = new CommandLineRunner(commandLineArguments, specificationLoader, createSpecificationRunner)
 }
-

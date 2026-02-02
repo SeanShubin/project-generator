@@ -22,7 +22,7 @@
             <dependency>
                 <groupId>org.scala-lang</groupId>
                 <artifactId>scala-library</artifactId>
-                <version>2.12.8</version>
+                <version>2.12.19</version>
             </dependency>
             <dependency>
                 <groupId>org.scalatest</groupId>
@@ -73,7 +73,7 @@
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
-                <version>4.0.2</version>
+                <version>4.9.0</version>
                 <executions>
                     <execution>
                         <goals>
@@ -115,6 +115,21 @@
                 <version>2.22.2</version>
                 <configuration>
                     <skipTests>true</skipTests>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.seanshubin.code.structure</groupId>
+                <artifactId>code-structure-maven</artifactId>
+                <version>1.0.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>code-structure</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <configBaseName>code-structure</configBaseName>
                 </configuration>
             </plugin>
         </plugins>

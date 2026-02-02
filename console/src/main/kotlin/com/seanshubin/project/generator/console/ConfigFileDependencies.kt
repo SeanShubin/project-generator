@@ -10,11 +10,12 @@ import java.nio.file.Path
 
 class ConfigFileDependencies(
     private val configFile: Path,
-    private val baseDirectory: Path
+    private val baseDirectory: Path,
+    private val integrations: Integrations
 ) {
-    val files: FilesContract = FilesDelegate.defaultInstance()
+    val files: FilesContract = integrations.files
     val keyValueStore: KeyValueStore = JsonFileKeyValueStore(files, configFile)
     val createRunner: (Project, Path) -> Runnable =
-        { project, baseDirectory -> ProjectDependencies(project, baseDirectory).runner }
+        { project, baseDirectory -> ProjectDependencies(project, baseDirectory, integrations).runner }
     val runner: Runnable = KeyValueStoreRunner(keyValueStore, baseDirectory, files, createRunner)
 }

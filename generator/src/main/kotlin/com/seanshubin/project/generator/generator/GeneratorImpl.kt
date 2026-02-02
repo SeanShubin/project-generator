@@ -1,17 +1,11 @@
 package com.seanshubin.project.generator.generator
 
-import com.seanshubin.project.generator.commands.Command
-import com.seanshubin.project.generator.commands.CopyAndTransformSourceFile
-import com.seanshubin.project.generator.commands.CreateDirectory
-import com.seanshubin.project.generator.commands.SetJsonConfig
-import com.seanshubin.project.generator.commands.WriteFile
-import com.seanshubin.project.generator.commands.WriteTextFile
+import com.seanshubin.project.generator.commands.*
 import com.seanshubin.project.generator.core.Project
 import com.seanshubin.project.generator.maven.MavenXmlNode
 import com.seanshubin.project.generator.source.ModuleMappingNotifications
 import com.seanshubin.project.generator.source.PackageTransformation
 import com.seanshubin.project.generator.source.SourceFileFinder
-import com.seanshubin.project.generator.source.SourceFileInfo
 import com.seanshubin.project.generator.source.SourceProjectLoader
 import com.seanshubin.project.generator.xml.XmlRenderer
 import java.nio.file.Path
@@ -75,7 +69,7 @@ class GeneratorImpl(
 
     private fun generateCodeStructureConfigCommands(project: Project): List<Command> {
         val path = baseDirectory.resolve("code-structure-config.json")
-        val githubDeveloperName= project.developer.githubName
+        val githubDeveloperName = project.developer.githubName
         val githubRepoName = project.name.joinToString("-")
 
         return listOf(
@@ -89,7 +83,12 @@ class GeneratorImpl(
             setJsonConfig(path, false, "useObservationsCache"),
             setJsonConfig(path, false, "includeJvmDynamicInvocations"),
             setJsonConfig(path, "https://github.com/$githubDeveloperName/$githubRepoName/blob/master/", "sourcePrefix"),
-            setJsonConfig(path, listOf(".*/src/main/(kotlin|java)/.*\\.(kt|java)"), "sourceFileRegexPatterns", "include"),
+            setJsonConfig(
+                path,
+                listOf(".*/src/main/(kotlin|java)/.*\\.(kt|java)"),
+                "sourceFileRegexPatterns",
+                "include"
+            ),
             setJsonConfig(path, emptyList<String>(), "sourceFileRegexPatterns", "exclude"),
             setJsonConfig(path, 100, "nodeLimitForGraph"),
             setJsonConfig(path, listOf(".*/target/.*\\.class"), "binaryFileRegexPatterns", "include"),
@@ -97,7 +96,7 @@ class GeneratorImpl(
         )
     }
 
-    private fun setJsonConfig(path:Path, value:Any, vararg keys:String) = SetJsonConfig(path, value, keys.toList())
+    private fun setJsonConfig(path: Path, value: Any, vararg keys: String) = SetJsonConfig(path, value, keys.toList())
 
     private fun generateHelperFiles(project: Project): List<Command> {
         val gitignoreCommand = generateGitIgnore()

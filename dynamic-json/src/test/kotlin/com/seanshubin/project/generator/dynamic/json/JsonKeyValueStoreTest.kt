@@ -18,8 +18,9 @@ import kotlin.test.assertEquals
 
 class JsonKeyValueStoreTest {
     val files: FilesContract = FilesDelegate.defaultInstance()
+
     @Test
-    fun intValue(){
+    fun intValue() {
         withTemporaryFiles { path, documentationPath ->
             val keyValueStore = JsonFileKeyValueStore(files, path)
             val documentationKeyValueStore = JsonFileKeyValueStore(files, documentationPath)
@@ -41,7 +42,7 @@ class JsonKeyValueStoreTest {
     }
 
     @Test
-    fun arrays(){
+    fun arrays() {
         withTemporaryFile { path ->
             val keyValueStore = JsonFileKeyValueStore(files, path)
             keyValueStore.store(listOf("the-array", 0, "name"), "a")
@@ -60,14 +61,15 @@ class JsonKeyValueStoreTest {
         }
     }
 
-    private fun withTemporaryFiles(f:(Path, Path)->Unit){
+    private fun withTemporaryFiles(f: (Path, Path) -> Unit) {
         withTemporaryFile { path1 ->
             withTemporaryFile { path2 ->
                 f(path1, path2)
             }
         }
     }
-    private fun withTemporaryFile(f:(Path)->Unit){
+
+    private fun withTemporaryFile(f: (Path) -> Unit) {
         val path = Files.createTempFile("test", ".json")
         path.toFile().deleteOnExit()
         f(path)

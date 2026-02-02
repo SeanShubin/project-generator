@@ -113,7 +113,13 @@ class SourceFileFinderImpl(
             val targetPath = targetRoot.resolve(relativePath)
 
             if (files.isDirectory(entry)) {
-                walkDirectory(entry, targetPath.parent.resolve(relativePath.fileName), sourceModule, targetModule, results)
+                walkDirectory(
+                    entry,
+                    targetPath.parent.resolve(relativePath.fileName),
+                    sourceModule,
+                    targetModule,
+                    results
+                )
             } else {
                 results.add(SourceFileInfo(entry, targetPath, sourceModule, targetModule))
             }

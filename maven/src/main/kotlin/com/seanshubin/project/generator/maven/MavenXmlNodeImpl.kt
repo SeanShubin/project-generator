@@ -1,12 +1,8 @@
 package com.seanshubin.project.generator.maven
 
-import com.seanshubin.project.generator.core.Developer
 import com.seanshubin.project.generator.core.GroupArtifact
-import com.seanshubin.project.generator.core.GroupArtifactScope
-import com.seanshubin.project.generator.core.GroupArtifactVersion
 import com.seanshubin.project.generator.core.GroupArtifactVersionScope
 import com.seanshubin.project.generator.core.Project
-import com.seanshubin.project.generator.core.SourceDependency
 import com.seanshubin.project.generator.xml.XmlNode
 
 class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode {
@@ -78,7 +74,8 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
     }
 
     private fun testSourceDirectory(language: String): XmlNode {
-        val testSourceDirectory = simpleElement("testSourceDirectory", "\${project.basedir}/$SRC_DIR/$TEST_DIR/$language")
+        val testSourceDirectory =
+            simpleElement("testSourceDirectory", "\${project.basedir}/$SRC_DIR/$TEST_DIR/$language")
         return testSourceDirectory
     }
 
@@ -437,10 +434,12 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         )
         val pluginsNode = element("plugins", stagePlugins)
         val buildNode = element("build", listOf(pluginsNode))
-        val profile = element("profile", listOf(
-            simpleElement("id", "stage"),
-            buildNode
-        ))
+        val profile = element(
+            "profile", listOf(
+                simpleElement("id", "stage"),
+                buildNode
+            )
+        )
         return element("profiles", listOf(profile))
     }
 

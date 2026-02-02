@@ -59,7 +59,11 @@ data class CopyAndTransformSourceFile(
                 environment.fileOperationNotifications.fileCreated(targetPath)
             }
         } catch (e: Exception) {
-            environment.sourceFileNotifications.fileTransformationError(sourcePath, targetPath, e.message ?: "Unknown error")
+            environment.sourceFileNotifications.fileTransformationError(
+                sourcePath,
+                targetPath,
+                e.message ?: "Unknown error"
+            )
             throw e
         }
     }

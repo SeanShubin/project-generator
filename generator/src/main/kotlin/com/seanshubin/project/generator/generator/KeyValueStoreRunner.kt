@@ -1,13 +1,11 @@
 package com.seanshubin.project.generator.generator
 
-import com.seanshubin.project.generator.core.Developer
-import com.seanshubin.project.generator.core.GroupArtifactScope
-import com.seanshubin.project.generator.core.GroupArtifactVersion
-import com.seanshubin.project.generator.core.Project
-import com.seanshubin.project.generator.core.SourceDependency
-import com.seanshubin.project.generator.dynamic.core.KeyValueStore
-import com.seanshubin.project.generator.dynamic.json.*
+import com.seanshubin.project.generator.core.*
 import com.seanshubin.project.generator.di.contract.FilesContract
+import com.seanshubin.project.generator.dynamic.core.KeyValueStore
+import com.seanshubin.project.generator.dynamic.json.loadListOrEmpty
+import com.seanshubin.project.generator.dynamic.json.loadMapOrEmpty
+import com.seanshubin.project.generator.dynamic.json.loadStringOrDefault
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -25,9 +23,12 @@ class KeyValueStoreRunner(
         val version: String = keyValueStore.loadStringOrDefault(listOf("version"), "project version")
         val language: String = keyValueStore.loadStringOrDefault(listOf("language"), "kotlin")
         val developerName: String = keyValueStore.loadStringOrDefault(listOf("developer", "name"), "developer name")
-        val developerGithubName: String = keyValueStore.loadStringOrDefault(listOf("developer", "githubName"), "developer github name")
-        val developerMavenUserName: String = keyValueStore.loadStringOrDefault(listOf("developer", "mavenUserName"), "developer maven user name")
-        val developerOrganization: String = keyValueStore.loadStringOrDefault(listOf("developer", "organization"), "developer organization")
+        val developerGithubName: String =
+            keyValueStore.loadStringOrDefault(listOf("developer", "githubName"), "developer github name")
+        val developerMavenUserName: String =
+            keyValueStore.loadStringOrDefault(listOf("developer", "mavenUserName"), "developer maven user name")
+        val developerOrganization: String =
+            keyValueStore.loadStringOrDefault(listOf("developer", "organization"), "developer organization")
         val developerUrl: String = keyValueStore.loadStringOrDefault(listOf("developer", "url"), "developer url")
         val developer =
             Developer(developerName, developerGithubName, developerMavenUserName, developerOrganization, developerUrl)

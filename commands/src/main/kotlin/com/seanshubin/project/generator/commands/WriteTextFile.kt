@@ -1,7 +1,6 @@
 package com.seanshubin.project.generator.commands
 
 import java.nio.file.Path
-import java.nio.file.attribute.PosixFilePermission
 import java.nio.file.attribute.PosixFilePermission.*
 
 data class WriteTextFile(val path: Path, val content: String, val executable: Boolean = false) : Command {

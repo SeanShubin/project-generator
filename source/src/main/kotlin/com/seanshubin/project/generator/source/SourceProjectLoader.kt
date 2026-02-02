@@ -4,10 +4,12 @@ import com.seanshubin.project.generator.core.Developer
 import com.seanshubin.project.generator.core.GroupArtifactScope
 import com.seanshubin.project.generator.core.GroupArtifactVersion
 import com.seanshubin.project.generator.core.Project
-import com.seanshubin.project.generator.dynamic.json.JsonFileKeyValueStore
-import com.seanshubin.project.generator.dynamic.json.*
-import com.seanshubin.project.generator.dynamic.core.KeyValueStore
 import com.seanshubin.project.generator.di.contract.FilesContract
+import com.seanshubin.project.generator.dynamic.core.KeyValueStore
+import com.seanshubin.project.generator.dynamic.json.JsonFileKeyValueStore
+import com.seanshubin.project.generator.dynamic.json.loadListOrEmpty
+import com.seanshubin.project.generator.dynamic.json.loadMapOrEmpty
+import com.seanshubin.project.generator.dynamic.json.loadStringOrDefault
 import java.nio.file.Path
 
 /**
@@ -55,11 +57,15 @@ class SourceProjectLoaderImpl(
         val language = keyStore.loadStringOrDefault(listOf("language"), "kotlin")
 
         val developerName = keyStore.loadStringOrDefault(listOf("developer", "name"), "developer name")
-        val developerGithubName = keyStore.loadStringOrDefault(listOf("developer", "githubName"), "developer github name")
-        val developerMavenUserName = keyStore.loadStringOrDefault(listOf("developer", "mavenUserName"), "developer maven user name")
-        val developerOrganization = keyStore.loadStringOrDefault(listOf("developer", "organization"), "developer organization")
+        val developerGithubName =
+            keyStore.loadStringOrDefault(listOf("developer", "githubName"), "developer github name")
+        val developerMavenUserName =
+            keyStore.loadStringOrDefault(listOf("developer", "mavenUserName"), "developer maven user name")
+        val developerOrganization =
+            keyStore.loadStringOrDefault(listOf("developer", "organization"), "developer organization")
         val developerUrl = keyStore.loadStringOrDefault(listOf("developer", "url"), "developer url")
-        val developer = Developer(developerName, developerGithubName, developerMavenUserName, developerOrganization, developerUrl)
+        val developer =
+            Developer(developerName, developerGithubName, developerMavenUserName, developerOrganization, developerUrl)
 
         val dependencies = loadDependencies(keyStore)
         val versionOverrides = loadVersionOverrides(keyStore)

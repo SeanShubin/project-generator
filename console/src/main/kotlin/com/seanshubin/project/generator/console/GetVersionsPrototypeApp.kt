@@ -21,7 +21,7 @@ object GetVersionsPrototypeApp {
         val response = httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream())
 
         val statusCode = response.statusCode()
-        if(!isSuccess(statusCode)){
+        if (!isSuccess(statusCode)) {
             throw RuntimeException("Unexpected status code $statusCode")
         }
         val body = response.body()
@@ -31,18 +31,19 @@ object GetVersionsPrototypeApp {
         saxParser.parse(body, saxParserHandler)
         saxParserHandler.lines().forEach(::println)
     }
-    fun isSuccess(statusCode:Int):Boolean = statusCode in 200..299
-    class VersionHandler: DefaultHandler() {
+
+    fun isSuccess(statusCode: Int): Boolean = statusCode in 200..299
+    class VersionHandler : DefaultHandler() {
         val path = mutableListOf<String>()
         val latestPath = listOf("metadata", "versioning", "latest")
         val releasePath = listOf("metadata", "versioning", "release")
         val lastUpdatedPath = listOf("metadata", "versioning", "lastUpdated")
         val versionPath = listOf("metadata", "versioning", "versions", "version")
-        var latestVersion:String? = null
-        var releaseVersion:String? = null
-        var lastUpdated:String? = null
+        var latestVersion: String? = null
+        var releaseVersion: String? = null
+        var lastUpdated: String? = null
         val versions = mutableListOf<String>()
-        fun lines():List<String>{
+        fun lines(): List<String> {
             return listOf(
                 "latest version: $latestVersion",
                 "release version: $releaseVersion",
@@ -50,23 +51,24 @@ object GetVersionsPrototypeApp {
                 "versions(${versions.size})"
             ) + versions.map { "  $it" }
         }
+
         override fun startElement(uri: String, localName: String, qName: String, attributes: org.xml.sax.Attributes) {
             path.add(qName)
         }
 
         override fun characters(ch: CharArray, start: Int, length: Int) {
             val value = String(ch, start, length)
-            if(path == versionPath){
+            if (path == versionPath) {
                 versions.add(value)
             }
-            if(path == latestPath) {
-                latestVersion = updateOnce("latest version",latestVersion, value)
+            if (path == latestPath) {
+                latestVersion = updateOnce("latest version", latestVersion, value)
             }
-            if(path == releasePath) {
-                releaseVersion = updateOnce("release version",releaseVersion, value)
+            if (path == releasePath) {
+                releaseVersion = updateOnce("release version", releaseVersion, value)
             }
-            if(path == lastUpdatedPath) {
-                lastUpdated = updateOnce("last updated",lastUpdated, value)
+            if (path == lastUpdatedPath) {
+                lastUpdated = updateOnce("last updated", lastUpdated, value)
             }
         }
 
@@ -74,7 +76,7 @@ object GetVersionsPrototypeApp {
             path.removeLast()
         }
 
-        fun updateOnce(caption:String, current:String?, new:String):String =
-            if(current == null) new else throw RuntimeException("Multiple updates to $caption: '$current', '$new'")
+        fun updateOnce(caption: String, current: String?, new: String): String =
+            if (current == null) new else throw RuntimeException("Multiple updates to $caption: '$current', '$new'")
     }
 }

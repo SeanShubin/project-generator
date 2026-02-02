@@ -2,18 +2,13 @@ package com.seanshubin.project.generator.console
 
 import com.seanshubin.project.generator.commands.Environment
 import com.seanshubin.project.generator.commands.EnvironmentImpl
-import com.seanshubin.project.generator.core.GroupArtifactVersionScope
 import com.seanshubin.project.generator.core.Project
 import com.seanshubin.project.generator.di.contract.FilesContract
-import com.seanshubin.project.generator.di.delegate.FilesDelegate
-import com.seanshubin.project.generator.dynamic.core.KeyValueStore
-import com.seanshubin.project.generator.dynamic.json.JsonFileKeyValueStore
 import com.seanshubin.project.generator.generator.Generator
 import com.seanshubin.project.generator.generator.GeneratorImpl
 import com.seanshubin.project.generator.generator.ProjectRunner
 import com.seanshubin.project.generator.http.Http
 import com.seanshubin.project.generator.http.HttpClientFactory
-import com.seanshubin.project.generator.http.HttpClientFactoryImpl
 import com.seanshubin.project.generator.http.HttpImpl
 import com.seanshubin.project.generator.maven.MavenXmlNode
 import com.seanshubin.project.generator.maven.MavenXmlNodeImpl
@@ -23,11 +18,7 @@ import com.seanshubin.project.generator.source.SourceFileFinder
 import com.seanshubin.project.generator.source.SourceFileFinderImpl
 import com.seanshubin.project.generator.source.SourceProjectLoader
 import com.seanshubin.project.generator.source.SourceProjectLoaderImpl
-import com.seanshubin.project.generator.xml.SaxParserFactoryImpl
-import com.seanshubin.project.generator.xml.StringUtility
-import com.seanshubin.project.generator.xml.XmlParserFactory
-import com.seanshubin.project.generator.xml.XmlRenderer
-import com.seanshubin.project.generator.xml.XmlRendererImpl
+import com.seanshubin.project.generator.xml.*
 import java.nio.file.Path
 
 class ProjectDependencies(
@@ -50,7 +41,8 @@ class ProjectDependencies(
     private val mavenXmlNode: MavenXmlNode = MavenXmlNodeImpl(versionLookup)
     private val files: FilesContract = integrations.files
     private val sourceProjectLoader: SourceProjectLoader = SourceProjectLoaderImpl(files)
-    private val sourceFileFinder: SourceFileFinder = SourceFileFinderImpl(files, sourceFileEventConsumer::onPathNotDirectory)
+    private val sourceFileFinder: SourceFileFinder =
+        SourceFileFinderImpl(files, sourceFileEventConsumer::onPathNotDirectory)
     private val generator: Generator = GeneratorImpl(
         xmlRenderer,
         baseDirectory,

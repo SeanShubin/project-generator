@@ -13,6 +13,12 @@ class ModuleMappingEventConsumer(private val emitError: (String) -> Unit) {
     }
 
     fun onDuplicateTargetModules(modules: Set<String>) {
-        emitError("Warning: Duplicate target modules (multiple source modules mapping to same target): ${modules.joinToString(", ")}")
+        emitError(
+            "Warning: Duplicate target modules (multiple source modules mapping to same target): ${
+                modules.joinToString(
+                    ", "
+                )
+            }"
+        )
     }
 }

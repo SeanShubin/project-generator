@@ -3,7 +3,6 @@ package com.seanshubin.project.generator.generator
 import com.seanshubin.project.generator.commands.*
 import com.seanshubin.project.generator.core.Project
 import com.seanshubin.project.generator.maven.MavenXmlNode
-import com.seanshubin.project.generator.source.ModuleMappingNotifications
 import com.seanshubin.project.generator.source.PackageTransformation
 import com.seanshubin.project.generator.source.SourceFileFinder
 import com.seanshubin.project.generator.source.SourceProjectLoader
@@ -16,7 +15,9 @@ class GeneratorImpl(
     private val mavenXmlNode: MavenXmlNode,
     private val sourceProjectLoader: SourceProjectLoader,
     private val sourceFileFinder: SourceFileFinder,
-    private val moduleMappingNotifications: ModuleMappingNotifications
+    private val onSourceModulesNotFound: (List<String>) -> Unit,
+    private val onTargetModulesNotFound: (List<String>) -> Unit,
+    private val onDuplicateTargetModules: (Set<String>) -> Unit
 ) : Generator {
     override fun generate(project: Project): List<Command> {
         val rootCommand = generateRootCommand(project)
@@ -186,20 +187,20 @@ class GeneratorImpl(
         val sourceModules = sourceProject.modules.keys
         val unmappedSourceModules = moduleMapping.keys.filterNot { it in sourceModules }
         if (unmappedSourceModules.isNotEmpty()) {
-            moduleMappingNotifications.sourceModulesNotFound(unmappedSourceModules)
+            onSourceModulesNotFound(unmappedSourceModules)
         }
 
         // Validate that target modules exist in target project
         val targetModules = targetProject.modules.keys
         val unmappedTargetModules = moduleMapping.values.filterNot { it in targetModules }
         if (unmappedTargetModules.isNotEmpty()) {
-            moduleMappingNotifications.targetModulesNotFound(unmappedTargetModules)
+            onTargetModulesNotFound(unmappedTargetModules)
         }
 
         // Check for duplicate target modules (multiple source modules mapping to same target)
         val duplicateTargets = moduleMapping.values.groupingBy { it }.eachCount().filter { it.value > 1 }
         if (duplicateTargets.isNotEmpty()) {
-            moduleMappingNotifications.duplicateTargetModules(duplicateTargets.keys)
+            onDuplicateTargetModules(duplicateTargets.keys)
         }
     }
 

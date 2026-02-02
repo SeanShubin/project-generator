@@ -13,14 +13,14 @@ data class WriteFile(val path: Path, val lines: List<String>) : Command {
         if (existed) {
             val existingLines = environment.files.readAllLines(path)
             if (existingLines == lines) {
-                environment.fileOperationNotifications.fileUnchanged(path)
+                environment.onFileUnchanged(path)
                 return
             }
             environment.files.write(path, lines)
-            environment.fileOperationNotifications.fileModified(path)
+            environment.onFileModified(path)
         } else {
             environment.files.write(path, lines)
-            environment.fileOperationNotifications.fileCreated(path)
+            environment.onFileCreated(path)
         }
     }
 }

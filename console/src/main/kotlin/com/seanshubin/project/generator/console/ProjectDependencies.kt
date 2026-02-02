@@ -2,8 +2,7 @@ package com.seanshubin.project.generator.console
 
 import com.seanshubin.project.generator.commands.Environment
 import com.seanshubin.project.generator.commands.EnvironmentImpl
-import com.seanshubin.project.generator.commands.FileOperationNotifications
-import com.seanshubin.project.generator.commands.LineEmittingFileOperationNotifications
+import com.seanshubin.project.generator.core.GroupArtifactVersionScope
 import com.seanshubin.project.generator.core.Project
 import com.seanshubin.project.generator.di.contract.FilesContract
 import com.seanshubin.project.generator.di.delegate.FilesDelegate
@@ -16,9 +15,19 @@ import com.seanshubin.project.generator.http.Http
 import com.seanshubin.project.generator.http.HttpClientFactory
 import com.seanshubin.project.generator.http.HttpClientFactoryImpl
 import com.seanshubin.project.generator.http.HttpImpl
-import com.seanshubin.project.generator.maven.*
-import com.seanshubin.project.generator.source.*
-import com.seanshubin.project.generator.xml.*
+import com.seanshubin.project.generator.maven.MavenXmlNode
+import com.seanshubin.project.generator.maven.MavenXmlNodeImpl
+import com.seanshubin.project.generator.maven.VersionLookup
+import com.seanshubin.project.generator.maven.VersionLookupImpl
+import com.seanshubin.project.generator.source.SourceFileFinder
+import com.seanshubin.project.generator.source.SourceFileFinderImpl
+import com.seanshubin.project.generator.source.SourceProjectLoader
+import com.seanshubin.project.generator.source.SourceProjectLoaderImpl
+import com.seanshubin.project.generator.xml.SaxParserFactoryImpl
+import com.seanshubin.project.generator.xml.StringUtility
+import com.seanshubin.project.generator.xml.XmlParserFactory
+import com.seanshubin.project.generator.xml.XmlRenderer
+import com.seanshubin.project.generator.xml.XmlRendererImpl
 import java.nio.file.Path
 
 class ProjectDependencies(
@@ -32,29 +41,38 @@ class ProjectDependencies(
     private val httpClient = httpClientFactory.createHttpClient()
     private val http: Http = HttpImpl(httpClient)
     private val xmlParserFactory: XmlParserFactory = SaxParserFactoryImpl()
-    private val notifications: Notifications = LineEmittingNotifications(integrations.emit)
-    private val sourceFileNotifications: SourceFileNotifications =
-        LineEmittingSourceFileNotifications(integrations.emitError)
-    private val moduleMappingNotifications: ModuleMappingNotifications =
-        LineEmittingModuleMappingNotifications(integrations.emitError)
-    private val fileOperationNotifications: FileOperationNotifications =
-        LineEmittingFileOperationNotifications(integrations.emit)
+    private val mavenEventConsumer = MavenEventConsumer(integrations.emit)
+    private val sourceFileEventConsumer = SourceFileEventConsumer(integrations.emitError)
+    private val moduleMappingEventConsumer = ModuleMappingEventConsumer(integrations.emitError)
+    private val fileOperationEventConsumer = FileOperationEventConsumer(integrations.emit)
     private val versionLookup: VersionLookup =
-        VersionLookupImpl(http, xmlParserFactory, notifications::lookupVersionEvent)
+        VersionLookupImpl(http, xmlParserFactory, mavenEventConsumer::onLookupVersion)
     private val mavenXmlNode: MavenXmlNode = MavenXmlNodeImpl(versionLookup)
     private val files: FilesContract = integrations.files
     private val sourceProjectLoader: SourceProjectLoader = SourceProjectLoaderImpl(files)
-    private val sourceFileFinder: SourceFileFinder = SourceFileFinderImpl(files, sourceFileNotifications)
+    private val sourceFileFinder: SourceFileFinder = SourceFileFinderImpl(files, sourceFileEventConsumer::onPathNotDirectory)
     private val generator: Generator = GeneratorImpl(
         xmlRenderer,
         baseDirectory,
         mavenXmlNode,
         sourceProjectLoader,
         sourceFileFinder,
-        moduleMappingNotifications
+        moduleMappingEventConsumer::onSourceModulesNotFound,
+        moduleMappingEventConsumer::onTargetModulesNotFound,
+        moduleMappingEventConsumer::onDuplicateTargetModules
     )
-    private val createKeyStore: (Path) -> KeyValueStore = { path: Path -> JsonFileKeyValueStore(files, path) }
+    private val keyValueStoreFactory = JsonFileKeyValueStoreFactory(files)
     private val environment: Environment =
-        EnvironmentImpl(files, createKeyStore, sourceFileNotifications, fileOperationNotifications)
+        EnvironmentImpl(
+            files,
+            keyValueStoreFactory::create,
+            sourceFileEventConsumer::onPathNotDirectory,
+            sourceFileEventConsumer::onSourceFileNotFound,
+            sourceFileEventConsumer::onFileTransformationError,
+            fileOperationEventConsumer::onFileCreated,
+            fileOperationEventConsumer::onFileModified,
+            fileOperationEventConsumer::onFileUnchanged,
+            fileOperationEventConsumer::onDirectoryCreated
+        )
     val runner: ProjectRunner = ProjectRunner(generator, project, environment)
 }

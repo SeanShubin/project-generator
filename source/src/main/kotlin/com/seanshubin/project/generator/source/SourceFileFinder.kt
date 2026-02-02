@@ -16,7 +16,7 @@ interface SourceFileFinder {
 
 class SourceFileFinderImpl(
     private val files: FilesContract,
-    private val notifications: SourceFileNotifications
+    private val onPathNotDirectory: (Path) -> Unit
 ) : SourceFileFinder {
     override fun findSourceFiles(
         sourceProjectPath: Path,
@@ -76,7 +76,7 @@ class SourceFileFinderImpl(
         }
 
         if (!files.isDirectory(sourceSetDir)) {
-            notifications.pathNotDirectory(sourceSetDir)
+            onPathNotDirectory(sourceSetDir)
             return
         }
 

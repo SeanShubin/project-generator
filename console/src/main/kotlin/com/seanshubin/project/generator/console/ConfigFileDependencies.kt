@@ -15,7 +15,6 @@ class ConfigFileDependencies(
 ) {
     val files: FilesContract = integrations.files
     val keyValueStore: KeyValueStore = JsonFileKeyValueStore(files, configFile)
-    val createRunner: (Project, Path) -> Runnable =
-        { project, baseDirectory -> ProjectDependencies(project, baseDirectory, integrations).runner }
-    val runner: Runnable = KeyValueStoreRunner(keyValueStore, baseDirectory, files, createRunner)
+    val projectRunnerFactory = ProjectRunnerFactory(integrations)
+    val runner: Runnable = KeyValueStoreRunner(keyValueStore, baseDirectory, files, projectRunnerFactory::createRunner)
 }

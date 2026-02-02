@@ -14,20 +14,20 @@ data class WriteTextFile(val path: Path, val content: String, val executable: Bo
         if (existed) {
             val existingContent = environment.files.readString(path)
             if (existingContent == content) {
-                environment.fileOperationNotifications.fileUnchanged(path)
+                environment.onFileUnchanged(path)
                 return
             }
             environment.files.writeString(path, content)
             if (executable) {
                 environment.files.setPosixFilePermissions(path, executablePermissions)
             }
-            environment.fileOperationNotifications.fileModified(path)
+            environment.onFileModified(path)
         } else {
             environment.files.writeString(path, content)
             if (executable) {
                 environment.files.setPosixFilePermissions(path, executablePermissions)
             }
-            environment.fileOperationNotifications.fileCreated(path)
+            environment.onFileCreated(path)
         }
     }
 

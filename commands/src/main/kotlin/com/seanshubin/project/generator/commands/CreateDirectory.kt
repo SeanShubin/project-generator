@@ -7,7 +7,7 @@ data class CreateDirectory(val path: Path) : Command {
         val existed = environment.files.exists(path)
         environment.files.createDirectories(path)
         if (!existed) {
-            environment.fileOperationNotifications.directoryCreated(path)
+            environment.onDirectoryCreated(path)
         }
     }
 }

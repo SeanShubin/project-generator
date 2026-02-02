@@ -33,7 +33,7 @@ data class CopyAndTransformSourceFile(
     override fun execute(environment: Environment) {
         try {
             if (!environment.files.exists(sourcePath)) {
-                environment.sourceFileNotifications.sourceFileNotFound(sourcePath)
+                environment.onSourceFileNotFound(sourcePath)
                 return
             }
 
@@ -49,17 +49,17 @@ data class CopyAndTransformSourceFile(
             if (existed) {
                 val existingLines = environment.files.readAllLines(targetPath)
                 if (existingLines == transformedLines) {
-                    environment.fileOperationNotifications.fileUnchanged(targetPath)
+                    environment.onFileUnchanged(targetPath)
                     return
                 }
                 environment.files.write(targetPath, transformedLines)
-                environment.fileOperationNotifications.fileModified(targetPath)
+                environment.onFileModified(targetPath)
             } else {
                 environment.files.write(targetPath, transformedLines)
-                environment.fileOperationNotifications.fileCreated(targetPath)
+                environment.onFileCreated(targetPath)
             }
         } catch (e: Exception) {
-            environment.sourceFileNotifications.fileTransformationError(
+            environment.onFileTransformationError(
                 sourcePath,
                 targetPath,
                 e.message ?: "Unknown error"

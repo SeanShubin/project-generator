@@ -7,7 +7,6 @@ class ArgsDependencies(
     private val args: Array<String>,
     private val integrations: Integrations
 ) {
-    val createRunner: (Path, Path) -> Runnable =
-        { configFile, baseDirectory -> ConfigFileDependencies(configFile, baseDirectory, integrations).runner }
-    val runner: Runnable = ArgsRunner(args, createRunner)
+    val configRunnerFactory = ConfigRunnerFactory(integrations)
+    val runner: Runnable = ArgsRunner(args, configRunnerFactory::createRunner)
 }

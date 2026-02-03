@@ -84,8 +84,29 @@ Minimal specification:
 - **dependencies**: Named dependencies with group/artifact/version/scope
 - **global**: Dependencies applied to all modules
 - **entryPoints**: Module names mapped to main class paths
-- **sourceDependencies**: Optional - copy modules from another project
+- **sourceDependencies**: Optional - copy and transform source code from another local project
+  - `sourceProjectPath`: Path to external project (relative or absolute)
+  - `moduleMapping`: Map of source module names to target module names
+  - Source code is copied and package names are transformed to match target project structure
 - **versionOverrides**: Optional - override dependency versions
+
+### Source Dependencies Example
+
+Copy modules from another local project:
+```json
+{
+  "sourceDependencies": {
+    "sourceProjectPath": "../kotlin-reusable",
+    "moduleMapping": {
+      "dynamic-core": "dynamic-core",
+      "dynamic-json": "dynamic-json",
+      "di-contract": "di-contract"
+    }
+  }
+}
+```
+
+This copies the specified modules from `../kotlin-reusable` and transforms their package declarations to match your project's prefix and name.
 
 ## Documentation
 - [Staged Dependency Injection](docs/staged-dependency-injection.md)

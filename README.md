@@ -89,6 +89,11 @@ Minimal specification:
     - `sourceProjectPath`: Path to external project (relative or absolute)
     - `moduleMapping`: Map of source module names to target module names
   - Source code is copied and package names are transformed to match target project structure
+  - **Important**: Only modules listed in the source project's `exports` can be imported
+- **exports**: Optional - list of module names that other projects can import via source dependencies
+  - Modules must be explicitly listed here to be importable by other projects
+  - Use for utility libraries and reusable components
+  - Leave empty for leaf applications
 - **versionOverrides**: Optional - override dependency versions
 
 ### Source Dependencies Example
@@ -116,6 +121,63 @@ Copy modules from multiple local projects:
 ```
 
 This copies the specified modules from each source project and transforms their package declarations to match your project's prefix and name.
+
+### Exports Example
+
+**Utility Library** (exports modules for others to use):
+```json
+{
+  "name": ["kotlin", "reusable"],
+  "modules": {
+    "di-contract": [],
+    "di-delegate": ["di-contract"],
+    "dynamic-core": [],
+    "dynamic-json": ["dynamic-core", "di-delegate"],
+    "internal-utils": []
+  },
+  "exports": [
+    "di-contract",
+    "di-delegate",
+    "dynamic-core",
+    "dynamic-json"
+  ]
+}
+```
+**Note**: `internal-utils` is NOT exported - only for internal use.
+
+**Application** (imports from utility library):
+```json
+{
+  "name": ["my", "app"],
+  "modules": {
+    "domain": ["di-contract"],
+    "console": ["domain"]
+  },
+  "sourceDependencies": [
+    {
+      "sourceProjectPath": "../kotlin-reusable",
+      "moduleMapping": {
+        "di-contract": "di-contract",
+        "di-delegate": "di-delegate"
+      }
+    }
+  ],
+  "exports": []
+}
+```
+**Note**: Leaf applications typically don't export anything.
+
+If the application tries to import `internal-utils`, the generator will fail with:
+```
+Cannot import non-exported modules from source project: kotlin.reusable
+
+Non-exported modules: internal-utils
+Available exports: di-contract, di-delegate, dynamic-core, dynamic-json
+
+Resolution:
+  1. Remove these modules from your moduleMapping, OR
+  2. Add them to the "exports" section in kotlin.reusable's project-specification.json
+```
 
 ## Documentation
 - [Staged Dependency Injection](docs/staged-dependency-injection.md)

@@ -191,6 +191,28 @@ class GeneratorImpl(
         targetProject: Project,
         moduleMapping: Map<String, String>
     ) {
+        // Phase 1: Validate that source modules are exported
+        val exports = sourceProject.exports
+        val nonExportedModules = moduleMapping.keys.filterNot { it in exports }
+        if (nonExportedModules.isNotEmpty()) {
+            val sourceProjectName = (sourceProject.prefix + sourceProject.name).joinToString(".")
+            val availableExports = if (exports.isEmpty()) "none" else exports.joinToString(", ")
+            throw IllegalArgumentException(
+                """
+                Cannot import non-exported modules from source project: $sourceProjectName
+
+                Non-exported modules: ${nonExportedModules.joinToString(", ")}
+                Available exports: $availableExports
+
+                Resolution:
+                  1. Remove these modules from your moduleMapping, OR
+                  2. Add them to the "exports" section in $sourceProjectName's project-specification.json
+
+                Note: Modules must be explicitly marked as exportable for other projects to import them.
+                """.trimIndent()
+            )
+        }
+
         // Validate that source modules exist in source project
         val sourceModules = sourceProject.modules.keys
         val unmappedSourceModules = moduleMapping.keys.filterNot { it in sourceModules }
@@ -217,7 +239,8 @@ class GeneratorImpl(
         targetProject: Project,
         moduleMapping: Map<String, String>
     ): List<PackageTransformation> {
-        return moduleMapping.map { (sourceModule, targetModule) ->
+        // Direct module transformations (e.g., jvmspec.analysis -> inversion-guard.jvmspec.analysis)
+        val directTransformations = moduleMapping.map { (sourceModule, targetModule) ->
             val sourceModuleParts = parseModuleName(sourceModule)
             val targetModuleParts = parseModuleName(targetModule)
 
@@ -231,6 +254,57 @@ class GeneratorImpl(
 
             PackageTransformation(sourcePackage, targetPackage)
         }
+
+        // Automatic transformations for common source dependencies
+        // (e.g., both projects import di-contract from kotlin-reusable)
+        val automaticTransformations = buildAutomaticTransformations(sourceProject, targetProject)
+
+        return directTransformations + automaticTransformations
+    }
+
+    private fun buildAutomaticTransformations(
+        sourceProject: Project,
+        targetProject: Project
+    ): List<PackageTransformation> {
+        val transformations = mutableListOf<PackageTransformation>()
+
+        // Build a map of source project path to module mappings for both projects
+        val sourceDepsByPath = sourceProject.sourceDependencies.associateBy { it.sourceProjectPath }
+        val targetDepsByPath = targetProject.sourceDependencies.associateBy { it.sourceProjectPath }
+
+        // Find common source dependencies (e.g., both import from kotlin-reusable)
+        val commonSourcePaths = sourceDepsByPath.keys.intersect(targetDepsByPath.keys)
+
+        for (commonSourcePath in commonSourcePaths) {
+            val sourceDep = sourceDepsByPath[commonSourcePath]!!
+            val targetDep = targetDepsByPath[commonSourcePath]!!
+
+            // Load the common source project (e.g., kotlin-reusable)
+            val commonSourceProject = sourceProjectLoader.loadProject(commonSourcePath)
+
+            // Find modules that both projects import from this common source
+            val sourceModules = sourceDep.moduleMapping.values.toSet()
+            val targetModules = targetDep.moduleMapping.values.toSet()
+            val commonModules = sourceModules.intersect(targetModules)
+
+            // Create transformations for each common module
+            for (commonModule in commonModules) {
+                val sourceModuleParts = parseModuleName(commonModule)
+                val targetModuleParts = parseModuleName(commonModule)
+
+                val sourcePackage = sourceProject.prefix +
+                        sourceProject.name +
+                        sourceModuleParts
+
+                val targetPackage = targetProject.prefix +
+                        targetProject.name +
+                        targetModuleParts
+
+                transformations.add(PackageTransformation(sourcePackage, targetPackage))
+            }
+        }
+
+        return transformations
     }
 
     companion object {

@@ -40,6 +40,7 @@ class KeyValueStoreRunner(
         val entryPoints: Map<String, String> = loadEntryPoints()
         val sourceDependencies: List<SourceDependency> = loadSourceDependencies()
         val mavenPlugin: List<String> = loadStringArray(listOf("mavenPlugin"), emptyList())
+        val exports: List<String> = loadStringArray(listOf("exports"), emptyList())
         val project = Project(
             prefix,
             name,
@@ -54,7 +55,8 @@ class KeyValueStoreRunner(
             javaVersion,
             entryPoints,
             sourceDependencies,
-            mavenPlugin
+            mavenPlugin,
+            exports
         )
         val runner = createRunner(project, baseDirectory)
         runner.run()

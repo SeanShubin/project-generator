@@ -4,6 +4,7 @@ import com.seanshubin.project.generator.core.Developer
 import com.seanshubin.project.generator.core.GroupArtifactScope
 import com.seanshubin.project.generator.core.GroupArtifactVersion
 import com.seanshubin.project.generator.core.Project
+import com.seanshubin.project.generator.core.SourceDependency
 import com.seanshubin.project.generator.di.contract.FilesContract
 import com.seanshubin.project.generator.dynamic.core.KeyValueStore
 import com.seanshubin.project.generator.dynamic.json.JsonFileKeyValueStore
@@ -74,6 +75,8 @@ class SourceProjectLoaderImpl(
         val javaVersion = keyStore.loadStringOrDefault(listOf("javaVersion"), "25")
         val entryPoints = loadMapOfString(keyStore, listOf("entryPoints"), emptyMap())
         val mavenPlugin = loadStringArray(keyStore, listOf("mavenPlugin"), emptyList())
+        val exports = loadStringArray(keyStore, listOf("exports"), emptyList())
+        val sourceDependencies = loadSourceDependencies(keyStore, projectPath)
 
         return Project(
             prefix,
@@ -88,9 +91,23 @@ class SourceProjectLoaderImpl(
             modules,
             javaVersion,
             entryPoints,
-            emptyList(),  // Source project itself doesn't have source dependencies
-            mavenPlugin
+            sourceDependencies,
+            mavenPlugin,
+            exports
         )
+    }
+
+    private fun loadSourceDependencies(keyStore: KeyValueStore, projectPath: Path): List<SourceDependency> {
+        val sourceDependenciesList = keyStore.loadListOrEmpty(listOf("sourceDependencies"))
+        return sourceDependenciesList.map { sourceDependencyMap ->
+            val depMap = sourceDependencyMap as Map<*, *>
+            val sourceProjectPathString = depMap["sourceProjectPath"] as String
+            val absoluteSourceProjectPath = projectPath.resolve(sourceProjectPathString).normalize()
+            val moduleMapping = (depMap["moduleMapping"] as Map<*, *>)
+                .mapKeys { it.key as String }
+                .mapValues { it.value as String }
+            SourceDependency(absoluteSourceProjectPath, moduleMapping)
+        }
     }
 
     private fun loadStringArray(keyStore: KeyValueStore, key: List<String>, default: List<String>): List<String> {

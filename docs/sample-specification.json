@@ -69,5 +69,8 @@
         "source-module-name": "target-module-name"
       }
     }
+  ],
+  "exports": [
+    "domain"
   ]
 }

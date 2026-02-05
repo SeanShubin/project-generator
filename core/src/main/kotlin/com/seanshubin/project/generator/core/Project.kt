@@ -13,6 +13,6 @@ data class Project(
     val modules: Map<String, List<String>>, // the dependency structure, each dependency can be identified by either module name or alias
     val javaVersion: String, // which java version to use
     val entryPoints: Map<String, String> = emptyMap(), // optional entry point class names for modules that should generate executable JARs
-    val sourceDependency: SourceDependency? = null, // optional source dependency for copying and transforming code from external projects
+    val sourceDependencies: List<SourceDependency> = emptyList(), // optional source dependencies for copying and transforming code from external projects
     val mavenPlugin: List<String> = emptyList() // modules that are Maven plugins
 )

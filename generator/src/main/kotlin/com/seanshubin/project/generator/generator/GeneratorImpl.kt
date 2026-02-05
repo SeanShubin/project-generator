@@ -2,6 +2,7 @@ package com.seanshubin.project.generator.generator
 
 import com.seanshubin.project.generator.commands.*
 import com.seanshubin.project.generator.core.Project
+import com.seanshubin.project.generator.core.SourceDependency
 import com.seanshubin.project.generator.maven.MavenXmlNode
 import com.seanshubin.project.generator.source.PackageTransformation
 import com.seanshubin.project.generator.source.SourceFileFinder
@@ -142,8 +143,15 @@ class GeneratorImpl(
     }
 
     private fun generateSourceDependencyCommands(project: Project): List<Command> {
-        val sourceDependency = project.sourceDependency ?: return emptyList()
+        return project.sourceDependencies.flatMap { sourceDependency ->
+            generateCommandsForSourceDependency(project, sourceDependency)
+        }
+    }
 
+    private fun generateCommandsForSourceDependency(
+        project: Project,
+        sourceDependency: SourceDependency
+    ): List<Command> {
         // Load source project metadata to determine package structure
         val sourceProject = sourceProjectLoader.loadProject(sourceDependency.sourceProjectPath)
 

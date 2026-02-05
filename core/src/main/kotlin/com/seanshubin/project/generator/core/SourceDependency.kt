@@ -12,13 +12,15 @@ import java.nio.file.Path
  * Example configuration in project-specification.json:
  * ```json
  * {
- *   "sourceDependencies": {
- *     "sourceProjectPath": "/path/to/external/project",
- *     "moduleMapping": {
- *       "source-module-f": "target-module-j",
- *       "source-module-g": "target-module-k"
+ *   "sourceDependencies": [
+ *     {
+ *       "sourceProjectPath": "/path/to/external/project",
+ *       "moduleMapping": {
+ *         "source-module-f": "target-module-j",
+ *         "source-module-g": "target-module-k"
+ *       }
  *     }
- *   }
+ *   ]
  * }
  * ```
  *

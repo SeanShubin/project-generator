@@ -62,10 +62,12 @@
     "console": "com.seanshubin.kotlin.tryme.console.MainKt"
   },
   "javaVersion": "25",
-  "sourceDependencies": {
-    "sourceProjectPath": "../another-project",
-    "moduleMapping": {
-      "source-module-name": "target-module-name"
+  "sourceDependencies": [
+    {
+      "sourceProjectPath": "../another-project",
+      "moduleMapping": {
+        "source-module-name": "target-module-name"
+      }
     }
-  }
+  ]
 }

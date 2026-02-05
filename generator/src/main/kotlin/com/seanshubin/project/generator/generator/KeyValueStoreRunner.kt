@@ -38,7 +38,7 @@ class KeyValueStoreRunner(
         val modules: Map<String, List<String>> = loadMapOfListOfString(listOf("modules"), emptyMap())
         val javaVersion: String = keyValueStore.loadStringOrDefault(listOf("javaVersion"), "25")
         val entryPoints: Map<String, String> = loadEntryPoints()
-        val sourceDependency: SourceDependency? = loadSourceDependency()
+        val sourceDependencies: List<SourceDependency> = loadSourceDependencies()
         val mavenPlugin: List<String> = loadStringArray(listOf("mavenPlugin"), emptyList())
         val project = Project(
             prefix,
@@ -53,7 +53,7 @@ class KeyValueStoreRunner(
             modules,
             javaVersion,
             entryPoints,
-            sourceDependency,
+            sourceDependencies,
             mavenPlugin
         )
         val runner = createRunner(project, baseDirectory)
@@ -117,21 +117,22 @@ class KeyValueStoreRunner(
         }
     }
 
-    private fun loadSourceDependency(): SourceDependency? {
-        if (!keyValueStore.exists(listOf("sourceDependencies"))) return null
+    private fun loadSourceDependencies(): List<SourceDependency> {
+        if (!keyValueStore.exists(listOf("sourceDependencies"))) return emptyList()
 
-        val sourceProjectPathString = keyValueStore.loadStringOrDefault(
-            listOf("sourceDependencies", "sourceProjectPath"),
-            ""
-        )
-        if (sourceProjectPathString.isEmpty()) return null
+        val sourceDependenciesList = keyValueStore.loadListOrEmpty(listOf("sourceDependencies"))
+        return sourceDependenciesList.map { sourceDependencyMap ->
+            val depMap = sourceDependencyMap as Map<*, *>
+            extractSourceDependency(depMap)
+        }
+    }
 
-        val moduleMapping = loadMapOfString(
-            listOf("sourceDependencies", "moduleMapping"),
-            emptyMap()
-        )
-
+    private fun extractSourceDependency(map: Map<*, *>): SourceDependency {
+        val sourceProjectPathString = map["sourceProjectPath"] as String
         val sourceProjectPath = Paths.get(sourceProjectPathString)
+        val moduleMappingMap = map["moduleMapping"] as? Map<*, *> ?: emptyMap<String, String>()
+        val moduleMapping = moduleMappingMap.mapKeys { entry -> entry.key as String }
+            .mapValues { entry -> entry.value as String }
         return SourceDependency(sourceProjectPath, moduleMapping)
     }
 

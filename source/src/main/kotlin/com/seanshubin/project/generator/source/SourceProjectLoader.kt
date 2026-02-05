@@ -88,7 +88,7 @@ class SourceProjectLoaderImpl(
             modules,
             javaVersion,
             entryPoints,
-            null,  // Source project itself doesn't have source dependencies
+            emptyList(),  // Source project itself doesn't have source dependencies
             mavenPlugin
         )
     }

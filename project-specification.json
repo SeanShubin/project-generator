@@ -92,14 +92,16 @@
   "entryPoints": {
     "console": "com.seanshubin.project.generator.console.EntryPoint"
   },
-  "sourceDependencies": {
-    "sourceProjectPath": "../kotlin-reusable",
-    "moduleMapping": {
-      "dynamic-core": "dynamic-core",
-      "dynamic-json": "dynamic-json",
-      "di-contract": "di-contract",
-      "di-delegate": "di-delegate",
-      "di-test": "di-test"
+  "sourceDependencies": [
+    {
+      "sourceProjectPath": "../kotlin-reusable",
+      "moduleMapping": {
+        "dynamic-core": "dynamic-core",
+        "dynamic-json": "dynamic-json",
+        "di-contract": "di-contract",
+        "di-delegate": "di-delegate",
+        "di-test": "di-test"
+      }
     }
-  }
+  ]
 }

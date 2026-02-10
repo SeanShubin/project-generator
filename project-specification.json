@@ -65,9 +65,14 @@
       "di-contract",
       "dynamic-json"
     ],
+    "gradle": [
+      "core",
+      "maven"
+    ],
     "generator": [
       "core",
       "maven",
+      "gradle",
       "source",
       "commands",
       "dynamic-json",

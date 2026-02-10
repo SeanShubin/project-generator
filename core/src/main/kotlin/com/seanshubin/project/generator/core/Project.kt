@@ -15,5 +15,18 @@ data class Project(
     val entryPoints: Map<String, String> = emptyMap(), // optional entry point class names for modules that should generate executable JARs
     val sourceDependencies: List<SourceDependency> = emptyList(), // optional source dependencies for copying and transforming code from external projects
     val mavenPlugin: List<String> = emptyList(), // modules that are Maven plugins
+    val gradlePlugin: List<GradlePluginSpec> = emptyList(), // modules that are Gradle plugins
     val exports: List<String> = emptyList() // modules designed to be imported by other projects via source dependencies
+)
+
+data class GradlePluginSpec(
+    val module: String, // directory name for the Gradle plugin module
+    val pluginId: String, // plugin ID for the Gradle plugin portal
+    val implementationClass: String, // fully qualified class name of the plugin implementation
+    val displayName: String, // display name for the plugin
+    val description: String, // description for the plugin
+    val tags: List<String> = emptyList(), // tags for the Gradle plugin portal
+    val dependsOn: List<String> = emptyList(), // Maven module dependencies that this Gradle plugin depends on
+    val website: String? = null, // website URL, defaults to GitHub URL if not specified
+    val vcsUrl: String? = null // VCS URL, defaults to GitHub URL if not specified
 )

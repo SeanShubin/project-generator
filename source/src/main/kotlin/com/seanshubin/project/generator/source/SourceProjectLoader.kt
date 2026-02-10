@@ -1,6 +1,7 @@
 package com.seanshubin.project.generator.source
 
 import com.seanshubin.project.generator.core.Developer
+import com.seanshubin.project.generator.core.GradlePluginSpec
 import com.seanshubin.project.generator.core.GroupArtifactScope
 import com.seanshubin.project.generator.core.GroupArtifactVersion
 import com.seanshubin.project.generator.core.Project
@@ -75,6 +76,7 @@ class SourceProjectLoaderImpl(
         val javaVersion = keyStore.loadStringOrDefault(listOf("javaVersion"), "25")
         val entryPoints = loadMapOfString(keyStore, listOf("entryPoints"), emptyMap())
         val mavenPlugin = loadStringArray(keyStore, listOf("mavenPlugin"), emptyList())
+        val gradlePlugin = loadGradlePluginSpecs(keyStore)
         val exports = loadStringArray(keyStore, listOf("exports"), emptyList())
         val sourceDependencies = loadSourceDependencies(keyStore, projectPath)
 
@@ -93,6 +95,7 @@ class SourceProjectLoaderImpl(
             entryPoints,
             sourceDependencies,
             mavenPlugin,
+            gradlePlugin,
             exports
         )
     }
@@ -139,6 +142,23 @@ class SourceProjectLoaderImpl(
             val artifact = overrideMap["artifact"] as String
             val version = overrideMap["version"] as String
             GroupArtifactVersion(group, artifact, version)
+        }
+    }
+
+    private fun loadGradlePluginSpecs(keyStore: KeyValueStore): List<GradlePluginSpec> {
+        val gradlePluginList = keyStore.loadListOrEmpty(listOf("gradlePlugin"))
+        return gradlePluginList.map { gradlePluginMap ->
+            val pluginMap = gradlePluginMap as Map<*, *>
+            val module = pluginMap["module"] as String
+            val pluginId = pluginMap["pluginId"] as String
+            val implementationClass = pluginMap["implementationClass"] as String
+            val displayName = pluginMap["displayName"] as String
+            val description = pluginMap["description"] as String
+            val tags = (pluginMap["tags"] as? List<*>)?.map { it as String } ?: emptyList()
+            val dependsOn = (pluginMap["dependsOn"] as? List<*>)?.map { it as String } ?: emptyList()
+            val website = pluginMap["website"] as? String
+            val vcsUrl = pluginMap["vcsUrl"] as? String
+            GradlePluginSpec(module, pluginId, implementationClass, displayName, description, tags, dependsOn, website, vcsUrl)
         }
     }
 

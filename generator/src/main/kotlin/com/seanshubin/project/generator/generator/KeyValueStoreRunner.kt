@@ -40,6 +40,7 @@ class KeyValueStoreRunner(
         val entryPoints: Map<String, String> = loadEntryPoints()
         val sourceDependencies: List<SourceDependency> = loadSourceDependencies()
         val mavenPlugin: List<String> = loadStringArray(listOf("mavenPlugin"), emptyList())
+        val gradlePlugin: List<GradlePluginSpec> = loadGradlePluginSpecs()
         val exports: List<String> = loadStringArray(listOf("exports"), emptyList())
         val project = Project(
             prefix,
@@ -56,6 +57,7 @@ class KeyValueStoreRunner(
             entryPoints,
             sourceDependencies,
             mavenPlugin,
+            gradlePlugin,
             exports
         )
         val runner = createRunner(project, baseDirectory)
@@ -86,6 +88,23 @@ class KeyValueStoreRunner(
         return versionOverridesList.map { versionOverrideMap ->
             val overrideMap = versionOverrideMap as Map<*, *>
             extractGroupArtifactVersion(overrideMap)
+        }
+    }
+
+    private fun loadGradlePluginSpecs(): List<GradlePluginSpec> {
+        val gradlePluginList = keyValueStore.loadListOrEmpty(listOf("gradlePlugin"))
+        return gradlePluginList.map { gradlePluginMap ->
+            val pluginMap = gradlePluginMap as Map<*, *>
+            val module = pluginMap["module"] as String
+            val pluginId = pluginMap["pluginId"] as String
+            val implementationClass = pluginMap["implementationClass"] as String
+            val displayName = pluginMap["displayName"] as String
+            val description = pluginMap["description"] as String
+            val tags = (pluginMap["tags"] as? List<*>)?.map { it as String } ?: emptyList()
+            val dependsOn = (pluginMap["dependsOn"] as? List<*>)?.map { it as String } ?: emptyList()
+            val website = pluginMap["website"] as? String
+            val vcsUrl = pluginMap["vcsUrl"] as? String
+            GradlePluginSpec(module, pluginId, implementationClass, displayName, description, tags, dependsOn, website, vcsUrl)
         }
     }
 

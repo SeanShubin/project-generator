@@ -7,6 +7,9 @@ import com.seanshubin.project.generator.di.contract.FilesContract
 import com.seanshubin.project.generator.generator.Generator
 import com.seanshubin.project.generator.generator.GeneratorImpl
 import com.seanshubin.project.generator.generator.ProjectRunner
+import com.seanshubin.project.generator.gradle.GradleFileNode
+import com.seanshubin.project.generator.gradle.GradleFileNodeImpl
+import com.seanshubin.project.generator.gradle.GradleKotlinDslRenderer
 import com.seanshubin.project.generator.http.Http
 import com.seanshubin.project.generator.http.HttpClientFactory
 import com.seanshubin.project.generator.http.HttpImpl
@@ -39,6 +42,8 @@ class ProjectDependencies(
     private val versionLookup: VersionLookup =
         VersionLookupImpl(http, xmlParserFactory, mavenEventConsumer::onLookupVersion)
     private val mavenXmlNode: MavenXmlNode = MavenXmlNodeImpl(versionLookup)
+    private val gradleRenderer: GradleKotlinDslRenderer = GradleKotlinDslRenderer()
+    private val gradleFileNode: GradleFileNode = GradleFileNodeImpl(versionLookup)
     private val files: FilesContract = integrations.files
     private val sourceProjectLoader: SourceProjectLoader = SourceProjectLoaderImpl(files)
     private val sourceFileFinder: SourceFileFinder =
@@ -47,6 +52,8 @@ class ProjectDependencies(
         xmlRenderer,
         baseDirectory,
         mavenXmlNode,
+        gradleFileNode,
+        gradleRenderer,
         sourceProjectLoader,
         sourceFileFinder,
         moduleMappingEventConsumer::onSourceModulesNotFound,

@@ -48,6 +48,7 @@
         <module>maven</module>
         <module>source</module>
         <module>commands</module>
+        <module>gradle</module>
         <module>generator</module>
         <module>dynamic-core</module>
         <module>dynamic-json</module>
@@ -111,7 +112,7 @@
             <plugin>
                 <groupId>com.seanshubin.code.structure</groupId>
                 <artifactId>code-structure-maven</artifactId>
-                <version>1.1.0</version>
+                <version>1.1.1</version>
                 <inherited>false</inherited>
                 <executions>
                     <execution>

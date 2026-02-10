@@ -1,8 +1,11 @@
 package com.seanshubin.project.generator.generator
 
 import com.seanshubin.project.generator.commands.*
+import com.seanshubin.project.generator.core.GradlePluginSpec
 import com.seanshubin.project.generator.core.Project
 import com.seanshubin.project.generator.core.SourceDependency
+import com.seanshubin.project.generator.gradle.GradleFileNode
+import com.seanshubin.project.generator.gradle.GradleKotlinDslRenderer
 import com.seanshubin.project.generator.maven.MavenXmlNode
 import com.seanshubin.project.generator.source.PackageTransformation
 import com.seanshubin.project.generator.source.SourceFileFinder
@@ -14,6 +17,8 @@ class GeneratorImpl(
     private val xmlRenderer: XmlRenderer,
     private val baseDirectory: Path,
     private val mavenXmlNode: MavenXmlNode,
+    private val gradleFileNode: GradleFileNode,
+    private val gradleRenderer: GradleKotlinDslRenderer,
     private val sourceProjectLoader: SourceProjectLoader,
     private val sourceFileFinder: SourceFileFinder,
     private val onSourceModulesNotFound: (List<String>) -> Unit,
@@ -28,7 +33,8 @@ class GeneratorImpl(
         val helperFileCommands = generateHelperFiles(project)
         val codeStructureConfigCommands = generateCodeStructureConfigCommands(project)
         val sourceDependencyCommands = generateSourceDependencyCommands(project)
-        return listOf(rootCommand) + moduleCommands + helperFileCommands + codeStructureConfigCommands + sourceDependencyCommands
+        val gradlePluginCommands = generateGradlePluginCommands(project)
+        return listOf(rootCommand) + moduleCommands + helperFileCommands + codeStructureConfigCommands + sourceDependencyCommands + gradlePluginCommands
     }
 
     private fun generateRootCommand(project: Project): Command {
@@ -305,6 +311,50 @@ class GeneratorImpl(
         }
 
         return transformations
+    }
+
+    private fun generateGradlePluginCommands(project: Project): List<Command> {
+        return project.gradlePlugin.flatMap { spec ->
+            generateCommandsForGradlePlugin(project, spec)
+        }
+    }
+
+    private fun generateCommandsForGradlePlugin(project: Project, spec: GradlePluginSpec): List<Command> {
+        val buildGradleNode = gradleFileNode.generateBuildGradle(project, spec)
+        val settingsGradleNode = gradleFileNode.generateSettingsGradle(project, spec)
+        val pomXmlNode = mavenXmlNode.generateGradlePluginXml(project, spec)
+
+        val buildGradleLines = gradleRenderer.toLines(buildGradleNode)
+        val settingsGradleLines = gradleRenderer.toLines(settingsGradleNode)
+        val pomXmlLines = xmlRenderer.toLines(pomXmlNode)
+
+        val buildGradlePath = baseDirectory.resolve(spec.module).resolve("build.gradle.kts")
+        val settingsGradlePath = baseDirectory.resolve(spec.module).resolve("settings.gradle.kts")
+        val pomXmlPath = baseDirectory.resolve(spec.module).resolve("pom.xml")
+        val sourcePath = gradleModuleSourcePath(spec.module, project)
+        val testPath = gradleModuleTestPath(spec.module, project)
+
+        return listOf(
+            CreateDirectory(sourcePath),
+            CreateDirectory(testPath),
+            WriteFile(buildGradlePath, buildGradleLines),
+            WriteFile(settingsGradlePath, settingsGradleLines),
+            WriteFile(pomXmlPath, pomXmlLines)
+        )
+    }
+
+    private fun gradleModuleSourcePath(module: String, project: Project): Path {
+        val moduleParts = parseModuleName(module)
+        val pathParts = listOf(module, SRC_DIR, MAIN_DIR, project.language) +
+                project.prefix + project.name + moduleParts
+        return pathParts.fold(baseDirectory, Path::resolve)
+    }
+
+    private fun gradleModuleTestPath(module: String, project: Project): Path {
+        val moduleParts = parseModuleName(module)
+        val pathParts = listOf(module, SRC_DIR, TEST_DIR, project.language) +
+                project.prefix + project.name + moduleParts
+        return pathParts.fold(baseDirectory, Path::resolve)
     }
 
     companion object {

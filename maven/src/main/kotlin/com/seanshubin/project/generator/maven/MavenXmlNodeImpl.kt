@@ -14,6 +14,168 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         return projectNode(moduleChildren(project, moduleName))
     }
 
+    override fun generateGradlePluginXml(project: Project, spec: com.seanshubin.project.generator.core.GradlePluginSpec): XmlNode {
+        return projectNode(gradlePluginChildren(project, spec))
+    }
+
+    private fun gradlePluginChildren(project: Project, spec: com.seanshubin.project.generator.core.GradlePluginSpec): List<XmlNode> {
+        val artifactId = artifactId(project, spec.module)
+        return listOf(
+            simpleElement("modelVersion", "4.0.0"),
+            simpleElement("artifactId", artifactId),
+            parentReference(project),
+            simpleElement("packaging", "pom"),
+            simpleElement("name", "\${project.groupId}:\${project.artifactId}"),
+            description(project),
+            url(project),
+            licenses(),
+            developers(project),
+            scm(project),
+            gradlePluginBuild()
+        )
+    }
+
+    private fun parentReference(project: Project): XmlNode {
+        return element(
+            "parent", listOf(
+                simpleElement("groupId", groupId(project)),
+                simpleElement("artifactId", artifactId(project, "parent")),
+                simpleElement("version", project.version)
+            )
+        )
+    }
+
+    private fun gradlePluginBuild(): XmlNode {
+        val plugins = listOf(
+            skipKotlinPlugin(),
+            execMavenPlugin(),
+            skipInstallPlugin(),
+            skipDeployPlugin(),
+            skipCentralPublishingPlugin()
+        )
+        return element("build", listOf(element("plugins", plugins)))
+    }
+
+    private fun skipKotlinPlugin(): XmlNode {
+        val executions = listOf(
+            gradlePluginExecution("compile", "none"),
+            gradlePluginExecution("test-compile", "none")
+        )
+        return element(
+            "plugin", listOf(
+                simpleElement("groupId", "org.jetbrains.kotlin"),
+                simpleElement("artifactId", "kotlin-maven-plugin"),
+                element("executions", executions)
+            )
+        )
+    }
+
+    private fun gradlePluginExecution(id: String, phase: String): XmlNode {
+        return element(
+            "execution", listOf(
+                simpleElement("id", id),
+                simpleElement("phase", phase)
+            )
+        )
+    }
+
+    private fun execMavenPlugin(): XmlNode {
+        val execMavenPluginVersion = versionLookup.latestProductionVersion("org.codehaus.mojo", "exec-maven-plugin")
+        val executions = listOf(
+            gradleBuildExecution(),
+            gradlePublishLocalExecution()
+        )
+        return element(
+            "plugin", listOf(
+                simpleElement("groupId", "org.codehaus.mojo"),
+                simpleElement("artifactId", "exec-maven-plugin"),
+                simpleElement("version", execMavenPluginVersion),
+                element("executions", executions)
+            )
+        )
+    }
+
+    private fun gradleBuildExecution(): XmlNode {
+        val configuration = element(
+            "configuration", listOf(
+                simpleElement("executable", "\${basedir}/gradlew"),
+                element(
+                    "arguments", listOf(
+                        simpleElement("argument", "build"),
+                        simpleElement("argument", "--no-daemon")
+                    )
+                )
+            )
+        )
+        return element(
+            "execution", listOf(
+                simpleElement("id", "gradle-build"),
+                simpleElement("phase", "compile"),
+                element("goals", listOf(simpleElement("goal", "exec"))),
+                configuration
+            )
+        )
+    }
+
+    private fun gradlePublishLocalExecution(): XmlNode {
+        val configuration = element(
+            "configuration", listOf(
+                simpleElement("executable", "\${basedir}/gradlew"),
+                element(
+                    "arguments", listOf(
+                        simpleElement("argument", "publishToMavenLocal"),
+                        simpleElement("argument", "--no-daemon")
+                    )
+                )
+            )
+        )
+        return element(
+            "execution", listOf(
+                simpleElement("id", "gradle-publish-local"),
+                simpleElement("phase", "install"),
+                element("goals", listOf(simpleElement("goal", "exec"))),
+                configuration
+            )
+        )
+    }
+
+    private fun skipInstallPlugin(): XmlNode {
+        return element(
+            "plugin", listOf(
+                simpleElement("groupId", "org.apache.maven.plugins"),
+                simpleElement("artifactId", "maven-install-plugin"),
+                element("configuration", listOf(simpleElement("skip", "true")))
+            )
+        )
+    }
+
+    private fun skipDeployPlugin(): XmlNode {
+        return element(
+            "plugin", listOf(
+                simpleElement("groupId", "org.apache.maven.plugins"),
+                simpleElement("artifactId", "maven-deploy-plugin"),
+                element("configuration", listOf(simpleElement("skip", "true")))
+            )
+        )
+    }
+
+    private fun skipCentralPublishingPlugin(): XmlNode {
+        val execution = element(
+            "execution", listOf(
+                simpleElement("id", "injected-central-publishing"),
+                simpleElement("phase", "none")
+            )
+        )
+        return element(
+            "plugin", listOf(
+                simpleElement("groupId", "org.sonatype.central"),
+                simpleElement("artifactId", "central-publishing-maven-plugin"),
+                element("configuration", listOf(simpleElement("skipPublishing", "true"))),
+                element("executions", listOf(execution))
+            )
+        )
+    }
+
     private enum class DependencyType {
         INTERNAL,
         EXTERNAL
@@ -149,7 +311,7 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         val execution = createExecutionWithIdPhaseAndGoals(
             "generate-dokka-javadoc",
             "package",
-            listOf("javadoc")
+            listOf("javadocJar")
         )
         val executions = element("executions", listOf(execution))
 

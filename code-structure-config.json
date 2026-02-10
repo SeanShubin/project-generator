@@ -12,20 +12,13 @@
   "includeJvmDynamicInvocations" : false,
   "sourcePrefix" : "https://github.com/SeanShubin/project-generator/blob/master/",
   "sourceFileRegexPatterns" : {
-    "include" : [
-      ".*/src/main/(kotlin|java)/.*\\.(kt|java)"
-    ],
+    "include" : [ ".*/src/main/(kotlin|java)/.*\\.(kt|java)" ],
     "exclude" : [ ]
   },
   "nodeLimitForGraph" : 100,
   "binaryFileRegexPatterns" : {
-    "include" : [
-      ".*/target/.*\\.class"
-    ],
-    "exclude" : [
-      ".*/testdata/.*",
-      ".*/generated/.*"
-    ]
+    "include" : [ ".*/target/.*\\.class" ],
+    "exclude" : [ ".*/testdata/.*", ".*/generated/.*" ]
   },
   "_documentation" : {
     "description" : "Analyzes dependency structure of source code",

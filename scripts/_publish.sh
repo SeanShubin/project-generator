@@ -1,27 +1,11 @@
 #!/usr/bin/env bash
 
 echo "=========================================="
-echo "Deploying to Maven Central (clean build)"
+echo "Starting deployment to Maven Central..."
 echo "=========================================="
 echo ""
 
-# halt the script if we encounter any errors
-set -e -u -o pipefail
-
-echo "Step 1: Cleaning local Maven repository cache..."
-# make sure we don't inherit any state from our local repository
-rm -rf ~/.m2/repository/{{LOCAL_REPO_PATH}}
-
-echo "Step 2: Running mvn clean..."
-# make sure we don't inherit any state from previous runs
-mvn clean
-
-echo ""
-echo "Step 3: Deploying with stage profile..."
-echo "(requires credentials in ~/.m2/settings.xml with server id 'central')"
-echo ""
-# deploy with the stage profile
-mvn deploy -P stage
+mvn deploy -Pstage
 
 RESULT=$?
 
@@ -37,7 +21,7 @@ if [ $RESULT -eq 0 ]; then
     echo "2. Go to 'Deployments' in left sidebar"
     echo "3. Review and click 'Publish'"
     echo "4. After publishing, artifacts appear in ~10-30 minutes at:"
-    echo "   https://central.sonatype.com/search?q={{GROUP_ID}}"
+    echo "   https://central.sonatype.com/search?q=com.seanshubin.project.generator"
     echo ""
 else
     echo "✗ Deployment failed!"

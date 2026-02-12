@@ -116,28 +116,21 @@ class GeneratorImpl(
         val cleanScript = generateScript("_clean.sh")
         val testScript = generateScript("_test.sh")
         val buildSkipTestsScript = generateScript("_build-skip-tests.sh")
-        val installSkipTestsScript = generateScript("_install-skip-tests.sh")
 
         // Wrapper scripts with timing/notifications
         val buildWrapperScript = generateScript("build.sh")
         val cleanWrapperScript = generateScript("clean.sh")
         val testWrapperScript = generateScript("test.sh")
 
-        // Publishing scripts
+        // Publishing scripts (cleans local repo cache, runs mvn clean, then deploys)
         val publishScript = generatePublishScript(project)
         val publishWrapperScript = generateScript("publish.sh")
 
         // Combined operation scripts
         val cleanPublishScript = generateScript("clean-publish.sh")
-        val cleanInstallSkipTestsScript = generateScript("clean-install-skip-tests.sh")
 
         // Utility scripts
         val generateDocsScript = generateScript("generate-docs.sh")
-        val fetchScript = generateFetchScript(project)
-        val fetchWrapperScript = generateScript("fetch-from-maven-repo-url.sh")
-
-        // Deploy script (with local repo cleaning)
-        val deployScript = generateDeployScript(project)
 
         return listOf(
             gitignoreCommand,
@@ -147,18 +140,13 @@ class GeneratorImpl(
             cleanScript,
             testScript,
             buildSkipTestsScript,
-            installSkipTestsScript,
             buildWrapperScript,
             cleanWrapperScript,
             testWrapperScript,
             publishScript,
             publishWrapperScript,
             cleanPublishScript,
-            cleanInstallSkipTestsScript,
-            generateDocsScript,
-            fetchScript,
-            fetchWrapperScript,
-            deployScript
+            generateDocsScript
         )
     }
 
@@ -188,36 +176,16 @@ class GeneratorImpl(
     }
 
     private fun generatePublishScript(project: Project): Command {
+        val localRepoRelativePath = (project.prefix + project.name).joinToString("/", postfix = "/")
         val groupId = (project.prefix + project.name).joinToString(".")
         val template = loadResource("generated-project-files/_publish.sh")
-        val content = template.replace("{{GROUP_ID}}", groupId)
+        val content = template
+            .replace("{{LOCAL_REPO_PATH}}", localRepoRelativePath)
+            .replace("{{GROUP_ID}}", groupId)
         val path = baseDirectory.resolve("scripts").resolve("_publish.sh")
         return WriteTextFile(path, content, executable = true)
     }
 
-    private fun generateFetchScript(project: Project): Command {
-        val groupId = (project.prefix + project.name).joinToString(".")
-        val artifactId = project.name.joinToString("-") + "-parent"
-        val version = project.version
-        val template = loadResource("generated-project-files/_fetch-from-maven-repo-url.sh")
-        val content = template
-            .replace("{{GROUP_ID}}", groupId)
-            .replace("{{ARTIFACT_ID}}", artifactId)
-            .replace("{{VERSION}}", version)
-        val path = baseDirectory.resolve("scripts").resolve("_fetch-from-maven-repo-url.sh")
-        return WriteTextFile(path, content, executable = true)
-    }
-
-    private fun generateDeployScript(project: Project): Command {
-        val localRepoRelativePath = (project.prefix + project.name).joinToString("/", postfix = "/")
-        val groupId = (project.prefix + project.name).joinToString(".")
-        val template = loadResource("generated-project-files/deploy-to-maven-central.sh")
-        val content = template
-            .replace("{{LOCAL_REPO_PATH}}", localRepoRelativePath)
-            .replace("{{GROUP_ID}}", groupId)
-        val path = baseDirectory.resolve("scripts").resolve("deploy-to-maven-central.sh")
-        return WriteTextFile(path, content, executable = true)
-    }
 
     private fun generateSourceDependencyCommands(project: Project): List<Command> {
         return project.sourceDependencies.flatMap { sourceDependency ->

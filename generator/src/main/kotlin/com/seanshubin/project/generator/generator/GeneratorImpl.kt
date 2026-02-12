@@ -136,7 +136,7 @@ class GeneratorImpl(
 
     private fun generateDocsScript(): Command {
         val content = loadResource("generated-project-files/generate-docs.sh")
-        val path = baseDirectory.resolve("scripts/generate-docs.sh")
+        val path = baseDirectory.resolve("scripts").resolve("generate-docs.sh")
         return WriteTextFile(path, content, executable = true)
     }
 
@@ -144,7 +144,7 @@ class GeneratorImpl(
         val localRepoRelativePath = (project.prefix + project.name).joinToString("/", postfix = "/")
         val template = loadResource("generated-project-files/deploy-to-maven-central.sh")
         val content = template.replace("{{LOCAL_REPO_PATH}}", localRepoRelativePath)
-        val path = baseDirectory.resolve("scripts/deploy-to-maven-central.sh")
+        val path = baseDirectory.resolve("scripts").resolve("deploy-to-maven-central.sh")
         return WriteTextFile(path, content, executable = true)
     }
 

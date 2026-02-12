@@ -17,17 +17,30 @@ data class WriteTextFile(val path: Path, val content: String, val executable: Bo
                 environment.onFileUnchanged(path)
                 return
             }
-            environment.files.writeString(path, content)
-            if (executable) {
-                environment.files.setPosixFilePermissions(path, executablePermissions)
-            }
+        }
+
+        writeFileWithPermissions(environment)
+
+        if (existed) {
             environment.onFileModified(path)
         } else {
-            environment.files.writeString(path, content)
-            if (executable) {
-                environment.files.setPosixFilePermissions(path, executablePermissions)
-            }
             environment.onFileCreated(path)
+        }
+    }
+
+    private fun writeFileWithPermissions(environment: Environment) {
+        environment.files.writeString(path, content)
+        if (executable) {
+            setExecutablePermissions(environment, path)
+        }
+    }
+
+    private fun setExecutablePermissions(environment: Environment, path: Path) {
+        try {
+            environment.files.setPosixFilePermissions(path, executablePermissions)
+        } catch (e: UnsupportedOperationException) {
+            // POSIX permissions not supported on this platform (e.g., Windows)
+            // On Windows, files are writable by default, no action needed
         }
     }
 

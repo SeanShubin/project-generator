@@ -69,7 +69,8 @@ class SourceFileFinderImpl(
 
         val sourceSetDir = sourceProjectPath
             .resolve(sourceModule)
-            .resolve("src/$sourceSet")
+            .resolve("src")
+            .resolve(sourceSet)
 
         if (!files.exists(sourceSetDir)) {
             return
@@ -85,13 +86,16 @@ class SourceFileFinderImpl(
         for (languageDir in languageDirs) {
             val language = languageDir.fileName.toString()
 
-            val moduleSourceRoot = languageDir
-                .resolve(sourcePackagePath.joinToString("/"))
+            val moduleSourceRoot = sourcePackagePath.fold(languageDir, Path::resolve)
 
-            val moduleTargetRoot = targetProjectPath
-                .resolve(targetModule)
-                .resolve("src/$sourceSet/$language")
-                .resolve(targetPackagePath.joinToString("/"))
+            val moduleTargetRoot = targetPackagePath.fold(
+                targetProjectPath
+                    .resolve(targetModule)
+                    .resolve("src")
+                    .resolve(sourceSet)
+                    .resolve(language),
+                Path::resolve
+            )
 
             if (files.exists(moduleSourceRoot) && files.isDirectory(moduleSourceRoot)) {
                 walkDirectory(moduleSourceRoot, moduleTargetRoot, sourceModule, targetModule, results)

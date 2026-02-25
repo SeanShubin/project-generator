@@ -1,8 +1,8 @@
 package com.seanshubin.project.generator.source
 
+import com.seanshubin.project.generator.core.DependencySpec
 import com.seanshubin.project.generator.core.Developer
 import com.seanshubin.project.generator.core.GradlePluginSpec
-import com.seanshubin.project.generator.core.GroupArtifactScope
 import com.seanshubin.project.generator.core.GroupArtifactVersion
 import com.seanshubin.project.generator.core.Project
 import com.seanshubin.project.generator.core.SourceDependency
@@ -122,15 +122,24 @@ class SourceProjectLoaderImpl(
         }
     }
 
-    private fun loadDependencies(keyStore: KeyValueStore): Map<String, GroupArtifactScope> {
+    private fun loadDependencies(keyStore: KeyValueStore): Map<String, DependencySpec> {
         val theObject = keyStore.loadMapOrEmpty(listOf("dependencies"))
         return theObject.map { (name, dependency) ->
             val dependencyName = name as String
             val dependencyMap = dependency as Map<*, *>
-            val group = dependencyMap["group"] as String
-            val artifact = dependencyMap["artifact"] as String
             val scope = dependencyMap["scope"] as String?
-            dependencyName to GroupArtifactScope(group, artifact, scope)
+
+            val spec = if (dependencyMap.containsKey("group")) {
+                // External dependency - has group and artifact
+                val group = dependencyMap["group"] as String
+                val artifact = dependencyMap["artifact"] as String
+                DependencySpec.External(group, artifact, scope)
+            } else {
+                // Internal dependency - module name is the key, no group/artifact needed
+                DependencySpec.Internal(scope)
+            }
+
+            dependencyName to spec
         }.toMap()
     }
 

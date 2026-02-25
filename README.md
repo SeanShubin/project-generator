@@ -57,11 +57,15 @@ Minimal specification:
       "group": "org.jetbrains.kotlin",
       "artifact": "kotlin-test-junit",
       "scope": "test"
+    },
+    "domain": {
+      "scope": "test"
     }
   },
   "modules": {
-    "console": ["domain"],
-    "domain": []
+    "console": [],
+    "domain": [],
+    "integration-test": ["domain"]
   },
   "entryPoints": {
     "console": "com.example.my.project.console.Main"
@@ -69,6 +73,8 @@ Minimal specification:
   "javaVersion": "25"
 }
 ```
+
+In this example, `integration-test` depends on `domain` at test scope because the `domain` entry in dependencies specifies `"scope": "test"`. The module can reference other modules either directly (for compile scope) or through the dependencies section (to specify a different scope).
 
 ### What Gets Generated
 - Multi-module Maven project structure
@@ -81,8 +87,10 @@ Minimal specification:
 - **prefix**: Package prefix (e.g., `["com", "example"]`)
 - **name**: Project name parts (e.g., `["my", "project"]`)
 - **modules**: Map of module names to their dependencies (other module names or dependency names)
-- **dependencies**: Named dependencies with group/artifact/version/scope
-- **global**: Dependencies applied to all modules
+- **dependencies**: Named dependencies, can be either:
+  - **External** (Maven artifacts): Must have `group` and `artifact` fields, optionally `scope`
+  - **Internal** (local modules): Only have `scope` field (key is the module name)
+- **global**: Dependencies applied to all modules (must be external)
 - **entryPoints**: Module names mapped to main class paths
 - **sourceDependencies**: Optional - copy and transform source code from other local projects (array)
   - Each entry contains:
@@ -95,6 +103,46 @@ Minimal specification:
   - Use for utility libraries and reusable components
   - Leave empty for leaf applications
 - **versionOverrides**: Optional - override dependency versions
+
+### Internal Dependencies with Scope
+
+By default, when modules depend on other modules, they use compile scope. To specify a different scope (like test), declare the module in the `dependencies` section:
+
+```json
+{
+  "dependencies": {
+    "stdlib": {
+      "group": "org.jetbrains.kotlin",
+      "artifact": "kotlin-stdlib-jdk8"
+    },
+    "test": {
+      "group": "org.jetbrains.kotlin",
+      "artifact": "kotlin-test-junit",
+      "scope": "test"
+    },
+    "data-layer": {
+      "scope": "test"
+    }
+  },
+  "modules": {
+    "domain": [],
+    "data-layer": ["domain"],
+    "integration-tests": ["domain", "data-layer"]
+  }
+}
+```
+
+In this example:
+- `integration-tests` depends on `domain` at **compile scope** (referenced directly)
+- `integration-tests` depends on `data-layer` at **test scope** (declared in dependencies with scope)
+- External dependencies work the same way - specify `group`/`artifact` for Maven artifacts
+- Internal dependencies only need `scope` - the key is the module name
+
+**Key Points:**
+- Module dependencies without a `scope` declaration default to compile scope
+- To use test scope, add the module to the `dependencies` section with only a `scope` field
+- The `modules` section stays simple - just lists dependencies by name
+- Scope information is centralized in the `dependencies` section
 
 ### Source Dependencies Example
 

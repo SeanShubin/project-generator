@@ -46,6 +46,9 @@
     "jackson-time": {
       "group": "com.fasterxml.jackson.datatype",
       "artifact": "jackson-datatype-jsr310"
+    },
+    "domain": {
+      "scope": "test"
     }
   },
   "modules": {
@@ -55,6 +58,9 @@
       "jackson-time"
     ],
     "console": [
+      "domain"
+    ],
+    "integration-test": [
       "domain"
     ]
   },

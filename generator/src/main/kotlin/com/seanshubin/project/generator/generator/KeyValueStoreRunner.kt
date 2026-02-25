@@ -32,7 +32,7 @@ class KeyValueStoreRunner(
         val developerUrl: String = keyValueStore.loadStringOrDefault(listOf("developer", "url"), "developer url")
         val developer =
             Developer(developerName, developerGithubName, developerMavenUserName, developerOrganization, developerUrl)
-        val dependencies: Map<String, GroupArtifactScope> = loadDependencies()
+        val dependencies: Map<String, DependencySpec> = loadDependencies()
         val versionOverrides: List<GroupArtifactVersion> = loadVersionOverrides()
         val global: List<String> = loadStringArray(listOf("global"), emptyList<String>())
         val modules: Map<String, List<String>> = loadMapOfListOfString(listOf("modules"), emptyMap())
@@ -74,12 +74,12 @@ class KeyValueStoreRunner(
             .mapValues { entry -> (entry.value as List<*>).map { it as String } }
     }
 
-    private fun loadDependencies(): Map<String, GroupArtifactScope> {
+    private fun loadDependencies(): Map<String, DependencySpec> {
         val theObject = keyValueStore.loadMapOrEmpty(listOf("dependencies"))
         return theObject.map { (name, dependency) ->
             val dependencyName = name as String
             val dependencyMap = dependency as Map<*, *>
-            dependencyName to extractGroupArtifactScope(dependencyMap)
+            dependencyName to extractDependencySpec(dependencyMap)
         }.toMap()
     }
 
@@ -108,11 +108,18 @@ class KeyValueStoreRunner(
         }
     }
 
-    private fun extractGroupArtifactScope(map: Map<*, *>): GroupArtifactScope {
-        val group = map["group"] as String
-        val artifact = map["artifact"] as String
+    private fun extractDependencySpec(map: Map<*, *>): DependencySpec {
         val scope = map["scope"] as String?
-        return GroupArtifactScope(group, artifact, scope)
+
+        return if (map.containsKey("group")) {
+            // External dependency - has group and artifact
+            val group = map["group"] as String
+            val artifact = map["artifact"] as String
+            DependencySpec.External(group, artifact, scope)
+        } else {
+            // Internal dependency - module name is the key, no group/artifact needed
+            DependencySpec.Internal(scope)
+        }
     }
 
     private fun extractGroupArtifactVersion(map: Map<*, *>): GroupArtifactVersion {

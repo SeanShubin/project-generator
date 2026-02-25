@@ -1,5 +1,6 @@
 package com.seanshubin.project.generator.maven
 
+import com.seanshubin.project.generator.core.DependencySpec
 import com.seanshubin.project.generator.core.GroupArtifact
 import com.seanshubin.project.generator.core.GroupArtifactVersionScope
 import com.seanshubin.project.generator.core.Project
@@ -176,20 +177,6 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         )
     }
 
-    private enum class DependencyType {
-        INTERNAL,
-        EXTERNAL
-    }
-
-    private fun getDependencyType(project: Project, dependencyName: String): DependencyType {
-        return if (project.dependencies.containsKey(dependencyName)) {
-            DependencyType.EXTERNAL
-        } else if (project.modules.containsKey(dependencyName)) {
-            DependencyType.INTERNAL
-        } else {
-            throw RuntimeException("Dependency not found '$dependencyName'")
-        }
-    }
 
     private fun rootChildren(project: Project): List<XmlNode> {
         return listOf(simpleElement("modelVersion", "4.0.0")) + parentNodes(project)
@@ -612,9 +599,16 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
     }
 
     private fun dependencyManagement(project: Project): XmlNode {
-        val dependencyNodeChildren = project.dependencies.map { (dependencyName, dependency) ->
-            val latestDependency = lookup(project, dependency.group, dependency.artifact, dependency.scope)
-            latestDependency.toDependencyNode(includeVersion = true, includeScope = true)
+        // Only External dependencies go in dependencyManagement
+        // Internal dependencies are managed by the parent pom version
+        val dependencyNodeChildren = project.dependencies.mapNotNull { (dependencyName, dependency) ->
+            when (dependency) {
+                is DependencySpec.External -> {
+                    val latestDependency = lookup(project, dependency.group, dependency.artifact, dependency.scope)
+                    latestDependency.toDependencyNode(includeVersion = true, includeScope = true)
+                }
+                is DependencySpec.Internal -> null // Internal dependencies don't go in dependencyManagement
+            }
         }
         val dependencyNode = element("dependencies", dependencyNodeChildren)
         val dependencyManagementNode = element("dependencyManagement", listOf(dependencyNode))
@@ -624,26 +618,44 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
     private fun externalDependency(project: Project, dependencyName: String): XmlNode {
         val dependency = project.dependencies[dependencyName]
             ?: throw RuntimeException("Unable to find dependency named '$dependencyName'")
-        val latestDependency = lookup(project, dependency.group, dependency.artifact, dependency.scope)
-        val dependencyNode = latestDependency.toDependencyNode(includeVersion = false, includeScope = false)
-        return dependencyNode
+
+        return when (dependency) {
+            is DependencySpec.External -> {
+                val latestDependency = lookup(project, dependency.group, dependency.artifact, dependency.scope)
+                latestDependency.toDependencyNode(includeVersion = false, includeScope = false)
+            }
+            is DependencySpec.Internal -> {
+                throw RuntimeException("Expected external dependency but found internal module '$dependencyName'")
+            }
+        }
     }
 
-    private fun internalDependency(project: Project, dependencyName: String): XmlNode {
+    private fun internalDependency(project: Project, moduleName: String, scope: String?): XmlNode {
         val dependency =
             GroupArtifactVersionScope(
                 groupId(project),
-                artifactId(project, dependencyName),
+                artifactId(project, moduleName),
                 "\${project.version}",
-                scope = null
+                scope = scope
             )
-        val dependencyNode = dependency.toDependencyNode(includeVersion = true, includeScope = false)
+        val dependencyNode = dependency.toDependencyNode(includeVersion = true, includeScope = true)
         return dependencyNode
     }
 
     private fun globalDependencies(project: Project): XmlNode {
+        // Global dependencies must be external (from Maven)
+        // Internal module dependencies should be declared per-module, not globally
         val dependencyNodes = project.global.map { dependencyName ->
-            externalDependency(project, dependencyName)
+            val dependency = project.dependencies[dependencyName]
+                ?: throw RuntimeException("Global dependency '$dependencyName' not found in dependencies section")
+
+            when (dependency) {
+                is DependencySpec.External -> externalDependency(project, dependencyName)
+                is DependencySpec.Internal -> throw RuntimeException(
+                    "Global dependency '$dependencyName' cannot be an internal module. " +
+                    "Internal dependencies should be declared per-module in the modules section."
+                )
+            }
         }
         return element("dependencies", dependencyNodes)
     }
@@ -679,21 +691,38 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
     }
 
     private fun moduleDependencies(project: Project, moduleName: String): XmlNode? {
-        val dependencies = project.modules.getValue(moduleName)
+        val dependencyNames = project.modules.getValue(moduleName)
 
-        // Partition into internal and external
-        val (internal, external) = dependencies.partition { dependencyName ->
-            getDependencyType(project, dependencyName) == DependencyType.INTERNAL
+        // Partition dependencies into internal (modules) and external (maven artifacts)
+        val internalDeps = mutableListOf<XmlNode>()
+        val externalDeps = mutableListOf<XmlNode>()
+
+        for (dependencyName in dependencyNames) {
+            when {
+                // Check if it's defined in dependencies section
+                project.dependencies.containsKey(dependencyName) -> {
+                    val spec = project.dependencies.getValue(dependencyName)
+                    when (spec) {
+                        is DependencySpec.External -> {
+                            externalDeps.add(externalDependency(project, dependencyName))
+                        }
+                        is DependencySpec.Internal -> {
+                            internalDeps.add(internalDependency(project, dependencyName, spec.scope))
+                        }
+                    }
+                }
+                // Check if it's a module name (not in dependencies section, but in modules section)
+                project.modules.containsKey(dependencyName) -> {
+                    internalDeps.add(internalDependency(project, dependencyName, scope = null))
+                }
+                else -> {
+                    throw RuntimeException("Dependency '$dependencyName' not found in dependencies or modules")
+                }
+            }
         }
 
         // Process internal first, then external
-        val internalNodes = internal.map { dependencyName ->
-            internalDependency(project, dependencyName)
-        }
-        val externalNodes = external.map { dependencyName ->
-            externalDependency(project, dependencyName)
-        }
-        val moduleDependenciesNodeChildren = internalNodes + externalNodes
+        val moduleDependenciesNodeChildren = internalDeps + externalDeps
 
         return if (moduleDependenciesNodeChildren.isEmpty()) {
             null

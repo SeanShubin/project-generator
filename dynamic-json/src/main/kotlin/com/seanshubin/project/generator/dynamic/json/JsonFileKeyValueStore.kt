@@ -28,6 +28,7 @@ class JsonFileKeyValueStore(val files: FilesContract, val path: Path) : KeyValue
         val jsonObject = loadJsonObject()
         val newJsonObject = DynamicUtil.set(jsonObject, key, value)
         val newJsonText = JsonMappers.pretty.writeValueAsString(newJsonObject)
+        if(!files.exists(path)) files.createDirectories(path.parent)
         files.writeString(path, newJsonText, jsonCharset)
     }
 

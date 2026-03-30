@@ -134,7 +134,7 @@ class GeneratorImpl(
 
         return listOf(
             gitignoreCommand,
-            unlicenseCommand,
+//            unlicenseCommand,
             scriptsDir,
             buildScript,
             cleanScript,

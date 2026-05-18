@@ -68,8 +68,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.15.0</version>
                 <configuration>
-                    <source>25</source>
-                    <target>25</target>
+                    <release>25</release>
                 </configuration>
             </plugin>
             <plugin>
@@ -107,6 +106,9 @@
                 </executions>
                 <configuration>
                     <jvmTarget>25</jvmTarget>
+                    <args>
+                        <arg>-Xjdk-release=25</arg>
+                    </args>
                 </configuration>
             </plugin>
             <plugin>

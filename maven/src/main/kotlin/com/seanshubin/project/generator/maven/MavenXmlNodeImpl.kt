@@ -394,7 +394,10 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         val compileExecution = createExecutionWithIdAndGoals("compile", listOf("compile"))
         val testCompileExecution = createExecutionWithIdAndGoals("test-compile", listOf("test-compile"))
         val executions = element("executions", listOf(compileExecution, testCompileExecution))
-        val configuration = createConfigurationFromEntries(mapOf("jvmTarget" to project.javaVersion))
+        val jvmTarget = simpleElement("jvmTarget", project.javaVersion)
+        val arg = simpleElement("arg", "-Xjdk-release=${project.javaVersion}")
+        val args = element("args", listOf(arg))
+        val configuration = element("configuration", listOf(jvmTarget, args))
         return element("plugin", coordinates + listOf(executions, configuration))
     }
 
@@ -415,7 +418,8 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         val arg1 = simpleElement("arg", "-unchecked")
         val arg2 = simpleElement("arg", "-deprecation")
         val arg3 = simpleElement("arg", "-feature")
-        val args = element("args", listOf(arg1, arg2, arg3))
+        val arg4 = simpleElement("arg", "-release:${project.javaVersion}")
+        val args = element("args", listOf(arg1, arg2, arg3, arg4))
 
         val configuration = element("configuration", listOf(jvmArgs, args))
 
@@ -452,8 +456,7 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         val dependency = lookup(project, "org.apache.maven.plugins", "maven-compiler-plugin", scope = null)
         val coordinates = dependency.toDependencyChildNodes(includeVersion = true, includeScope = true)
         val configEntries = mapOf(
-            "source" to project.javaVersion,
-            "target" to project.javaVersion
+            "release" to project.javaVersion
         )
         val configuration = createConfigurationFromEntries(configEntries)
         return element("plugin", coordinates + listOf(configuration))

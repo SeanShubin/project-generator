@@ -8,7 +8,7 @@
     <dependencies>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-stdlib-jdk8</artifactId>
+            <artifactId>kotlin-stdlib</artifactId>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
@@ -19,7 +19,7 @@
         <dependencies>
             <dependency>
                 <groupId>org.jetbrains.kotlin</groupId>
-                <artifactId>kotlin-stdlib-jdk8</artifactId>
+                <artifactId>kotlin-stdlib</artifactId>
                 <version>2.3.21</version>
             </dependency>
             <dependency>
@@ -96,20 +96,26 @@
                         <goals>
                             <goal>compile</goal>
                         </goals>
+                        <configuration>
+                            <jvmTarget>25</jvmTarget>
+                            <args>
+                                <arg>-Xjdk-release=25</arg>
+                            </args>
+                        </configuration>
                     </execution>
                     <execution>
                         <id>test-compile</id>
                         <goals>
                             <goal>test-compile</goal>
                         </goals>
+                        <configuration>
+                            <jvmTarget>25</jvmTarget>
+                            <args>
+                                <arg>-Xjdk-release=25</arg>
+                            </args>
+                        </configuration>
                     </execution>
                 </executions>
-                <configuration>
-                    <jvmTarget>25</jvmTarget>
-                    <args>
-                        <arg>-Xjdk-release=25</arg>
-                    </args>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>com.seanshubin.code.structure</groupId>

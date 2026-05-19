@@ -391,14 +391,18 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
     private fun languagePluginKotlin(project: Project): XmlNode {
         val dependency = lookup(project, "org.jetbrains.kotlin", "kotlin-maven-plugin", scope = null)
         val coordinates = dependency.toDependencyChildNodes(includeVersion = true, includeScope = true)
-        val compileExecution = createExecutionWithIdAndGoals("compile", listOf("compile"))
-        val testCompileExecution = createExecutionWithIdAndGoals("test-compile", listOf("test-compile"))
+        val jvmTargetConfig = createKotlinExecutionConfiguration(project.javaVersion)
+        val compileExecution = createExecutionWithIdAndGoalsAndConfig("compile", listOf("compile"), jvmTargetConfig)
+        val testCompileExecution = createExecutionWithIdAndGoalsAndConfig("test-compile", listOf("test-compile"), jvmTargetConfig)
         val executions = element("executions", listOf(compileExecution, testCompileExecution))
-        val jvmTarget = simpleElement("jvmTarget", project.javaVersion)
-        val arg = simpleElement("arg", "-Xjdk-release=${project.javaVersion}")
+        return element("plugin", coordinates + listOf(executions))
+    }
+
+    private fun createKotlinExecutionConfiguration(javaVersion: String): XmlNode {
+        val jvmTarget = simpleElement("jvmTarget", javaVersion)
+        val arg = simpleElement("arg", "-Xjdk-release=$javaVersion")
         val args = element("args", listOf(arg))
-        val configuration = element("configuration", listOf(jvmTarget, args))
-        return element("plugin", coordinates + listOf(executions, configuration))
+        return element("configuration", listOf(jvmTarget, args))
     }
 
     private fun languagePluginScala(project: Project): XmlNode {
@@ -430,6 +434,12 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         val goalNodes = goals.map { goal -> simpleElement("goal", goal) }
         val goalsNode = element("goals", goalNodes)
         return element("execution", listOf(simpleElement("id", id), goalsNode))
+    }
+
+    private fun createExecutionWithIdAndGoalsAndConfig(id: String, goals: List<String>, configuration: XmlNode): XmlNode {
+        val goalNodes = goals.map { goal -> simpleElement("goal", goal) }
+        val goalsNode = element("goals", goalNodes)
+        return element("execution", listOf(simpleElement("id", id), goalsNode, configuration))
     }
 
     private fun sourcePlugin(project: Project): XmlNode {

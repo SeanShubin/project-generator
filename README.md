@@ -51,7 +51,7 @@ Minimal specification:
   "dependencies": {
     "stdlib": {
       "group": "org.jetbrains.kotlin",
-      "artifact": "kotlin-stdlib-jdk8"
+      "artifact": "kotlin-stdlib"
     },
     "test": {
       "group": "org.jetbrains.kotlin",
@@ -113,7 +113,7 @@ By default, when modules depend on other modules, they use compile scope. To spe
   "dependencies": {
     "stdlib": {
       "group": "org.jetbrains.kotlin",
-      "artifact": "kotlin-stdlib-jdk8"
+      "artifact": "kotlin-stdlib"
     },
     "test": {
       "group": "org.jetbrains.kotlin",

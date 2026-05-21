@@ -4,6 +4,7 @@ import com.seanshubin.project.generator.commands.*
 import com.seanshubin.project.generator.source.PackageTransformation
 import com.seanshubin.project.generator.source.SourceProjectLoader
 import java.nio.file.FileVisitOption
+import java.util.stream.Stream
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -32,7 +33,7 @@ class ReplicatorImpl(
             .filter { Files.isRegularFile(it) }
             .flatMap { sourcePath ->
                 val relative = spec.sourceDirectory.relativize(sourcePath).toString().replace("\\", "/")
-                if (gitIgnoreFilter.isIgnored(relative)) return@flatMap java.util.stream.Stream.empty()
+                if (gitIgnoreFilter.isIgnored(relative)) return@flatMap Stream.empty()
                 val transformedRelative = relative.replace(oldSlash, newSlash)
                 val targetPath = destination.resolve(transformedRelative)
                 val effectiveTextReplacements = if (relative == "pom.xml") rootPomReplacements else textReplacements

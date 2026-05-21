@@ -1,5 +1,6 @@
 package com.seanshubin.project.generator.console
 
+import org.xml.sax.Attributes
 import org.xml.sax.helpers.DefaultHandler
 import java.net.URI
 import java.net.http.HttpClient
@@ -52,7 +53,7 @@ object GetVersionsPrototypeApp {
             ) + versions.map { "  $it" }
         }
 
-        override fun startElement(uri: String, localName: String, qName: String, attributes: org.xml.sax.Attributes) {
+        override fun startElement(uri: String, localName: String, qName: String, attributes: Attributes) {
             path.add(qName)
         }
 

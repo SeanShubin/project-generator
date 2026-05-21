@@ -1,5 +1,6 @@
 package com.seanshubin.project.generator.maven
 
+import org.xml.sax.Attributes
 import org.xml.sax.helpers.DefaultHandler
 
 class SaxHandlerGetProductionVersion : DefaultHandler() {
@@ -12,7 +13,7 @@ class SaxHandlerGetProductionVersion : DefaultHandler() {
         return sortedReleases.last()
     }
 
-    override fun startElement(uri: String, localName: String, qName: String, attributes: org.xml.sax.Attributes) {
+    override fun startElement(uri: String, localName: String, qName: String, attributes: Attributes) {
         path.add(qName)
     }
 

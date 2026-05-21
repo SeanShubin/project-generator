@@ -3,6 +3,7 @@ package com.seanshubin.project.generator.maven
 import com.seanshubin.project.generator.core.DependencySpec
 import com.seanshubin.project.generator.core.GroupArtifact
 import com.seanshubin.project.generator.core.GroupArtifactVersionScope
+import GradlePluginSpec
 import com.seanshubin.project.generator.core.Project
 import com.seanshubin.project.generator.xml.XmlNode
 
@@ -15,11 +16,11 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         return projectNode(moduleChildren(project, moduleName))
     }
 
-    override fun generateGradlePluginXml(project: Project, spec: com.seanshubin.project.generator.core.GradlePluginSpec): XmlNode {
+    override fun generateGradlePluginXml(project: Project, spec: GradlePluginSpec): XmlNode {
         return projectNode(gradlePluginChildren(project, spec))
     }
 
-    private fun gradlePluginChildren(project: Project, spec: com.seanshubin.project.generator.core.GradlePluginSpec): List<XmlNode> {
+    private fun gradlePluginChildren(project: Project, spec: GradlePluginSpec): List<XmlNode> {
         val artifactId = artifactId(project, spec.module)
         return listOf(
             simpleElement("modelVersion", "4.0.0"),

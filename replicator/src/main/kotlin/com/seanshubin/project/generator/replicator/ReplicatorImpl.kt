@@ -24,7 +24,7 @@ class ReplicatorImpl(
         val textReplacements = listOf(oldDot to newDot, oldSlash to newSlash)
         val generateCodeStructure = spec.generateCodeStructure ?: sourceProject.generateCodeStructure
         val rootPomReplacements = if (!generateCodeStructure)
-            textReplacements + codeStructurePluginReplacement(spec.sourceDirectory)
+            codeStructurePluginReplacement(spec.sourceDirectory) + textReplacements
         else textReplacements
 
         val gitIgnoreFilter = loadGitIgnoreFilter(spec.sourceDirectory)
@@ -34,6 +34,10 @@ class ReplicatorImpl(
             .flatMap { sourcePath ->
                 val relative = spec.sourceDirectory.relativize(sourcePath).toString().replace("\\", "/")
                 if (gitIgnoreFilter.isIgnored(relative)) return@flatMap Stream.empty()
+                if (spec.verbatimPaths.any { relative == it || relative.startsWith("$it/") }) {
+                    val targetPath = destination.resolve(relative)
+                    return@flatMap listOf(BinaryCopyFile(sourcePath, targetPath)).stream()
+                }
                 val transformedRelative = relative.replace(oldSlash, newSlash)
                 val targetPath = destination.resolve(transformedRelative)
                 val effectiveTextReplacements = if (relative == "pom.xml") rootPomReplacements else textReplacements
@@ -60,7 +64,7 @@ class ReplicatorImpl(
     }
 
     private fun extractCodeStructurePluginBlock(content: String): String? {
-        val marker = "<groupId>com.seanshubin.code.structure</groupId>"
+        val marker = "<artifactId>code-structure-maven</artifactId>"
         val markerIdx = content.indexOf(marker)
         if (markerIdx < 0) return null
         val pluginOpen = "<plugin>"

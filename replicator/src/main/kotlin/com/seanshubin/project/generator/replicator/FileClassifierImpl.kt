@@ -5,13 +5,13 @@ class FileClassifierImpl : FileClassifier {
         val normalized = relativePath.replace("\\", "/")
 
         if (normalized.startsWith(".git/") || normalized == ".git") return FileClass.Skip
-        if (normalized.startsWith("target/") || normalized.contains("/target/")) return FileClass.Skip
-        if (normalized.startsWith("generated/") || normalized.contains("/generated/")) return FileClass.Skip
+        if (normalized.startsWith("target/")) return FileClass.Skip
+        if (normalized.startsWith("generated/")) return FileClass.Skip
 
         val extension = normalized.substringAfterLast(".", "")
         return when (extension) {
             "kt", "java", "kts", "groovy", "scala" -> FileClass.SourceTransform
-            "xml", "json", "sh", "md", "txt", "html", "properties", "yaml", "yml" -> FileClass.TextTransform
+            "xml", "json", "sh", "md", "txt", "html", "properties", "yaml", "yml", "svg" -> FileClass.TextTransform
             else -> FileClass.BinaryCopy
         }
     }

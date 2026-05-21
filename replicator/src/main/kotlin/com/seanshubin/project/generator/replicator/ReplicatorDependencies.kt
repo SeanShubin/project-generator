@@ -26,7 +26,8 @@ class ReplicatorDependencies(
         if (keyValueStore.exists(listOf("generateCodeStructure")))
             keyValueStore.loadBooleanOrDefault(listOf("generateCodeStructure"), true)
         else null
-    private val spec = ReplicationSpec(sourceDirectory, newPrefix, generateCodeStructureOverride)
+    private val verbatimPaths: List<String> = keyValueStore.loadListOrEmpty(listOf("verbatimPaths")).map { it as String }
+    private val spec = ReplicationSpec(sourceDirectory, newPrefix, generateCodeStructureOverride, verbatimPaths)
     private val keyValueStoreFactory: (Path) -> KeyValueStore = { path -> JsonFileKeyValueStore(files, path) }
     private val environment: Environment = EnvironmentImpl(
         files,

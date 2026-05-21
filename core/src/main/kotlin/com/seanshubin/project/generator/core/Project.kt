@@ -16,7 +16,8 @@ data class Project(
     val sourceDependencies: List<SourceDependency> = emptyList(), // optional source dependencies for copying and transforming code from external projects
     val mavenPlugin: List<String> = emptyList(), // modules that are Maven plugins
     val gradlePlugin: List<GradlePluginSpec> = emptyList(), // modules that are Gradle plugins
-    val exports: List<String> = emptyList() // modules designed to be imported by other projects via source dependencies
+    val exports: List<String> = emptyList(), // modules designed to be imported by other projects via source dependencies
+    val generateCodeStructure: Boolean = true // whether to generate the code-structure maven plugin and config
 )
 
 data class GradlePluginSpec(

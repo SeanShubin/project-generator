@@ -31,7 +31,8 @@ class GeneratorImpl(
             generateModuleCommand(project, name, dependencies)
         }
         val helperFileCommands = generateHelperFiles(project)
-        val codeStructureConfigCommands = generateCodeStructureConfigCommands(project)
+        val codeStructureConfigCommands =
+            if (project.generateCodeStructure) generateCodeStructureConfigCommands(project) else emptyList()
         val sourceDependencyCommands = generateSourceDependencyCommands(project)
         val gradlePluginCommands = generateGradlePluginCommands(project)
         return listOf(rootCommand) + moduleCommands + helperFileCommands + codeStructureConfigCommands + sourceDependencyCommands + gradlePluginCommands

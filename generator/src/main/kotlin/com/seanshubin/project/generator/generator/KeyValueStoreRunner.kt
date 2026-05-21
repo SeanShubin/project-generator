@@ -3,6 +3,7 @@ package com.seanshubin.project.generator.generator
 import com.seanshubin.project.generator.core.*
 import com.seanshubin.project.generator.di.contract.FilesContract
 import com.seanshubin.project.generator.dynamic.core.KeyValueStore
+import com.seanshubin.project.generator.dynamic.json.loadBooleanOrDefault
 import com.seanshubin.project.generator.dynamic.json.loadListOrEmpty
 import com.seanshubin.project.generator.dynamic.json.loadMapOrEmpty
 import com.seanshubin.project.generator.dynamic.json.loadStringOrDefault
@@ -42,6 +43,7 @@ class KeyValueStoreRunner(
         val mavenPlugin: List<String> = loadStringArray(listOf("mavenPlugin"), emptyList())
         val gradlePlugin: List<GradlePluginSpec> = loadGradlePluginSpecs()
         val exports: List<String> = loadStringArray(listOf("exports"), emptyList())
+        val generateCodeStructure: Boolean = keyValueStore.loadBooleanOrDefault(listOf("generateCodeStructure"), true)
         val project = Project(
             prefix,
             name,
@@ -58,7 +60,8 @@ class KeyValueStoreRunner(
             sourceDependencies,
             mavenPlugin,
             gradlePlugin,
-            exports
+            exports,
+            generateCodeStructure
         )
         val runner = createRunner(project, baseDirectory)
         runner.run()

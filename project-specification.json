@@ -78,6 +78,14 @@
       "dynamic-json",
       "di-contract"
     ],
+    "replicator": [
+      "commands",
+      "source",
+      "core",
+      "di-contract",
+      "di-delegate",
+      "dynamic-json"
+    ],
     "dynamic-core": [],
     "dynamic-json": [
       "dynamic-core",
@@ -95,7 +103,8 @@
   },
   "javaVersion": "25",
   "entryPoints": {
-    "console": "com.seanshubin.project.generator.console.EntryPoint"
+    "console": "com.seanshubin.project.generator.console.EntryPoint",
+    "replicator": "com.seanshubin.project.generator.replicator.ReplicatorEntryPoint"
   },
   "sourceDependencies": [
     {

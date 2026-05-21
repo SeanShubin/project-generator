@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.channels.Channel;
+import java.util.Map;
 import java.util.Properties;
 import java.util.ResourceBundle;
 
@@ -51,7 +52,7 @@ public interface SystemContract {
 
     String getenv(String name);
 
-    java.util.Map<String, String> getenv();
+    Map<String, String> getenv();
 
     void exit(int status);
 

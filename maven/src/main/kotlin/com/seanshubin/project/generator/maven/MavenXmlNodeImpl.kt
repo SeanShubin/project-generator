@@ -229,13 +229,13 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
     }
 
     private fun plugins(project: Project): XmlNode {
-        val pluginsNodeChildren = listOf(
-            compilerPlugin(project),
-            sourcePlugin(project),
-            languagePlugin(project),
-            codeStructurePlugin(project),
-            centralPublishingPlugin(project)
-        )
+        val pluginsNodeChildren = buildList {
+            add(compilerPlugin(project))
+            add(sourcePlugin(project))
+            add(languagePlugin(project))
+            if (project.generateCodeStructure) add(codeStructurePlugin(project))
+            add(centralPublishingPlugin(project))
+        }
 
         val pluginsNode = element("plugins", pluginsNodeChildren)
         return pluginsNode

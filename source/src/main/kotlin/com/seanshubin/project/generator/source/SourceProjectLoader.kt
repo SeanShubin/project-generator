@@ -9,6 +9,7 @@ import com.seanshubin.project.generator.core.SourceDependency
 import com.seanshubin.project.generator.di.contract.FilesContract
 import com.seanshubin.project.generator.dynamic.core.KeyValueStore
 import com.seanshubin.project.generator.dynamic.json.JsonFileKeyValueStore
+import com.seanshubin.project.generator.dynamic.json.loadBooleanOrDefault
 import com.seanshubin.project.generator.dynamic.json.loadListOrEmpty
 import com.seanshubin.project.generator.dynamic.json.loadMapOrEmpty
 import com.seanshubin.project.generator.dynamic.json.loadStringOrDefault
@@ -79,6 +80,7 @@ class SourceProjectLoaderImpl(
         val gradlePlugin = loadGradlePluginSpecs(keyStore)
         val exports = loadStringArray(keyStore, listOf("exports"), emptyList())
         val sourceDependencies = loadSourceDependencies(keyStore, projectPath)
+        val generateCodeStructure = keyStore.loadBooleanOrDefault(listOf("generateCodeStructure"), true)
 
         return Project(
             prefix,
@@ -96,7 +98,8 @@ class SourceProjectLoaderImpl(
             sourceDependencies,
             mavenPlugin,
             gradlePlugin,
-            exports
+            exports,
+            generateCodeStructure
         )
     }
 

@@ -50,6 +50,7 @@
         <module>commands</module>
         <module>gradle</module>
         <module>generator</module>
+        <module>replicator</module>
         <module>dynamic-core</module>
         <module>dynamic-json</module>
         <module>di-contract</module>

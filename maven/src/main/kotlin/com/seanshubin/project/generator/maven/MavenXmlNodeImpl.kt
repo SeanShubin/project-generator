@@ -3,7 +3,7 @@ package com.seanshubin.project.generator.maven
 import com.seanshubin.project.generator.core.DependencySpec
 import com.seanshubin.project.generator.core.GroupArtifact
 import com.seanshubin.project.generator.core.GroupArtifactVersionScope
-import GradlePluginSpec
+import com.seanshubin.project.generator.core.GradlePluginSpec
 import com.seanshubin.project.generator.core.Project
 import com.seanshubin.project.generator.xml.XmlNode
 

@@ -231,9 +231,9 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
 
     private fun plugins(project: Project): XmlNode {
         val pluginsNodeChildren = buildList {
-            add(compilerPlugin(project))
+            add(javaPlugin(project))
             add(sourcePlugin(project))
-            add(languagePlugin(project))
+            jvmLanguageExtension(project)?.also { add(it) }
             if (project.generateCodeStructure) add(codeStructurePlugin(project))
             add(centralPublishingPlugin(project))
         }
@@ -242,11 +242,11 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         return pluginsNode
     }
 
-    private fun languagePlugin(project: Project): XmlNode {
-        val languagePluginFunction =
-            languagePluginFunctionMap[project.language]
-                ?: throw RuntimeException("Unsupported language '${project.language}'")
-        return languagePluginFunction(project)
+    private fun jvmLanguageExtension(project: Project): XmlNode? = when (project.language) {
+        "java"   -> null
+        "kotlin" -> kotlinPlugin(project)
+        "scala"  -> scalaPlugin(project)
+        else     -> throw RuntimeException("Unsupported language '${project.language}'")
     }
 
     private fun codeStructurePlugin(project: Project): XmlNode {
@@ -389,7 +389,7 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         return element("configuration", configNodes)
     }
 
-    private fun languagePluginKotlin(project: Project): XmlNode {
+    private fun kotlinPlugin(project: Project): XmlNode {
         val dependency = lookup(project, "org.jetbrains.kotlin", "kotlin-maven-plugin", scope = null)
         val coordinates = dependency.toDependencyChildNodes(includeVersion = true, includeScope = true)
         val jvmTargetConfig = createKotlinExecutionConfiguration(project.javaVersion)
@@ -406,7 +406,7 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         return element("configuration", listOf(jvmTarget, args))
     }
 
-    private fun languagePluginScala(project: Project): XmlNode {
+    private fun scalaPlugin(project: Project): XmlNode {
         val dependency = lookup(project, "net.alchim31.maven", "scala-maven-plugin", scope = null)
         val coordinates = dependency.toDependencyChildNodes(includeVersion = true, includeScope = true)
 
@@ -463,7 +463,7 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         return element("execution", executionChildren)
     }
 
-    private fun compilerPlugin(project: Project): XmlNode {
+    private fun javaPlugin(project: Project): XmlNode {
         val dependency = lookup(project, "org.apache.maven.plugins", "maven-compiler-plugin", scope = null)
         val coordinates = dependency.toDependencyChildNodes(includeVersion = true, includeScope = true)
         val configEntries = mapOf(
@@ -769,11 +769,6 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         "xmlns" to "http://maven.apache.org/POM/4.0.0",
         "xmlns:xsi" to "http://www.w3.org/2001/XMLSchema-instance",
         "xsi:schemaLocation" to "http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
-    )
-
-    private val languagePluginFunctionMap = mapOf(
-        "kotlin" to ::languagePluginKotlin,
-        "scala" to ::languagePluginScala
     )
 
     private fun lookup(project: Project, group: String, artifact: String, scope: String?): GroupArtifactVersionScope {

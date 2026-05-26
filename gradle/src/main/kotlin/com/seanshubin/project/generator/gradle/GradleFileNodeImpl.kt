@@ -53,9 +53,11 @@ class GradleFileNodeImpl(private val versionLookup: VersionLookup) : GradleFileN
         val gradlePluginContent = mutableListOf<GradleNode>()
 
         // Website and VCS URL come first
-        val githubUrl = "https://github.com/${project.developer.githubName}/${project.name.joinToString("-")}"
-        val website = spec.website ?: githubUrl
-        val vcsUrl = spec.vcsUrl ?: "$githubUrl.git"
+        val githubUrl = project.developer?.githubName?.let {
+            "https://github.com/$it/${project.name.joinToString("-")}"
+        }
+        val website = spec.website ?: githubUrl ?: ""
+        val vcsUrl = spec.vcsUrl ?: githubUrl?.let { "$it.git" } ?: ""
 
         gradlePluginContent.add(GradleNode.MethodCall("website", "set", listOf("\"$website\"")))
         gradlePluginContent.add(GradleNode.MethodCall("vcsUrl", "set", listOf("\"$vcsUrl\"")))
@@ -114,34 +116,38 @@ class GradleFileNodeImpl(private val versionLookup: VersionLookup) : GradleFileN
         val artifactId = (project.name + listOf(spec.module)).joinToString("-")
         val projectName = (project.prefix + project.name).joinToString(" ") { it.replaceFirstChar { ch -> ch.uppercase() } } + " " +
                           spec.module.split("-").joinToString(" ") { it.replaceFirstChar { ch -> ch.uppercase() } }
-        val developerName = project.developer.name
-        val developerId = project.developer.githubName
 
-        val pomContent = listOf(
-            GradleNode.MethodCall("name", "set", listOf("\"$projectName\"")),
-            GradleNode.MethodCall("description", "set", listOf("\"${spec.description}\"")),
-            GradleNode.MethodCall("url", "set", listOf("\"$githubUrl\"")),
-            GradleNode.EmptyLine,
-            GradleNode.Block("licenses", listOf(
+        val pomContent = buildList {
+            add(GradleNode.MethodCall("name", "set", listOf("\"$projectName\"")))
+            add(GradleNode.MethodCall("description", "set", listOf("\"${spec.description}\"")))
+            if (githubUrl != null) {
+                add(GradleNode.MethodCall("url", "set", listOf("\"$githubUrl\"")))
+            }
+            add(GradleNode.EmptyLine)
+            add(GradleNode.Block("licenses", listOf(
                 GradleNode.Block("license", listOf(
                     GradleNode.MethodCall("name", "set", listOf("\"The Unlicense\"")),
                     GradleNode.MethodCall("url", "set", listOf("\"https://unlicense.org/\""))
                 ))
-            )),
-            GradleNode.EmptyLine,
-            GradleNode.Block("developers", listOf(
-                GradleNode.Block("developer", listOf(
-                    GradleNode.MethodCall("id", "set", listOf("\"$developerId\"")),
-                    GradleNode.MethodCall("name", "set", listOf("\"$developerName\""))
-                ))
-            )),
-            GradleNode.EmptyLine,
-            GradleNode.Block("scm", listOf(
-                GradleNode.MethodCall("connection", "set", listOf("\"scm:git:$githubUrl.git\"")),
-                GradleNode.MethodCall("developerConnection", "set", listOf("\"scm:git:$githubUrl.git\"")),
-                GradleNode.MethodCall("url", "set", listOf("\"$githubUrl\""))
-            ))
-        )
+            )))
+            project.developer?.let { dev ->
+                add(GradleNode.EmptyLine)
+                add(GradleNode.Block("developers", listOf(
+                    GradleNode.Block("developer", listOf(
+                        GradleNode.MethodCall("id", "set", listOf("\"${dev.githubName}\"")),
+                        GradleNode.MethodCall("name", "set", listOf("\"${dev.name}\""))
+                    ))
+                )))
+            }
+            if (githubUrl != null) {
+                add(GradleNode.EmptyLine)
+                add(GradleNode.Block("scm", listOf(
+                    GradleNode.MethodCall("connection", "set", listOf("\"scm:git:$githubUrl.git\"")),
+                    GradleNode.MethodCall("developerConnection", "set", listOf("\"scm:git:$githubUrl.git\"")),
+                    GradleNode.MethodCall("url", "set", listOf("\"$githubUrl\""))
+                )))
+            }
+        }
 
         val publicationContent = listOf(
             GradleNode.Statement("artifactId = \"$artifactId\""),

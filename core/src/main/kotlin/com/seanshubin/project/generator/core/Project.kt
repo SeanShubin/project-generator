@@ -6,7 +6,7 @@ data class Project(
     val description: String, // description of the project, required in order to push to maven central
     val version: String, // the project version
     val language: String, // the project language
-    val developer: Developer, // developer information, required in order to push to maven central
+    val developer: Developer? = null, // developer information, required in order to push to maven central
     val dependencies: Map<String, DependencySpec>, // the dependencies, can be either external (maven) or internal (module) references
     val versionOverrides: List<GroupArtifactVersion>,
     val global: List<String>, // global dependencies will be specified in the parent pom file, so they will be included in each child module without having to be specified
@@ -17,7 +17,8 @@ data class Project(
     val mavenPlugin: List<String> = emptyList(), // modules that are Maven plugins
     val gradlePlugin: List<GradlePluginSpec> = emptyList(), // modules that are Gradle plugins
     val exports: List<String> = emptyList(), // modules designed to be imported by other projects via source dependencies
-    val generateCodeStructure: Boolean = true // whether to generate the code-structure maven plugin and config
+    val generateCodeStructure: Boolean = true, // whether to generate the code-structure maven plugin and config
+    val publishToMavenCentral: Boolean = false // when true, fails early if developer is missing
 )
 
 data class GradlePluginSpec(

@@ -26,6 +26,9 @@ class GeneratorImpl(
     private val onDuplicateTargetModules: (Set<String>) -> Unit
 ) : Generator {
     override fun generate(project: Project): List<Command> {
+        if (project.publishToMavenCentral && project.developer == null) {
+            throw IllegalArgumentException("developer is required when publishToMavenCentral is true")
+        }
         val rootCommand = generateRootCommand(project)
         val moduleCommands = project.modules.flatMap { (name, dependencies) ->
             generateModuleCommand(project, name, dependencies)
@@ -78,8 +81,8 @@ class GeneratorImpl(
 
     private fun generateCodeStructureConfigCommands(project: Project): List<Command> {
         val path = baseDirectory.resolve("code-structure-config.json")
-        val githubDeveloperName = project.developer.githubName
         val githubRepoName = project.name.joinToString("-")
+        val githubDeveloperName = project.developer?.githubName ?: githubRepoName
 
         return listOf(
             setJsonConfig(path, true, "countAsErrors", "inDirectCycle"),

@@ -22,19 +22,19 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
 
     private fun gradlePluginChildren(project: Project, spec: GradlePluginSpec): List<XmlNode> {
         val artifactId = artifactId(project, spec.module)
-        return listOf(
-            simpleElement("modelVersion", "4.0.0"),
-            simpleElement("artifactId", artifactId),
-            parentReference(project),
-            simpleElement("packaging", "pom"),
-            simpleElement("name", "\${project.groupId}:\${project.artifactId}"),
-            description(project),
-            url(project),
-            licenses(),
-            developers(project),
-            scm(project),
-            gradlePluginBuild()
-        )
+        return buildList {
+            add(simpleElement("modelVersion", "4.0.0"))
+            add(simpleElement("artifactId", artifactId))
+            add(parentReference(project))
+            add(simpleElement("packaging", "pom"))
+            add(simpleElement("name", "\${project.groupId}:\${project.artifactId}"))
+            add(description(project))
+            url(project)?.let { add(it) }
+            add(licenses())
+            developers(project)?.let { add(it) }
+            scm(project)?.let { add(it) }
+            add(gradlePluginBuild())
+        }
     }
 
     private fun parentReference(project: Project): XmlNode {
@@ -191,21 +191,22 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
             scope = null
         )
         val dependencyNodes = projectDependency.toDependencyChildNodes(includeVersion = true, includeScope = true)
-        return dependencyNodes + listOf(
-            simpleElement("packaging", "pom"),
-            globalDependencies(project),
-            dependencyManagement(project),
-            modules(project),
-            properties(),
-            build(project),
-            simpleElement("name", "\${project.groupId}:\${project.artifactId}"),
-            description(project),
-            url(project),
-            licenses(),
-            developers(project),
-            scm(project),
-            profiles(project)
-        )
+        return buildList {
+            addAll(dependencyNodes)
+            add(simpleElement("packaging", "pom"))
+            add(globalDependencies(project))
+            add(dependencyManagement(project))
+            add(modules(project))
+            add(properties())
+            add(build(project))
+            add(simpleElement("name", "\${project.groupId}:\${project.artifactId}"))
+            add(description(project))
+            url(project)?.let { add(it) }
+            add(licenses())
+            developers(project)?.let { add(it) }
+            scm(project)?.let { add(it) }
+            add(profiles(project))
+        }
     }
 
     private fun build(project: Project): XmlNode {
@@ -552,8 +553,9 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         return simpleElement("description", project.description)
     }
 
-    private fun url(project: Project): XmlNode {
-        val githubUrl = "https://github.com/${project.developer.githubName}/${project.name.joinToString("-")}"
+    private fun url(project: Project): XmlNode? {
+        val githubName = project.developer?.githubName ?: return null
+        val githubUrl = "https://github.com/$githubName/${project.name.joinToString("-")}"
         return simpleElement("url", githubUrl)
     }
 
@@ -566,19 +568,20 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         return element("licenses", listOf(licenseNode))
     }
 
-    private fun developers(project: Project): XmlNode {
+    private fun developers(project: Project): XmlNode? {
+        val dev = project.developer ?: return null
         val developerChildren = listOf(
-            simpleElement("name", project.developer.name),
-            simpleElement("organization", project.developer.organization),
-            simpleElement("organizationUrl", project.developer.url)
+            simpleElement("name", dev.name),
+            simpleElement("organization", dev.organization),
+            simpleElement("organizationUrl", dev.url)
         )
         val developerNode = element("developer", developerChildren)
         return element("developers", listOf(developerNode))
     }
 
-    private fun scm(project: Project): XmlNode {
+    private fun scm(project: Project): XmlNode? {
+        val githubName = project.developer?.githubName ?: return null
         val repoName = project.name.joinToString("-")
-        val githubName = project.developer.githubName
         val connection = "git@github.com:$githubName/$repoName.git"
         val url = "https://github.com/$githubName/$repoName"
 

@@ -23,16 +23,17 @@ class KeyValueStoreRunner(
         val description: String = keyValueStore.loadStringOrDefault(listOf("description"), "project description")
         val version: String = keyValueStore.loadStringOrDefault(listOf("version"), "project version")
         val language: String = keyValueStore.loadStringOrDefault(listOf("language"), "kotlin")
-        val developerName: String = keyValueStore.loadStringOrDefault(listOf("developer", "name"), "developer name")
-        val developerGithubName: String =
-            keyValueStore.loadStringOrDefault(listOf("developer", "githubName"), "developer github name")
-        val developerMavenUserName: String =
-            keyValueStore.loadStringOrDefault(listOf("developer", "mavenUserName"), "developer maven user name")
-        val developerOrganization: String =
-            keyValueStore.loadStringOrDefault(listOf("developer", "organization"), "developer organization")
-        val developerUrl: String = keyValueStore.loadStringOrDefault(listOf("developer", "url"), "developer url")
-        val developer =
+        val developer = if (keyValueStore.exists(listOf("developer"))) {
+            val developerName: String = keyValueStore.loadStringOrDefault(listOf("developer", "name"), "developer name")
+            val developerGithubName: String =
+                keyValueStore.loadStringOrDefault(listOf("developer", "githubName"), "developer github name")
+            val developerMavenUserName: String =
+                keyValueStore.loadStringOrDefault(listOf("developer", "mavenUserName"), "developer maven user name")
+            val developerOrganization: String =
+                keyValueStore.loadStringOrDefault(listOf("developer", "organization"), "developer organization")
+            val developerUrl: String = keyValueStore.loadStringOrDefault(listOf("developer", "url"), "developer url")
             Developer(developerName, developerGithubName, developerMavenUserName, developerOrganization, developerUrl)
+        } else null
         val dependencies: Map<String, DependencySpec> = loadDependencies()
         val versionOverrides: List<GroupArtifactVersion> = loadVersionOverrides()
         val global: List<String> = loadStringArray(listOf("global"), emptyList<String>())
@@ -44,6 +45,7 @@ class KeyValueStoreRunner(
         val gradlePlugin: List<GradlePluginSpec> = loadGradlePluginSpecs()
         val exports: List<String> = loadStringArray(listOf("exports"), emptyList())
         val generateCodeStructure: Boolean = keyValueStore.loadBooleanOrDefault(listOf("generateCodeStructure"), true)
+        val publishToMavenCentral: Boolean = keyValueStore.loadBooleanOrDefault(listOf("publishToMavenCentral"), false)
         val project = Project(
             prefix,
             name,
@@ -61,7 +63,8 @@ class KeyValueStoreRunner(
             mavenPlugin,
             gradlePlugin,
             exports,
-            generateCodeStructure
+            generateCodeStructure,
+            publishToMavenCentral
         )
         val runner = createRunner(project, baseDirectory)
         runner.run()

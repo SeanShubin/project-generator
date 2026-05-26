@@ -59,16 +59,17 @@ class SourceProjectLoaderImpl(
         val version = keyStore.loadStringOrDefault(listOf("version"), "project version")
         val language = keyStore.loadStringOrDefault(listOf("language"), "kotlin")
 
-        val developerName = keyStore.loadStringOrDefault(listOf("developer", "name"), "developer name")
-        val developerGithubName =
-            keyStore.loadStringOrDefault(listOf("developer", "githubName"), "developer github name")
-        val developerMavenUserName =
-            keyStore.loadStringOrDefault(listOf("developer", "mavenUserName"), "developer maven user name")
-        val developerOrganization =
-            keyStore.loadStringOrDefault(listOf("developer", "organization"), "developer organization")
-        val developerUrl = keyStore.loadStringOrDefault(listOf("developer", "url"), "developer url")
-        val developer =
+        val developer = if (keyStore.exists(listOf("developer"))) {
+            val developerName = keyStore.loadStringOrDefault(listOf("developer", "name"), "developer name")
+            val developerGithubName =
+                keyStore.loadStringOrDefault(listOf("developer", "githubName"), "developer github name")
+            val developerMavenUserName =
+                keyStore.loadStringOrDefault(listOf("developer", "mavenUserName"), "developer maven user name")
+            val developerOrganization =
+                keyStore.loadStringOrDefault(listOf("developer", "organization"), "developer organization")
+            val developerUrl = keyStore.loadStringOrDefault(listOf("developer", "url"), "developer url")
             Developer(developerName, developerGithubName, developerMavenUserName, developerOrganization, developerUrl)
+        } else null
 
         val dependencies = loadDependencies(keyStore)
         val versionOverrides = loadVersionOverrides(keyStore)
@@ -81,6 +82,7 @@ class SourceProjectLoaderImpl(
         val exports = loadStringArray(keyStore, listOf("exports"), emptyList())
         val sourceDependencies = loadSourceDependencies(keyStore, projectPath)
         val generateCodeStructure = keyStore.loadBooleanOrDefault(listOf("generateCodeStructure"), true)
+        val publishToMavenCentral = keyStore.loadBooleanOrDefault(listOf("publishToMavenCentral"), false)
 
         return Project(
             prefix,
@@ -99,7 +101,8 @@ class SourceProjectLoaderImpl(
             mavenPlugin,
             gradlePlugin,
             exports,
-            generateCodeStructure
+            generateCodeStructure,
+            publishToMavenCentral
         )
     }
 

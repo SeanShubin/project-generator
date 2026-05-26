@@ -17,7 +17,7 @@ data class Project(
     val mavenPlugin: List<String> = emptyList(), // modules that are Maven plugins
     val gradlePlugin: List<GradlePluginSpec> = emptyList(), // modules that are Gradle plugins
     val exports: List<String> = emptyList(), // modules designed to be imported by other projects via source dependencies
-    val generateCodeStructure: Boolean = true, // whether to generate the code-structure maven plugin and config
+    val generateCodeStructure: Boolean = false, // whether to generate the code-structure maven plugin and config
     val publishToMavenCentral: Boolean = false // when true, fails early if developer is missing
 )
 

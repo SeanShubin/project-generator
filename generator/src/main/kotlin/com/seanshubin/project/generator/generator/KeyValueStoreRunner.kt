@@ -44,7 +44,7 @@ class KeyValueStoreRunner(
         val mavenPlugin: List<String> = loadStringArray(listOf("mavenPlugin"), emptyList())
         val gradlePlugin: List<GradlePluginSpec> = loadGradlePluginSpecs()
         val exports: List<String> = loadStringArray(listOf("exports"), emptyList())
-        val generateCodeStructure: Boolean = keyValueStore.loadBooleanOrDefault(listOf("generateCodeStructure"), true)
+        val generateCodeStructure: Boolean = keyValueStore.loadBooleanOrDefault(listOf("generateCodeStructure"), false)
         val publishToMavenCentral: Boolean = keyValueStore.loadBooleanOrDefault(listOf("publishToMavenCentral"), false)
         val project = Project(
             prefix,

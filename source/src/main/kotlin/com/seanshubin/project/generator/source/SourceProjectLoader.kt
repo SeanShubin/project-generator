@@ -81,7 +81,7 @@ class SourceProjectLoaderImpl(
         val gradlePlugin = loadGradlePluginSpecs(keyStore)
         val exports = loadStringArray(keyStore, listOf("exports"), emptyList())
         val sourceDependencies = loadSourceDependencies(keyStore, projectPath)
-        val generateCodeStructure = keyStore.loadBooleanOrDefault(listOf("generateCodeStructure"), true)
+        val generateCodeStructure = keyStore.loadBooleanOrDefault(listOf("generateCodeStructure"), false)
         val publishToMavenCentral = keyStore.loadBooleanOrDefault(listOf("publishToMavenCentral"), false)
 
         return Project(

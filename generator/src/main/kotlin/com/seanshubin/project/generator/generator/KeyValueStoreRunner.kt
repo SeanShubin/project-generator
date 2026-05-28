@@ -142,7 +142,10 @@ class KeyValueStoreRunner(
     }
 
     private fun loadStringArray(key: List<String>, default: List<String>): List<String> {
-        if (!keyValueStore.exists(key)) return default
+        if (!keyValueStore.exists(key)) {
+            keyValueStore.store(key, default)
+            return default
+        }
         val arraySize = keyValueStore.arraySize(key)
         return (0 until arraySize).map { index ->
             val subKey = key + index

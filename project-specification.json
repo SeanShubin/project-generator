@@ -40,8 +40,7 @@
       "artifact": "jackson-datatype-jsr310"
     }
   },
-  "versionOverrides": [
-  ],
+  "versionOverrides": [],
   "modules": {
     "console": [
       "generator"
@@ -118,5 +117,9 @@
       }
     }
   ],
-  "generateCodeStructure": true
+  "generateCodeStructure": true,
+  "mavenPlugin": [],
+  "gradlePlugin": [],
+  "exports": [],
+  "publishToMavenCentral": false
 }

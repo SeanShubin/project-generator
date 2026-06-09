@@ -30,7 +30,6 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
             add(simpleElement("name", "\${project.groupId}:\${project.artifactId}"))
             add(description(project))
             url(project)?.let { add(it) }
-            add(licenses())
             developers(project)?.let { add(it) }
             scm(project)?.let { add(it) }
             add(gradlePluginBuild())
@@ -202,7 +201,6 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
             add(simpleElement("name", "\${project.groupId}:\${project.artifactId}"))
             add(description(project))
             url(project)?.let { add(it) }
-            add(licenses())
             developers(project)?.let { add(it) }
             scm(project)?.let { add(it) }
             add(profiles(project))
@@ -557,15 +555,6 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
         val githubName = project.developer?.githubName ?: return null
         val githubUrl = "https://github.com/$githubName/${project.name.joinToString("-")}"
         return simpleElement("url", githubUrl)
-    }
-
-    private fun licenses(): XmlNode {
-        val licenseChildren = listOf(
-            simpleElement("name", "Unlicense"),
-            simpleElement("url", "http://unlicense.org/")
-        )
-        val licenseNode = element("license", licenseChildren)
-        return element("licenses", listOf(licenseNode))
     }
 
     private fun developers(project: Project): XmlNode? {

@@ -123,13 +123,6 @@ class GradleFileNodeImpl(private val versionLookup: VersionLookup) : GradleFileN
             if (githubUrl != null) {
                 add(GradleNode.MethodCall("url", "set", listOf("\"$githubUrl\"")))
             }
-            add(GradleNode.EmptyLine)
-            add(GradleNode.Block("licenses", listOf(
-                GradleNode.Block("license", listOf(
-                    GradleNode.MethodCall("name", "set", listOf("\"The Unlicense\"")),
-                    GradleNode.MethodCall("url", "set", listOf("\"https://unlicense.org/\""))
-                ))
-            )))
             project.developer?.let { dev ->
                 add(GradleNode.EmptyLine)
                 add(GradleNode.Block("developers", listOf(

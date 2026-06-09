@@ -232,5 +232,3 @@ Resolution:
 - [Function-Based Events](docs/function-based-events.md)
 - [Composition Root Pattern](docs/composition-root-pattern.md)
 
-## License
-Unlicense

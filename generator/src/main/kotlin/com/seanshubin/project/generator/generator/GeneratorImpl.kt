@@ -112,7 +112,6 @@ class GeneratorImpl(
 
     private fun generateHelperFiles(project: Project): List<Command> {
         val gitignoreCommand = generateGitIgnore()
-        val unlicenseCommand = generateUnlicense()
         val scriptsDir = CreateDirectory(baseDirectory.resolve("scripts"))
 
         // Basic Maven operation scripts
@@ -138,7 +137,6 @@ class GeneratorImpl(
 
         return listOf(
             gitignoreCommand,
-//            unlicenseCommand,
             scriptsDir,
             buildScript,
             cleanScript,
@@ -164,12 +162,6 @@ class GeneratorImpl(
     private fun generateGitIgnore(): Command {
         val content = loadResource("generated-project-files/gitignore.txt")
         val path = baseDirectory.resolve(".gitignore")
-        return WriteTextFile(path, content)
-    }
-
-    private fun generateUnlicense(): Command {
-        val content = loadResource("generated-project-files/UNLICENSE.txt")
-        val path = baseDirectory.resolve("UNLICENSE.txt")
         return WriteTextFile(path, content)
     }
 

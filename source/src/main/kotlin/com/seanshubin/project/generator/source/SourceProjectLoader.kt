@@ -59,7 +59,7 @@ class SourceProjectLoaderImpl(
         val version = keyStore.loadStringOrDefault(listOf("version"), "project version")
         val language = keyStore.loadStringOrDefault(listOf("language"), "kotlin")
 
-        val developer = if (keyStore.exists(listOf("developer"))) {
+        val developer = if (keyStore.load(listOf("developer")) is Map<*, *>) {
             val developerName = keyStore.loadStringOrDefault(listOf("developer", "name"), "developer name")
             val developerGithubName =
                 keyStore.loadStringOrDefault(listOf("developer", "githubName"), "developer github name")

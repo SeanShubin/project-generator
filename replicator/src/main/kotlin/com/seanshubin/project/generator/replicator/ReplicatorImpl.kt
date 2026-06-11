@@ -23,6 +23,7 @@ class ReplicatorImpl(
         val newSlash = newPkgParts.joinToString("/")
         val textReplacements = listOf(oldDot to newDot, oldSlash to newSlash)
         val generateCodeStructure = spec.generateCodeStructure ?: sourceProject.generateCodeStructure
+        val developerOverride = spec.developer
         val rootPomReplacements = if (!generateCodeStructure)
             codeStructurePluginReplacement(spec.sourceDirectory) + textReplacements
         else textReplacements
@@ -43,7 +44,7 @@ class ReplicatorImpl(
                 val effectiveTextReplacements = if (relative == "pom.xml") rootPomReplacements else textReplacements
                 commandsFor(
                     sourcePath, targetPath, relative, effectiveTextReplacements,
-                    listOf(transformation), spec.newPrefix, generateCodeStructure
+                    listOf(transformation), spec.newPrefix, generateCodeStructure, developerOverride
                 ).stream()
             }
             .toList()
@@ -82,7 +83,8 @@ class ReplicatorImpl(
         textReplacements: List<Pair<String, String>>,
         transformations: List<PackageTransformation>,
         newPrefix: List<String>,
-        generateCodeStructure: Boolean
+        generateCodeStructure: Boolean,
+        developerOverride: Any?
     ): List<Command> {
         return when (fileClassifier.classify(relativePath)) {
             FileClass.Skip -> emptyList()
@@ -92,6 +94,10 @@ class ReplicatorImpl(
                 if (sourcePath.fileName.toString() == "project-specification.json") {
                     cmds += SetJsonConfig(targetPath, newPrefix, listOf("prefix"))
                     cmds += SetJsonConfig(targetPath, generateCodeStructure, listOf("generateCodeStructure"))
+                    if (developerOverride !== ReplicationSpec.DEVELOPER_ABSENT) {
+                        cmds += SetJsonConfig(targetPath, developerOverride, listOf("developer"))
+                    }
+                    cmds += SetJsonConfig(targetPath, emptyList<Any>(), listOf("sourceDependencies"))
                 }
                 cmds
             }

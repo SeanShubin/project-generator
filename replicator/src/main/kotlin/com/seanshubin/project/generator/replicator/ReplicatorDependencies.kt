@@ -7,8 +7,19 @@ import com.seanshubin.project.generator.dynamic.json.JsonFileKeyValueStore
 import com.seanshubin.project.generator.dynamic.json.loadBooleanOrDefault
 import com.seanshubin.project.generator.dynamic.json.loadListOrEmpty
 import com.seanshubin.project.generator.dynamic.json.loadStringOrDefault
+import com.seanshubin.project.generator.core.GroupArtifactVersionScope
+import com.seanshubin.project.generator.generator.GeneratorImpl
+import com.seanshubin.project.generator.gradle.GradleFileNodeImpl
+import com.seanshubin.project.generator.gradle.GradleKotlinDslRenderer
+import com.seanshubin.project.generator.http.HttpImpl
+import com.seanshubin.project.generator.maven.MavenXmlNodeImpl
+import com.seanshubin.project.generator.maven.VersionLookupImpl
+import com.seanshubin.project.generator.source.SourceFileFinderImpl
 import com.seanshubin.project.generator.source.SourceProjectLoader
 import com.seanshubin.project.generator.source.SourceProjectLoaderImpl
+import com.seanshubin.project.generator.xml.SaxParserFactoryImpl
+import com.seanshubin.project.generator.xml.StringUtility
+import com.seanshubin.project.generator.xml.XmlRendererImpl
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -47,5 +58,44 @@ class ReplicatorDependencies(
     private val sourceProjectLoader: SourceProjectLoader = SourceProjectLoaderImpl(files)
     private val fileClassifier: FileClassifier = FileClassifierImpl()
     private val replicator: Replicator = ReplicatorImpl(sourceProjectLoader, fileClassifier)
-    val runner: Runnable = ReplicationRunner(replicator, spec, destination, environment)
+
+    private val httpClient = integrations.httpClientFactory.createHttpClient()
+    private val http = HttpImpl(httpClient)
+    private val xmlParserFactory = SaxParserFactoryImpl()
+    private val versionLookup = VersionLookupImpl(http, xmlParserFactory) { uri: String, dep: GroupArtifactVersionScope ->
+        integrations.emit("group:${dep.group} artifact:${dep.artifact} version:${dep.version} uri:$uri")
+    }
+    private val xmlRenderer = XmlRendererImpl(StringUtility.indent)
+    private val mavenXmlNode = MavenXmlNodeImpl(versionLookup)
+    private val gradleRenderer = GradleKotlinDslRenderer()
+    private val gradleFileNode = GradleFileNodeImpl(versionLookup)
+    private val sourceFileFinder = SourceFileFinderImpl(files) { path ->
+        integrations.emitError("path not directory: $path")
+    }
+
+    private val postReplicationStep: (Path, Environment) -> Unit = { destPath, env ->
+        val destProject = sourceProjectLoader.loadProject(destPath)
+        val generator = GeneratorImpl(
+            xmlRenderer = xmlRenderer,
+            baseDirectory = destPath,
+            mavenXmlNode = mavenXmlNode,
+            gradleFileNode = gradleFileNode,
+            gradleRenderer = gradleRenderer,
+            sourceProjectLoader = sourceProjectLoader,
+            sourceFileFinder = sourceFileFinder,
+            onSourceModulesNotFound = { modules ->
+                integrations.emitError("source modules not found: $modules")
+            },
+            onTargetModulesNotFound = { modules ->
+                integrations.emitError("target modules not found: $modules")
+            },
+            onDuplicateTargetModules = { modules ->
+                integrations.emitError("duplicate target modules: $modules")
+            }
+        )
+        val genCommands = generator.generate(destProject)
+        genCommands.forEach { it.execute(env) }
+    }
+
+    val runner: Runnable = ReplicationRunner(replicator, spec, destination, environment, postReplicationStep)
 }

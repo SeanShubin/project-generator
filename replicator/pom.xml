@@ -33,6 +33,11 @@
             <artifactId>project-generator-dynamic-json</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.seanshubin.project.generator</groupId>
+            <artifactId>project-generator-generator</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
     <parent>
         <groupId>com.seanshubin.project.generator</groupId>

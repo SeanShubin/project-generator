@@ -24,9 +24,6 @@ class ReplicatorImpl(
         val textReplacements = listOf(oldDot to newDot, oldSlash to newSlash)
         val generateCodeStructure = spec.generateCodeStructure ?: sourceProject.generateCodeStructure
         val developerOverride = spec.developer
-        val rootPomReplacements = if (!generateCodeStructure)
-            codeStructurePluginReplacement(spec.sourceDirectory) + textReplacements
-        else textReplacements
 
         val gitIgnoreFilter = loadGitIgnoreFilter(spec.sourceDirectory)
 
@@ -41,9 +38,8 @@ class ReplicatorImpl(
                 }
                 val transformedRelative = relative.replace(oldSlash, newSlash)
                 val targetPath = destination.resolve(transformedRelative)
-                val effectiveTextReplacements = if (relative == "pom.xml") rootPomReplacements else textReplacements
                 commandsFor(
-                    sourcePath, targetPath, relative, effectiveTextReplacements,
+                    sourcePath, targetPath, relative, textReplacements,
                     listOf(transformation), spec.newPrefix, generateCodeStructure, developerOverride
                 ).stream()
             }
@@ -54,26 +50,6 @@ class ReplicatorImpl(
         val gitIgnorePath = sourceDirectory.resolve(".gitignore")
         val patterns = if (Files.exists(gitIgnorePath)) Files.readAllLines(gitIgnorePath) else emptyList()
         return GitIgnoreFilter(patterns)
-    }
-
-    private fun codeStructurePluginReplacement(sourceDirectory: Path): List<Pair<String, String>> {
-        val rootPom = sourceDirectory.resolve("pom.xml")
-        if (!Files.exists(rootPom)) return emptyList()
-        val content = Files.readString(rootPom)
-        val block = extractCodeStructurePluginBlock(content) ?: return emptyList()
-        return listOf(block to "")
-    }
-
-    private fun extractCodeStructurePluginBlock(content: String): String? {
-        val marker = "<artifactId>code-structure-maven</artifactId>"
-        val markerIdx = content.indexOf(marker)
-        if (markerIdx < 0) return null
-        val pluginOpen = "<plugin>"
-        val pluginClose = "</plugin>"
-        val start = content.lastIndexOf(pluginOpen, markerIdx)
-        val end = content.indexOf(pluginClose, markerIdx) + pluginClose.length
-        if (start < 0 || end < pluginClose.length) return null
-        return content.substring(start, end)
     }
 
     private fun commandsFor(

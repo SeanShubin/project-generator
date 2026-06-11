@@ -7,10 +7,12 @@ class ReplicationRunner(
     private val replicator: Replicator,
     private val spec: ReplicationSpec,
     private val destination: Path,
-    private val environment: Environment
+    private val environment: Environment,
+    private val postReplicationStep: ((Path, Environment) -> Unit)? = null
 ) : Runnable {
     override fun run() {
         val commands = replicator.replicate(spec, destination)
         commands.forEach { it.execute(environment) }
+        postReplicationStep?.invoke(destination, environment)
     }
 }

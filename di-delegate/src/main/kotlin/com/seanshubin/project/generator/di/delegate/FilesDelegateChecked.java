@@ -318,7 +318,7 @@ public class FilesDelegateChecked implements FilesContractChecked {
 
     @Override
     public Path write(Path path, Iterable<? extends CharSequence> lines, Charset cs, OpenOption... options) throws IOException {
-        return Files.write(path, lines, options);
+        return Files.write(path, lines, cs, options);
     }
 
     @Override

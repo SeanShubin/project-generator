@@ -519,7 +519,7 @@ public class FilesDelegate implements FilesContract {
     @Override
     public Path write(Path path, Iterable<? extends CharSequence> lines, Charset cs, OpenOption... options) {
         try {
-            return delegate.write(path, lines, options);
+            return delegate.write(path, lines, cs, options);
         } catch (IOException ex) {
             throw new RuntimeException(ex.getMessage(), ex);
         }

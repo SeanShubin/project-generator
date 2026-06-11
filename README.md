@@ -1,14 +1,25 @@
 # Project Generator
 
-A tool to generate Maven multi-module Kotlin projects from a JSON specification file, eliminating the need to manually create and maintain pom.xml files.
+Two tools for working with Maven multi-module Kotlin projects:
+
+1. **Project Generator** — create a complete project from a JSON specification, eliminating manual pom.xml authoring
+2. **Project Replicator** — clone an existing project into a new namespace, transforming all package names and references
 
 ## Features
+
+### Project Generation
 - Generate complete multi-module Maven projects from JSON
 - Declare dependencies once, apply globally or per-module
 - Automatic module dependency management
 - Entry point configuration with jar packaging
 - Source dependency copying from other projects
 - Publishing configuration (Maven Central)
+
+### Project Replication
+- Clone an entire project tree into a new package prefix
+- Transform all source file package declarations and imports automatically
+- Copy binary files unchanged; optionally mark paths as verbatim
+- Update `project-specification.json` in the clone with the new prefix
 
 ## Prerequisites
 - Java 25+
@@ -20,7 +31,7 @@ A tool to generate Maven multi-module Kotlin projects from a JSON specification 
 mvn clean package
 ```
 
-## Usage
+## Project Generation
 
 ### Running
 ```bash
@@ -225,6 +236,53 @@ Available exports: di-contract, di-delegate, dynamic-core, dynamic-json
 Resolution:
   1. Remove these modules from your moduleMapping, OR
   2. Add them to the "exports" section in kotlin.reusable's project-specification.json
+```
+
+## Project Replication
+
+### Running
+```bash
+java -jar replicator/target/project-generator-replicator.jar [replication-spec-file] [destination-directory]
+```
+
+If no arguments are provided, uses `replication-spec.json` from the current directory and writes output to `.`.
+
+### What Replication Does
+- Walks the source project tree (respecting `.gitignore`)
+- Transforms package declarations and imports in Kotlin/Java source files
+- Performs text replacement of old package paths in config files
+- Copies binary files as-is
+- Updates `project-specification.json` in the output with the new prefix
+
+### Replication Specification Format
+```json
+{
+  "sourceDirectory": "/path/to/source-project",
+  "newPrefix": ["com", "example"],
+  "generateCodeStructure": false,
+  "verbatimPaths": ["path/to/file/to/copy/unchanged"]
+}
+```
+
+**Fields:**
+- **sourceDirectory**: Path to the project to clone (absolute or relative to the spec file)
+- **newPrefix**: Package prefix for the cloned project (replaces the source project's prefix)
+- **generateCodeStructure**: Optional — overrides the `generateCodeStructure` flag in the copied `project-specification.json`
+- **verbatimPaths**: Optional — list of paths to copy byte-for-byte without any text transformation
+
+### Example
+To clone `../my-template` into a new package namespace:
+```json
+{
+  "sourceDirectory": "../my-template",
+  "newPrefix": ["com", "acme", "newproject"],
+  "generateCodeStructure": false
+}
+```
+
+Run from the directory where the new project should be created:
+```bash
+java -jar /path/to/project-generator-replicator.jar replication-spec.json .
 ```
 
 ## Documentation

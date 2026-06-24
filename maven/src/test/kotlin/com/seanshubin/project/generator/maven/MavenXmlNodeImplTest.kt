@@ -1,5 +1,6 @@
 package com.seanshubin.project.generator.maven
 
+import com.seanshubin.project.generator.core.Developer
 import com.seanshubin.project.generator.core.Project
 import com.seanshubin.project.generator.xml.StringUtility
 import com.seanshubin.project.generator.xml.XmlRendererImpl
@@ -38,7 +39,7 @@ class MavenXmlNodeImplTest {
 
     @Test
     fun rootPomIncludesDeveloperSectionsWhenDeveloperIsPresent() {
-        val developer = com.seanshubin.project.generator.core.Developer(
+        val developer = Developer(
             name = "Test Dev",
             githubName = "testdev",
             mavenUserName = "testdev",

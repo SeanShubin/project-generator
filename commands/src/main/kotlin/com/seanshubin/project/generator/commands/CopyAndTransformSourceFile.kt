@@ -97,10 +97,11 @@ data class CopyAndTransformSourceFile(
         // If still not found, insert at the beginning
         val insertionIndex = if (lastImportIndex >= 0) lastImportIndex + 1 else 0
 
+        val normalizedSourceProjectPath = sourceProjectPath.toString().replace("\\", "/")
         val comment = buildList {
             add("")
             add("//")
-            add("// This file was imported from: $sourceProjectPath")
+            add("// This file was imported from: $normalizedSourceProjectPath")
             add("// Module: $sourceModule")
             add("//")
             add("// Before editing this file, consider whether updating the source project")

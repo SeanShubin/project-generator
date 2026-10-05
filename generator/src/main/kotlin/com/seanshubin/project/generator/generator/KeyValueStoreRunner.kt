@@ -46,6 +46,9 @@ class KeyValueStoreRunner(
         val exports: List<String> = loadStringArray(listOf("exports"), emptyList())
         val generateCodeStructure: Boolean = keyValueStore.loadBooleanOrDefault(listOf("generateCodeStructure"), false)
         val publishToMavenCentral: Boolean = keyValueStore.loadBooleanOrDefault(listOf("publishToMavenCentral"), false)
+        val buildSystem: BuildSystem =
+            BuildSystem.fromString(keyValueStore.loadStringOrDefault(listOf("buildSystem"), "maven"))
+        val preset: Preset = Preset.fromString(keyValueStore.loadStringOrDefault(listOf("preset"), "none"))
         val project = Project(
             prefix,
             name,
@@ -64,7 +67,9 @@ class KeyValueStoreRunner(
             gradlePlugin,
             exports,
             generateCodeStructure,
-            publishToMavenCentral
+            publishToMavenCentral,
+            buildSystem,
+            preset
         )
         val runner = createRunner(project, baseDirectory)
         runner.run()
@@ -117,7 +122,14 @@ class KeyValueStoreRunner(
     private fun extractDependencySpec(map: Map<*, *>): DependencySpec {
         val scope = map["scope"] as String?
 
-        return if (map.containsKey("group")) {
+        return if (map.containsKey("crate")) {
+            // Crate dependency from crates.io - for cargo projects
+            val crate = map["crate"] as String
+            val version = map["version"] as String?
+            val features = (map["features"] as? List<*>)?.map { it as String } ?: emptyList()
+            val defaultFeatures = map["defaultFeatures"] as Boolean?
+            DependencySpec.Crate(crate, version, features, defaultFeatures, scope)
+        } else if (map.containsKey("group")) {
             // External dependency - has group and artifact
             val group = map["group"] as String
             val artifact = map["artifact"] as String

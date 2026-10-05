@@ -1,0 +1,11 @@
+# Normalize text files to LF in the repository.
+# The index already stores LF, so this only pins existing behavior.
+* text=auto
+
+# Shell scripts must keep LF in the working tree, not just in the index.
+# These are templates copied verbatim into generated projects, and a CRLF
+# line ending on the shebang makes the script fail to execute on Linux/macOS.
+*.sh text eol=lf
+
+# PowerShell scripts stay CRLF in the working tree (native on Windows).
+*.ps1 text

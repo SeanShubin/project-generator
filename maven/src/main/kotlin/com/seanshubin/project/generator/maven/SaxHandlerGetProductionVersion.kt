@@ -1,5 +1,6 @@
 package com.seanshubin.project.generator.maven
 
+import com.seanshubin.project.generator.core.VersionRules
 import org.xml.sax.Attributes
 import org.xml.sax.helpers.DefaultHandler
 

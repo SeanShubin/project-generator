@@ -2,7 +2,7 @@ package com.seanshubin.project.generator.maven
 
 import com.seanshubin.project.generator.core.Developer
 import com.seanshubin.project.generator.core.Project
-import com.seanshubin.project.generator.xml.StringUtility
+import com.seanshubin.project.generator.core.StringUtility
 import com.seanshubin.project.generator.xml.XmlRendererImpl
 import kotlin.test.Test
 import kotlin.test.assertFalse

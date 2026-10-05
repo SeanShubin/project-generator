@@ -1,126 +1,75 @@
 {
-  "prefix": [
-    "com",
-    "seanshubin"
-  ],
-  "name": [
-    "project",
-    "generator"
-  ],
-  "description": "Project Generator",
-  "version": "0.1.0",
-  "language": "kotlin",
-  "developer": {
-    "name": "Sean Shubin",
-    "githubName": "SeanShubin",
-    "mavenUserName": "SeanShubin",
-    "organization": "Sean Shubin",
-    "url": "http://seanshubin.com/"
+  "prefix" : [ "com", "seanshubin" ],
+  "name" : [ "project", "generator" ],
+  "description" : "Project Generator",
+  "version" : "0.1.0",
+  "language" : "kotlin",
+  "developer" : {
+    "name" : "Sean Shubin",
+    "githubName" : "SeanShubin",
+    "mavenUserName" : "SeanShubin",
+    "organization" : "Sean Shubin",
+    "url" : "http://seanshubin.com/"
   },
-  "global": [
-    "stdlib",
-    "test"
-  ],
-  "dependencies": {
-    "stdlib": {
-      "group": "org.jetbrains.kotlin",
-      "artifact": "kotlin-stdlib"
+  "global" : [ "stdlib", "test" ],
+  "dependencies" : {
+    "stdlib" : {
+      "group" : "org.jetbrains.kotlin",
+      "artifact" : "kotlin-stdlib"
     },
-    "test": {
-      "group": "org.jetbrains.kotlin",
-      "artifact": "kotlin-test-junit",
-      "scope": "test"
+    "test" : {
+      "group" : "org.jetbrains.kotlin",
+      "artifact" : "kotlin-test-junit",
+      "scope" : "test"
     },
-    "jackson": {
-      "group": "com.fasterxml.jackson.module",
-      "artifact": "jackson-module-kotlin"
+    "jackson" : {
+      "group" : "com.fasterxml.jackson.module",
+      "artifact" : "jackson-module-kotlin"
     },
-    "jackson-time": {
-      "group": "com.fasterxml.jackson.datatype",
-      "artifact": "jackson-datatype-jsr310"
+    "jackson-time" : {
+      "group" : "com.fasterxml.jackson.datatype",
+      "artifact" : "jackson-datatype-jsr310"
     }
   },
-  "versionOverrides": [],
-  "modules": {
-    "console": [
-      "generator"
-    ],
-    "core": [],
-    "http": [],
-    "xml": [],
-    "maven": [
-      "core",
-      "xml",
-      "http"
-    ],
-    "source": [
-      "core",
-      "di-contract",
-      "dynamic-json"
-    ],
-    "commands": [
-      "core",
-      "source",
-      "di-contract",
-      "dynamic-json"
-    ],
-    "gradle": [
-      "core",
-      "maven"
-    ],
-    "generator": [
-      "core",
-      "maven",
-      "gradle",
-      "source",
-      "commands",
-      "dynamic-json",
-      "di-contract"
-    ],
-    "replicator": [
-      "commands",
-      "source",
-      "core",
-      "di-contract",
-      "di-delegate",
-      "dynamic-json",
-      "generator"
-    ],
-    "dynamic-core": [],
-    "dynamic-json": [
-      "dynamic-core",
-      "di-delegate",
-      "jackson",
-      "jackson-time"
-    ],
-    "di-contract": [],
-    "di-delegate": [
-      "di-contract"
-    ],
-    "di-test": [
-      "di-contract"
-    ]
+  "versionOverrides" : [ ],
+  "modules" : {
+    "console" : [ "generator" ],
+    "core" : [ ],
+    "http" : [ ],
+    "xml" : [ ],
+    "maven" : [ "core", "xml", "http" ],
+    "cargo" : [ "core", "http", "dynamic-json" ],
+    "source" : [ "core", "di-contract", "dynamic-json" ],
+    "commands" : [ "core", "source", "di-contract", "dynamic-json" ],
+    "gradle" : [ "core", "maven" ],
+    "generator" : [ "core", "maven", "cargo", "gradle", "source", "commands", "dynamic-json", "di-contract" ],
+    "replicator" : [ "commands", "source", "core", "di-contract", "di-delegate", "dynamic-json", "generator" ],
+    "dynamic-core" : [ ],
+    "dynamic-json" : [ "dynamic-core", "di-delegate", "jackson", "jackson-time" ],
+    "di-contract" : [ ],
+    "di-delegate" : [ "di-contract" ],
+    "di-test" : [ "di-contract" ]
   },
-  "javaVersion": "25",
-  "entryPoints": {
-    "console": "com.seanshubin.project.generator.console.EntryPoint",
-    "replicator": "com.seanshubin.project.generator.replicator.ReplicatorEntryPoint"
+  "javaVersion" : "25",
+  "entryPoints" : {
+    "console" : "com.seanshubin.project.generator.console.EntryPoint",
+    "replicator" : "com.seanshubin.project.generator.replicator.ReplicatorEntryPoint"
   },
-  "sourceDependencies": [
-    {
-      "sourceProjectPath": "../kotlin-reusable",
-      "moduleMapping": {
-        "dynamic-core": "dynamic-core",
-        "dynamic-json": "dynamic-json",
-        "di-contract": "di-contract",
-        "di-delegate": "di-delegate",
-        "di-test": "di-test"
-      }
+  "sourceDependencies" : [ {
+    "sourceProjectPath" : "../kotlin-reusable",
+    "moduleMapping" : {
+      "dynamic-core" : "dynamic-core",
+      "dynamic-json" : "dynamic-json",
+      "di-contract" : "di-contract",
+      "di-delegate" : "di-delegate",
+      "di-test" : "di-test"
     }
-  ],
-  "generateCodeStructure": true,
-  "mavenPlugin": [],
-  "gradlePlugin": [],
-  "exports": [],
-  "publishToMavenCentral": false
+  } ],
+  "generateCodeStructure" : true,
+  "mavenPlugin" : [ ],
+  "gradlePlugin" : [ ],
+  "exports" : [ ],
+  "publishToMavenCentral" : false,
+  "buildSystem" : "maven",
+  "preset" : "none"
 }

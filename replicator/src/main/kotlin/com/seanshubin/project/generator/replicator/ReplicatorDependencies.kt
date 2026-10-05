@@ -8,7 +8,10 @@ import com.seanshubin.project.generator.dynamic.json.loadBooleanOrDefault
 import com.seanshubin.project.generator.dynamic.json.loadListOrEmpty
 import com.seanshubin.project.generator.dynamic.json.loadStringOrDefault
 import com.seanshubin.project.generator.core.GroupArtifactVersionScope
-import com.seanshubin.project.generator.generator.GeneratorImpl
+import com.seanshubin.project.generator.cargo.CargoTomlNodeImpl
+import com.seanshubin.project.generator.cargo.CrateVersionLookupImpl
+import com.seanshubin.project.generator.cargo.TomlRendererImpl
+import com.seanshubin.project.generator.generator.GeneratorFactory
 import com.seanshubin.project.generator.gradle.GradleFileNodeImpl
 import com.seanshubin.project.generator.gradle.GradleKotlinDslRenderer
 import com.seanshubin.project.generator.http.HttpImpl
@@ -18,7 +21,7 @@ import com.seanshubin.project.generator.source.SourceFileFinderImpl
 import com.seanshubin.project.generator.source.SourceProjectLoader
 import com.seanshubin.project.generator.source.SourceProjectLoaderImpl
 import com.seanshubin.project.generator.xml.SaxParserFactoryImpl
-import com.seanshubin.project.generator.xml.StringUtility
+import com.seanshubin.project.generator.core.StringUtility
 import com.seanshubin.project.generator.xml.XmlRendererImpl
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -73,26 +76,34 @@ class ReplicatorDependencies(
         integrations.emitError("path not directory: $path")
     }
 
+    private val tomlRenderer = TomlRendererImpl(StringUtility.indent)
+    private val crateVersionLookup = CrateVersionLookupImpl(http) { uri: String, crate: String, version: String ->
+        integrations.emit("crate:$crate version:$version uri:$uri")
+    }
+    private val cargoTomlNode = CargoTomlNodeImpl(crateVersionLookup)
+    private val generatorFactory = GeneratorFactory(
+        xmlRenderer = xmlRenderer,
+        mavenXmlNode = mavenXmlNode,
+        gradleFileNode = gradleFileNode,
+        gradleRenderer = gradleRenderer,
+        tomlRenderer = tomlRenderer,
+        cargoTomlNode = cargoTomlNode,
+        sourceProjectLoader = sourceProjectLoader,
+        sourceFileFinder = sourceFileFinder,
+        onSourceModulesNotFound = { modules ->
+            integrations.emitError("source modules not found: $modules")
+        },
+        onTargetModulesNotFound = { modules ->
+            integrations.emitError("target modules not found: $modules")
+        },
+        onDuplicateTargetModules = { modules ->
+            integrations.emitError("duplicate target modules: $modules")
+        }
+    )
+
     private val postReplicationStep: (Path, Environment) -> Unit = { destPath, env ->
         val destProject = sourceProjectLoader.loadProject(destPath)
-        val generator = GeneratorImpl(
-            xmlRenderer = xmlRenderer,
-            baseDirectory = destPath,
-            mavenXmlNode = mavenXmlNode,
-            gradleFileNode = gradleFileNode,
-            gradleRenderer = gradleRenderer,
-            sourceProjectLoader = sourceProjectLoader,
-            sourceFileFinder = sourceFileFinder,
-            onSourceModulesNotFound = { modules ->
-                integrations.emitError("source modules not found: $modules")
-            },
-            onTargetModulesNotFound = { modules ->
-                integrations.emitError("target modules not found: $modules")
-            },
-            onDuplicateTargetModules = { modules ->
-                integrations.emitError("duplicate target modules: $modules")
-            }
-        )
+        val generator = generatorFactory.create(destProject, destPath)
         val genCommands = generator.generate(destProject)
         genCommands.forEach { it.execute(env) }
     }

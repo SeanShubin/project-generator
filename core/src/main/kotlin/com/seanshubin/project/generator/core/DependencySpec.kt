@@ -55,6 +55,27 @@ sealed class DependencySpec {
     ) : DependencySpec()
 
     /**
+     * An external crate from crates.io, for [BuildSystem.CARGO] projects.
+     *
+     * A crate is named by a single flat identifier rather than a group/artifact
+     * pair, and carries feature selection, which has no Maven equivalent --
+     * hence a variant of its own rather than a reuse of [External].
+     *
+     * @property crate The crate name on crates.io (e.g., "bevy")
+     * @property version Optional exact version; when omitted the latest release is looked up
+     * @property features Cargo features to enable
+     * @property defaultFeatures When false, emits `default-features = false`; null omits the key
+     * @property scope Optional scope; "test" places the crate in `[dev-dependencies]`
+     */
+    data class Crate(
+        val crate: String,
+        val version: String?,
+        val features: List<String>,
+        val defaultFeatures: Boolean?,
+        override val scope: String?
+    ) : DependencySpec()
+
+    /**
      * An internal module dependency within the same project.
      *
      * The module name is derived from the key in the dependencies map.

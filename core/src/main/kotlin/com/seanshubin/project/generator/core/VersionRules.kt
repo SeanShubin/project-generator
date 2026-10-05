@@ -1,4 +1,4 @@
-package com.seanshubin.project.generator.maven
+package com.seanshubin.project.generator.core
 
 object VersionRules {
     private const val versionSeparator = "."

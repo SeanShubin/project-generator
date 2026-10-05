@@ -18,7 +18,9 @@ data class Project(
     val gradlePlugin: List<GradlePluginSpec> = emptyList(), // modules that are Gradle plugins
     val exports: List<String> = emptyList(), // modules designed to be imported by other projects via source dependencies
     val generateCodeStructure: Boolean = false, // whether to generate the code-structure maven plugin and config
-    val publishToMavenCentral: Boolean = false // when true, fails early if developer is missing
+    val publishToMavenCentral: Boolean = false, // when true, fails early if developer is missing
+    val buildSystem: BuildSystem = BuildSystem.MAVEN, // which build system to emit, the axis that forks generation
+    val preset: Preset = Preset.NONE // optional extra generation layered on top of the build system
 )
 
 data class GradlePluginSpec(

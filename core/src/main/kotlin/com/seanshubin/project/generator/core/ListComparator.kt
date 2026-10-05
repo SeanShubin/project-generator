@@ -1,4 +1,4 @@
-package com.seanshubin.project.generator.maven
+package com.seanshubin.project.generator.core
 
 class ListComparator<T : Comparable<T>> : Comparator<List<T>> {
     override fun compare(listA: List<T>?, listB: List<T>?): Int {

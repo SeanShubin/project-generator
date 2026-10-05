@@ -614,6 +614,7 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
                     latestDependency.toDependencyNode(includeVersion = true, includeScope = true)
                 }
                 is DependencySpec.Internal -> null // Internal dependencies don't go in dependencyManagement
+                is DependencySpec.Crate -> throw crateInMavenProject(dependencyName)
             }
         }
         val dependencyNode = element("dependencies", dependencyNodeChildren)
@@ -633,6 +634,8 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
             is DependencySpec.Internal -> {
                 throw RuntimeException("Expected external dependency but found internal module '$dependencyName'")
             }
+
+            is DependencySpec.Crate -> throw crateInMavenProject(dependencyName)
         }
     }
 
@@ -661,6 +664,8 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
                     "Global dependency '$dependencyName' cannot be an internal module. " +
                     "Internal dependencies should be declared per-module in the modules section."
                 )
+
+                is DependencySpec.Crate -> throw crateInMavenProject(dependencyName)
             }
         }
         return element("dependencies", dependencyNodes)
@@ -715,6 +720,8 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
                         is DependencySpec.Internal -> {
                             internalDeps.add(internalDependency(project, dependencyName, spec.scope))
                         }
+
+                        is DependencySpec.Crate -> throw crateInMavenProject(dependencyName)
                     }
                 }
                 // Check if it's a module name (not in dependencies section, but in modules section)
@@ -736,6 +743,12 @@ class MavenXmlNodeImpl(private val versionLookup: VersionLookup) : MavenXmlNode 
             element("dependencies", moduleDependenciesNodeChildren)
         }
     }
+
+    private fun crateInMavenProject(dependencyName: String): RuntimeException =
+        RuntimeException(
+            "Dependency '$dependencyName' is a crate, which is only valid in a cargo project. " +
+                    "Either set \"buildSystem\": \"cargo\", or give it a group and artifact."
+        )
 
     private fun element(name: String, children: List<XmlNode>): XmlNode.Element {
         return XmlNode.Element(name, emptyList(), children)

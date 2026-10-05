@@ -1,9 +1,11 @@
 package com.seanshubin.project.generator.source
 
+import com.seanshubin.project.generator.core.BuildSystem
 import com.seanshubin.project.generator.core.DependencySpec
 import com.seanshubin.project.generator.core.Developer
 import com.seanshubin.project.generator.core.GradlePluginSpec
 import com.seanshubin.project.generator.core.GroupArtifactVersion
+import com.seanshubin.project.generator.core.Preset
 import com.seanshubin.project.generator.core.Project
 import com.seanshubin.project.generator.core.SourceDependency
 import com.seanshubin.project.generator.di.contract.FilesContract
@@ -83,6 +85,8 @@ class SourceProjectLoaderImpl(
         val sourceDependencies = loadSourceDependencies(keyStore, projectPath)
         val generateCodeStructure = keyStore.loadBooleanOrDefault(listOf("generateCodeStructure"), false)
         val publishToMavenCentral = keyStore.loadBooleanOrDefault(listOf("publishToMavenCentral"), false)
+        val buildSystem = BuildSystem.fromString(keyStore.loadStringOrDefault(listOf("buildSystem"), "maven"))
+        val preset = Preset.fromString(keyStore.loadStringOrDefault(listOf("preset"), "none"))
 
         return Project(
             prefix,
@@ -102,7 +106,9 @@ class SourceProjectLoaderImpl(
             gradlePlugin,
             exports,
             generateCodeStructure,
-            publishToMavenCentral
+            publishToMavenCentral,
+            buildSystem,
+            preset
         )
     }
 
@@ -135,7 +141,14 @@ class SourceProjectLoaderImpl(
             val dependencyMap = dependency as Map<*, *>
             val scope = dependencyMap["scope"] as String?
 
-            val spec = if (dependencyMap.containsKey("group")) {
+            val spec = if (dependencyMap.containsKey("crate")) {
+                // Crate dependency from crates.io - for cargo projects
+                val crate = dependencyMap["crate"] as String
+                val version = dependencyMap["version"] as String?
+                val features = (dependencyMap["features"] as? List<*>)?.map { it as String } ?: emptyList()
+                val defaultFeatures = dependencyMap["defaultFeatures"] as Boolean?
+                DependencySpec.Crate(crate, version, features, defaultFeatures, scope)
+            } else if (dependencyMap.containsKey("group")) {
                 // External dependency - has group and artifact
                 val group = dependencyMap["group"] as String
                 val artifact = dependencyMap["artifact"] as String
